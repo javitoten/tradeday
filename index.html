@@ -1301,6 +1301,17 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--bg4);border:1px solid var(--border2)"></div>Breakeven</div>
         </div>
 
+        <!-- Resumen del mes -->
+        <div class="card" style="padding:14px 18px">
+          <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px" id="cal-summary-title">Resumen del mes</div>
+          <div class="metric-grid">
+            <div class="metric-card"><div class="metric-label">Días operados</div><div class="metric-value" id="cal-days-traded">—</div></div>
+            <div class="metric-card"><div class="metric-label">P&L del mes</div><div class="metric-value" id="cal-pnl">—</div></div>
+            <div class="metric-card"><div class="metric-label">Entradas journal</div><div class="metric-value" id="cal-journals">—</div></div>
+            <div class="metric-card"><div class="metric-label">Win Rate</div><div class="metric-value pos" id="cal-wr">—</div></div>
+          </div>
+        </div>
+
         <!-- Layout: calendario + resumen semanal -->
         <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start">
 
@@ -1983,7 +1994,7 @@ function renderAccountsSidebar(){
   list.innerHTML=allAccounts.map(a=>`
     <div class="account-chip ${a.id===currentAccountId?'active-account':''}" onclick="switchAccount('${a.id}')">
       <div class="account-dot ${a.type}"></div>
-      <div class="account-chip-name">${a.name}</div>
+      <div class="account-chip-name">${esc(a.name)}</div>
       <div class="account-chip-capital">${fmtMoney(a.capital)}</div>
     </div>`).join('');
   // Config accounts list
@@ -1993,7 +2004,7 @@ function renderAccountsSidebar(){
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:8px">
           <div class="account-dot ${a.type}"></div>
-          <div><div style="font-size:13px;font-weight:600">${a.name}</div><div style="font-size:11px;color:var(--text3)">${a.type==='funded'?'Fondeada':'Real'} · ${fmtMoney(a.capital)}</div></div>
+          <div><div style="font-size:13px;font-weight:600">${esc(a.name)}</div><div style="font-size:11px;color:var(--text3)">${a.type==='funded'?'Fondeada':'Real'} · ${fmtMoney(a.capital)}</div></div>
         </div>
         <button class="icon-btn danger" onclick="deleteAccount('${a.id}')"><i class="ti ti-trash"></i></button>
       </div>`).join('');
@@ -2303,7 +2314,7 @@ function renderDaySummary(){
       html+=`<div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Operaciones</div><div style="font-size:18px;font-weight:800">${todayTrades.length}</div></div>`;
       html+=`</div>`;
     }
-    if(t.notes)html+=`<div style="margin-top:8px;font-size:12px;color:var(--text3);border-left:2px solid var(--border2);padding-left:10px;font-style:italic">"${t.notes.slice(0,120)}${t.notes.length>120?'…':''}"</div>`;
+    if(t.notes)html+=`<div style="margin-top:8px;font-size:12px;color:var(--text3);border-left:2px solid var(--border2);padding-left:10px;font-style:italic">"${esc(t.notes.slice(0,120))}${t.notes.length>120?'…':''}"</div>`;
   } else if(todayJournals.length){
     const j=todayJournals[todayJournals.length-1];
     html+=`<div>Hoy no hubo operaciones. ${j.reason?`Motivo: <strong>${j.reason}</strong>.`:''}</div>`;
@@ -2314,7 +2325,7 @@ function renderDaySummary(){
       const done=Object.values(completedMap).filter(Boolean).length;
       html+=`<div style="margin-top:6px">Rutina completada: <strong>${done}/${routineBlocks.length}</strong> hábitos.</div>`;
     }
-    if(j.content)html+=`<div style="margin-top:8px;font-size:12px;color:var(--text3);border-left:2px solid var(--border2);padding-left:10px;font-style:italic">"${j.content.slice(0,120)}${j.content.length>120?'…':''}"</div>`;
+    if(j.content)html+=`<div style="margin-top:8px;font-size:12px;color:var(--text3);border-left:2px solid var(--border2);padding-left:10px;font-style:italic">"${esc(j.content.slice(0,120))}${j.content.length>120?'…':''}"</div>`;
   }
 
   content.innerHTML=html;
@@ -2470,8 +2481,8 @@ function journalEntryHTML(j){
         <button class="icon-btn danger" onclick="deleteJournal('${j.id}')"><i class="ti ti-trash"></i></button>
       </div>
     </div>
-    ${j.content?`<div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px">${j.content}</div>`:''}
-    ${j.tomorrow?`<div style="font-size:12px;color:var(--text3);margin-top:6px"><i class="ti ti-arrow-right" style="font-size:11px"></i> Para mañana: ${j.tomorrow}</div>`:''}
+    ${j.content?`<div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px">${esc(j.content)}</div>`:''}
+    ${j.tomorrow?`<div style="font-size:12px;color:var(--text3);margin-top:6px"><i class="ti ti-arrow-right" style="font-size:11px"></i> Para mañana: ${esc(j.tomorrow)}</div>`:''}
     ${routineComplianceBlockHTML(j.date)}
     ${analysisBlockHTML(analysis)}
   </div>`;
@@ -2497,7 +2508,7 @@ function tradeJournalHTML(t){
         <button class="icon-btn danger" onclick="deleteTrade('${t.id}')"><i class="ti ti-trash"></i></button>
       </div>
     </div>
-    ${t.notes?`<div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px">${t.notes}</div>`:''}
+    ${t.notes?`<div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px">${esc(t.notes)}</div>`:''}
     ${analysisBlockHTML(analysis)}
   </div>`;
 }
@@ -2916,7 +2927,7 @@ function routineComplianceBlockHTML(dateKey){
   return `<div style="background:var(--bg4);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;margin-top:8px">
     <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Cumplimiento de rutina · ${done}/${total}</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
-      ${routineBlocks.map(b=>`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${completedMap[b.id]?'var(--green-bg)':'var(--bg3)'};color:${completedMap[b.id]?'var(--green)':'var(--text3)'};border:1px solid ${completedMap[b.id]?'var(--green-border)':'var(--border)'}">${completedMap[b.id]?'✅':'❌'} ${b.name}</span>`).join('')}
+      ${routineBlocks.map(b=>`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${completedMap[b.id]?'var(--green-bg)':'var(--bg3)'};color:${completedMap[b.id]?'var(--green)':'var(--text3)'};border:1px solid ${completedMap[b.id]?'var(--green-border)':'var(--border)'}">${completedMap[b.id]?'✅':'❌'} ${esc(b.name)}</span>`).join('')}
     </div>
   </div>`;
 }
@@ -2955,12 +2966,12 @@ function entryHTML(e){
   const barCls=isJ?'journal':(e.result||'be');
   const amtColor=e.result==='win'?'var(--green)':e.result==='loss'?'var(--red)':'var(--text2)';
   const badges=isJ
-    ?`<span class="badge badge-journal">Diario</span>${e.mood?`<span style="font-size:11px;color:var(--text3)">${e.mood}</span>`:''}`
-    :`<span class="badge ${e.result==='win'?'badge-win':e.result==='loss'?'badge-loss':'badge-be'}">${e.result==='win'?'Win':e.result==='loss'?'Loss':'BE'}</span><span class="badge ${e.direction==='Buy'?'badge-buy':'badge-sell'}">${e.direction||''}</span><span style="font-size:11px;color:var(--text3)">${e.session||''}</span>`;
-  const preview=isJ?(e.content||'').slice(0,65):(e.notes||'').slice(0,65);
+    ?`<span class="badge badge-journal">Diario</span>${e.mood?`<span style="font-size:11px;color:var(--text3)">${esc(e.mood)}</span>`:''}`
+    :`<span class="badge ${e.result==='win'?'badge-win':e.result==='loss'?'badge-loss':'badge-be'}">${e.result==='win'?'Win':e.result==='loss'?'Loss':'BE'}</span><span class="badge ${e.direction==='Buy'?'badge-buy':'badge-sell'}">${e.direction||''}</span><span style="font-size:11px;color:var(--text3)">${esc(e.session||'')}</span>`;
+  const preview=esc(isJ?(e.content||'').slice(0,65):(e.notes||'').slice(0,65));
   const delCall=isJ?`deleteJournal('${e.id}')`:`deleteTrade('${e.id}')`;
   const editCall=isJ?`editJournalEntry('${e.id}')`:`editTradeEntry('${e.id}')`;
-  return`<div class="entry-row"><div class="entry-left-bar ${barCls}"></div><div class="entry-body"><div class="entry-top"><span class="entry-pair">${isJ?'Diario':e.pair}</span>${badges}</div>${preview?`<div class="entry-note-preview">${preview}${preview.length>=65?'…':''}</div>`:''}</div><div class="entry-right">${!isJ&&e.amount?`<span class="entry-amount" style="color:${amtColor}">${e.result==='be'?'BE':e.amount}</span>`:''}<span class="entry-date-lbl">${fmtDate(e.date)}</span><div class="entry-actions"><button class="icon-btn" onclick="${editCall}"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="${delCall}"><i class="ti ti-trash"></i></button></div></div></div>`;
+  return`<div class="entry-row"><div class="entry-left-bar ${barCls}"></div><div class="entry-body"><div class="entry-top"><span class="entry-pair">${isJ?'Diario':esc(e.pair)}</span>${badges}</div>${preview?`<div class="entry-note-preview">${preview}${preview.length>=65?'…':''}</div>`:''}</div><div class="entry-right">${!isJ&&e.amount?`<span class="entry-amount" style="color:${amtColor}">${e.result==='be'?'BE':e.amount}</span>`:''}<span class="entry-date-lbl">${fmtDate(e.date)}</span><div class="entry-actions"><button class="icon-btn" onclick="${editCall}"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="${delCall}"><i class="ti ti-trash"></i></button></div></div></div>`;
 }
 
 let editingTradeId=null, editingJournalId=null;
@@ -3203,8 +3214,8 @@ function showDayDetail(key,day,month,year,panelId){
   const dj=allJournals.filter(j=>j.date===key);
   if(!dt.length&&!dj.length){panel.innerHTML='<div class="day-detail-empty">Sin actividad registrada este día</div>';return;}
   let html=`<div style="font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:-.02em">${day} ${M[month]} ${year}</div>`;
-  dt.forEach(t=>{html+=`<div style="font-size:12px;padding:7px 0;border-bottom:1px solid var(--border)"><strong>${t.pair}</strong> <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction}</span> · ${t.session} · <span class="${t.result==='win'?'pos':t.result==='loss'?'neg':'neutral'}">${t.amount||'BE'}</span>${t.notes?`<div style="color:var(--text3);margin-top:3px;font-size:11px">${t.notes.slice(0,100)}</div>`:''}</div>`;});
-  dj.forEach(j=>{html+=`<div style="font-size:12px;padding:7px 0;color:var(--text2)">${j.content?j.content.slice(0,120)+'…':'Diario sin contenido'}</div>`;});
+  dt.forEach(t=>{html+=`<div style="font-size:12px;padding:7px 0;border-bottom:1px solid var(--border)"><strong>${esc(t.pair)}</strong> <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction}</span> · ${esc(t.session)} · <span class="${t.result==='win'?'pos':t.result==='loss'?'neg':'neutral'}">${t.amount||'BE'}</span>${t.notes?`<div style="color:var(--text3);margin-top:3px;font-size:11px">${esc(t.notes.slice(0,100))}</div>`:''}</div>`;});
+  dj.forEach(j=>{html+=`<div style="font-size:12px;padding:7px 0;color:var(--text2)">${j.content?esc(j.content.slice(0,120))+'…':'Diario sin contenido'}</div>`;});
   panel.innerHTML=html;
 }
 
@@ -3220,6 +3231,7 @@ function getWeekKey(ds){
 }
 function fmtMoney(n){const abs=Math.abs(Math.round(n));return(n<0?'-':'')+abs.toLocaleString('es-ES')+'$';}
 function setText(id,txt){const e=document.getElementById(id);if(e)e.textContent=txt;}
+function esc(s){if(s===null||s===undefined)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function toast(msg){const el=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
 
 /* ── CONFIRMACIÓN VISUAL DE GUARDADO ──
@@ -3509,7 +3521,7 @@ function renderRoutineBuilder(){
       <i class="ti ti-grip-vertical rt-block-handle"></i>
       <span class="rt-block-icon">${b.icon}</span>
       <input class="rt-block-time" type="time" value="${b.time}" onchange="updateRoutineBlockTime('${b.id}',this.value)">
-      <input class="rt-block-name" value="${b.name}" onchange="updateRoutineBlockName('${b.id}',this.value)">
+      <input class="rt-block-name" value="${esc(b.name)}" onchange="updateRoutineBlockName('${b.id}',this.value)">
       <div class="rt-block-actions">
         <button class="icon-btn" onclick="moveRoutineBlock('${b.id}',-1)" ${i===0?'disabled style="opacity:.3"':''}><i class="ti ti-arrow-up"></i></button>
         <button class="icon-btn" onclick="moveRoutineBlock('${b.id}',1)" ${i===routineBlocks.length-1?'disabled style="opacity:.3"':''}><i class="ti ti-arrow-down"></i></button>
@@ -3593,7 +3605,7 @@ async function renderRoutineActive(){
       <div class="rt-checklist-check"><i class="ti ti-check"></i></div>
       <span class="rt-checklist-time">${b.time}</span>
       <span class="rt-checklist-icon">${b.icon}</span>
-      <span class="rt-checklist-label">${b.name}</span>
+      <span class="rt-checklist-label">${esc(b.name)}</span>
     </div>`;
   }).join('');
   const doneCount=Object.values(completedMap).filter(Boolean).length;
@@ -3602,7 +3614,7 @@ async function renderRoutineActive(){
   // Vista de solo lectura de la rutina diseñada
   const readonlyEl=document.getElementById('routine-readonly-list');
   readonlyEl.innerHTML=routineBlocks.map(b=>`
-    <div class="rt-readonly-item"><span class="rt-readonly-time">${b.time}</span><span>${b.icon}</span><span>${b.name}</span></div>
+    <div class="rt-readonly-item"><span class="rt-readonly-time">${b.time}</span><span>${b.icon}</span><span>${esc(b.name)}</span></div>
   `).join('');
 
   if(routineWeeklyOpen)renderRoutineWeekly();
@@ -3672,11 +3684,11 @@ async function renderRoutineWeekly(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="we-section">
         <div class="we-section-title"><i class="ti ti-star" style="color:var(--green)"></i>Mejor hábito</div>
-        <div class="we-section-text">${bestBlock?`"${bestBlock.icon} ${bestBlock.name}" — cumplido ${blockCompletionCount[bestBlock.id]} de 7 días.`:'Sin datos suficientes aún.'}</div>
+        <div class="we-section-text">${bestBlock?`"${bestBlock.icon} ${esc(bestBlock.name)}" — cumplido ${blockCompletionCount[bestBlock.id]} de 7 días.`:'Sin datos suficientes aún.'}</div>
       </div>
       <div class="we-section">
         <div class="we-section-title"><i class="ti ti-bulb" style="color:var(--amber)"></i>Hábito a mejorar</div>
-        <div class="we-section-text">${worstBlock&&worstBlock.id!==bestBlock?.id?`"${worstBlock.icon} ${worstBlock.name}" — cumplido solo ${blockCompletionCount[worstBlock.id]} de 7 días.`:'Buen trabajo, sin puntos débiles claros esta semana.'}</div>
+        <div class="we-section-text">${worstBlock&&worstBlock.id!==bestBlock?.id?`"${worstBlock.icon} ${esc(worstBlock.name)}" — cumplido solo ${blockCompletionCount[worstBlock.id]} de 7 días.`:'Buen trabajo, sin puntos débiles claros esta semana.'}</div>
       </div>
     </div>
   `;
@@ -3967,7 +3979,7 @@ function renderPlanSavedContent(){
   el.innerHTML=sections.map(s=>`
     <div class="card" style="margin-bottom:14px">
       <div class="form-section" style="margin-bottom:14px;border-bottom:none;padding-bottom:0">${s.icon} ${s.title}</div>
-      ${s.rows.filter(r=>r[1]&&r[1].length).map(r=>`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">${r[0]}</div><div style="font-size:13px;color:var(--text);line-height:1.6">${r[1]}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text3)">Sin completar</div>'}
+      ${s.rows.filter(r=>r[1]&&r[1].length).map(r=>`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">${esc(r[0])}</div><div style="font-size:13px;color:var(--text);line-height:1.6">${esc(r[1])}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text3)">Sin completar</div>'}
     </div>`).join('');
 }
 
@@ -4275,4 +4287,3 @@ document.addEventListener('visibilitychange',()=>{
 </script>
 </body>
 </html>
-<!-- deploy trigger -->
