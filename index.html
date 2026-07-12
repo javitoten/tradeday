@@ -2069,12 +2069,32 @@ function currentCapitalBeforeTrade(excludeTradeId){
   return (acc.capital||0)+pnl;
 }
 
+// Convierte un string numérico "sucio" (de datos antiguos, con formatos
+// mezclados) en un número JS fiable. A diferencia de un simple parseFloat,
+// entiende la coma decimal española ("2,4" → 2.4) y no confunde un punto de
+// millar con un decimal.
+function parseLegacyAmountNum(str){
+  if(str===null||str===undefined||str==='')return NaN;
+  let s=String(str).trim().replace(/[+$%\s]/g,'');
+  if(/,\d{1,2}$/.test(s)&&!s.includes('.')){
+    s=s.replace(',','.'); // coma decimal española, p.ej. "2,4" → "2.4"
+  } else {
+    s=s.replace(/,/g,''); // coma usada como separador de miles → se descarta
+  }
+  return parseFloat(s);
+}
+
 // Garantiza que TODOS los trades tengan siempre tanto el valor en $ (amount)
 // como en % (amount_pct) rellenos y consistentes entre sí, sin importar si el
 // usuario originalmente introdujo el resultado en $ o en %. Si falta uno de
 // los dos (por ejemplo trades antiguos guardados antes de esta corrección),
 // se calcula aquí mismo usando el capital actual de la cuenta y se guarda de
 // forma permanente en Supabase para que quede arreglado para siempre.
+//
+// IMPORTANTE: si un valor no tiene símbolo "$" ni "%" (datos muy antiguos,
+// p.ej. amount="200"), se trata SIEMPRE como dólares, nunca como porcentaje.
+// Interpretar por error un "200" como "200%" multiplicaría el capital por 2
+// de golpe — justo el tipo de corrupción que esta función debe evitar.
 function normalizeTradeAmounts(){
   const repaired=[];
   allTrades.forEach(t=>{
@@ -2084,40 +2104,41 @@ function normalizeTradeAmounts(){
     }
     const amountStr=t.amount?String(t.amount):'';
     const pctStr=t.amount_pct?String(t.amount_pct):'';
-    // Un valor en $ válido debe contener el símbolo "$". Si el campo amount
-    // en realidad contiene un "%" (bug de versiones antiguas que guardaban
-    // el porcentaje también en el campo de dólares), NO es un $ válido aunque
-    // parseFloat consiga extraer un número de él.
     const amountIsValidUSD=amountStr.includes('$');
     const pctIsValidPct=pctStr.includes('%');
+    if(amountIsValidUSD&&pctIsValidPct)return; // ya está correcto, no tocar
     const baseCapital=currentCapitalBeforeTrade(t.id);
+    if(!baseCapital)return; // sin capital de referencia no podemos calcular con seguridad
     let changed=false;
-    if(amountIsValidUSD&&pctIsValidPct){
-      return; // ya está correcto, no tocar
-    }
-    if(!amountIsValidUSD&&pctIsValidPct&&baseCapital){
-      // amount falta o está mal (p.ej. contiene "%" por error) → recalcular $ desde el % real
-      const pctNum=parseFloat(pctStr.replace(/[^0-9.\-]/g,''));
+    if(pctIsValidPct&&!amountIsValidUSD){
+      // El % es válido pero falta (o está mal) el $ → recalcular $ desde el % real
+      const pctNum=parseLegacyAmountNum(pctStr);
       if(!isNaN(pctNum)){
         const usdVal=baseCapital*pctNum/100;
-        t.amount=(usdVal>=0?'+':'')+usdVal.toLocaleString('es-ES',{maximumFractionDigits:2})+'$';
+        t.amount=(usdVal>=0?'+':'')+usdVal.toFixed(2)+'$';
         changed=true;
       }
-    } else if(!amountIsValidUSD&&!pctIsValidPct&&amountStr&&baseCapital){
-      // ni amount ni amount_pct están bien formados, pero amount trae un número
-      // (probablemente el % guardado por error en ambos campos) → usarlo como %
-      const numFromAmount=parseFloat(amountStr.replace(/[^0-9.\-]/g,''));
-      if(!isNaN(numFromAmount)){
-        const usdVal=baseCapital*numFromAmount/100;
-        t.amount=(usdVal>=0?'+':'')+usdVal.toLocaleString('es-ES',{maximumFractionDigits:2})+'$';
-        t.amount_pct=(numFromAmount>=0?'+':'')+numFromAmount.toFixed(2)+'%';
-        changed=true;
-      }
-    }
-    if(!pctIsValidPct&&amountIsValidUSD&&baseCapital){
-      const usdNum=parseFloat(amountStr.replace(/[^0-9.\-]/g,''));
+    } else if(amountIsValidUSD&&!pctIsValidPct){
+      // El $ es válido pero falta el % → calcularlo a partir del $
+      const usdNum=parseLegacyAmountNum(amountStr);
       if(!isNaN(usdNum)){
         const pctVal=usdNum/baseCapital*100;
+        t.amount_pct=(pctVal>=0?'+':'')+pctVal.toFixed(2)+'%';
+        changed=true;
+      }
+    } else if(!amountIsValidUSD&&!pctIsValidPct&&amountStr){
+      // Sin símbolo "$" ni "%" → se asume $ (modo original de la app antes
+      // de soportar %). NUNCA se interpreta como porcentaje.
+      let num=parseLegacyAmountNum(amountStr);
+      if(!isNaN(num)){
+        // Datos muy antiguos a veces guardaban el número sin signo. Si el
+        // signo del valor no coincide con el resultado (win=+/loss=-), se
+        // corrige el signo para que sea coherente con t.result.
+        if(!/^[+\-]/.test(amountStr.trim())){
+          num=Math.abs(num)*(t.result==='loss'?-1:1);
+        }
+        t.amount=(num>=0?'+':'')+num.toFixed(2)+'$';
+        const pctVal=num/baseCapital*100;
         t.amount_pct=(pctVal>=0?'+':'')+pctVal.toFixed(2)+'%';
         changed=true;
       }
@@ -2208,7 +2229,13 @@ async function saveTrade(){
         usdVal=sign*numVal;
         pctVal=baseCapital?(usdVal/baseCapital*100):0;
       }
-      amountUSD=(usdVal>=0?'+':'')+usdVal.toLocaleString('es-ES',{maximumFractionDigits:2})+'$';
+      // Importante: NO usar toLocaleString('es-ES') aquí. Ese formato añade
+      // puntos como separador de miles (p.ej. "2.000$"), y como el resto de
+      // la app vuelve a parsear este mismo string más adelante con una regex
+      // simple, ese punto se confundía con un separador decimal y corrompía
+      // el valor (2.000 pasaba a leerse como 2). Usamos toFixed para que el
+      // string guardado sea siempre inambiguo y se pueda re-parsear sin error.
+      amountUSD=(usdVal>=0?'+':'')+usdVal.toFixed(2)+'$';
       amountPct=(pctVal>=0?'+':'')+pctVal.toFixed(2)+'%';
     }
   }
