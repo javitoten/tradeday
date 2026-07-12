@@ -1306,8 +1306,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
           <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px" id="cal-summary-title">Resumen del mes</div>
           <div class="metric-grid">
             <div class="metric-card"><div class="metric-label">Días operados</div><div class="metric-value" id="cal-days-traded">—</div></div>
-            <div class="metric-card"><div class="metric-label">P&L del mes</div><div class="metric-value" id="cal-pnl">—</div></div>
-            <div class="metric-card"><div class="metric-label">Entradas journal</div><div class="metric-value" id="cal-journals">—</div></div>
+            <div class="metric-card"><div class="metric-label">P&L del mes</div><div class="metric-value" id="cal-pnl">—</div><div class="metric-delta" id="cal-pnl-pct">—</div></div>
+            <div class="metric-card"><div class="metric-label">Journal sin trade</div><div class="metric-value" id="cal-journals">—</div></div>
             <div class="metric-card"><div class="metric-label">Win Rate</div><div class="metric-value pos" id="cal-wr">—</div></div>
           </div>
         </div>
@@ -2069,6 +2069,37 @@ function currentCapitalBeforeTrade(excludeTradeId){
   return (acc.capital||0)+pnl;
 }
 
+// Garantiza que TODOS los trades tengan siempre tanto el valor en $ (amount)
+// como en % (amount_pct) rellenos y consistentes entre sí, sin importar si el
+// usuario originalmente introdujo el resultado en $ o en %. Si falta uno de
+// los dos (por ejemplo trades antiguos guardados antes de esta corrección),
+// se calcula aquí mismo usando el capital actual de la cuenta y se guarda de
+// forma permanente en Supabase para que quede arreglado para siempre.
+function normalizeTradeAmounts(){
+  const repaired=[];
+  allTrades.forEach(t=>{
+    if(t.result==='be'){
+      if(t.amount!=='BE'||t.amount_pct!=='0%'){t.amount='BE';t.amount_pct='0%';repaired.push(t);}
+      return;
+    }
+    const usdNum=t.amount?parseFloat(String(t.amount).replace(/[^0-9.\-]/g,'')):NaN;
+    const pctNum=t.amount_pct?parseFloat(String(t.amount_pct).replace(/[^0-9.\-]/g,'')):NaN;
+    const baseCapital=currentCapitalBeforeTrade(t.id);
+    if(isNaN(usdNum)&&!isNaN(pctNum)&&baseCapital){
+      const usdVal=baseCapital*pctNum/100;
+      t.amount=(usdVal>=0?'+':'')+usdVal.toLocaleString('es-ES',{maximumFractionDigits:2})+'$';
+      repaired.push(t);
+    } else if(isNaN(pctNum)&&!isNaN(usdNum)&&baseCapital){
+      const pctVal=usdNum/baseCapital*100;
+      t.amount_pct=(pctVal>=0?'+':'')+pctVal.toFixed(2)+'%';
+      repaired.push(t);
+    }
+  });
+  repaired.forEach(t=>{
+    sb.from('trades').update({amount:t.amount,amount_pct:t.amount_pct}).eq('id',t.id);
+  });
+}
+
 /* ── DATA ── */
 async function loadProfile(){
   if(!currentUser)return;
@@ -2084,6 +2115,7 @@ async function loadData(){
   const{data:trades}=await sb.from('trades').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   const{data:journals}=await sb.from('journals').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   allTrades=trades||[];allJournals=journals||[];
+  normalizeTradeAmounts();
   renderAll();
 }
 
@@ -3052,18 +3084,25 @@ function renderCal(gridId,labelId,titleId,year,month,clickable,detailPanelId){
   if(gridId==='full-days')renderCalSummary(year,month);
 }
 function renderCalSummary(year,month){
-  const mt=allTrades.filter(t=>{if(!t.date)return false;const d=new Date(t.date);return d.getFullYear()===year&&d.getMonth()===month;});
+  const prefix=`${year}-${String(month+1).padStart(2,'0')}`;
+  const mt=allTrades.filter(t=>t.date&&t.date.startsWith(prefix));
+  const mjTrades=new Set(mt.map(t=>t.date));
   const wins=mt.filter(t=>t.result==='win').length;
   const losses=mt.filter(t=>t.result==='loss').length;
-  const wr=mt.length?Math.round(wins/(wins+losses||1)*100):0;
-  let pnl=0;mt.forEach(t=>{if(t.amount){const n=parseFloat(t.amount.replace(/[^0-9.\-]/g,''));if(!isNaN(n))pnl+=n;}});
-  const mj=allJournals.filter(j=>{if(!j.date)return false;const d=new Date(j.date);return d.getFullYear()===year&&d.getMonth()===month;});
+  const wr=(wins+losses)?Math.round(wins/(wins+losses)*100):0;
+  let pnl=0;mt.forEach(t=>{if(t.amount){const n=parseFloat(String(t.amount).replace(/[^0-9.\-]/g,''));if(!isNaN(n))pnl+=n;}});
+  const mj=allJournals.filter(j=>j.date&&j.date.startsWith(prefix));
+  const jSinTrade=mj.filter(j=>!mjTrades.has(j.date)).length;
   const M=gM();
+  const acc=currentAccount();
+  const capitalBase=acc?(acc.capital||0):0;
+  const pct=capitalBase?(pnl/capitalBase*100):0;
   setText('cal-summary-title','Resumen — '+M[month]+' '+year);
   setText('cal-days-traded',mt.length.toString());
   const pEl=document.getElementById('cal-pnl');if(pEl){pEl.textContent=(pnl>=0?'+':'')+fmtMoney(pnl);pEl.className='metric-value '+(pnl>=0?'pos':'neg');}
-  setText('cal-journals',mj.length.toString());
-  setText('cal-wr',mt.length?wr+'%':'—');
+  const pctEl=document.getElementById('cal-pnl-pct');if(pctEl){pctEl.textContent=mt.length?(pct>=0?'+':'')+pct.toFixed(1)+'% del capital':'—';pctEl.className='metric-delta '+(pnl>=0?'pos':'neg');}
+  setText('cal-journals',jSinTrade.toString());
+  setText('cal-wr',(wins+losses)?wr+'%':'—');
 }
 function renderMiniCal(){renderCal('mini-days','mini-labels','d-cal-title',miniYear,miniMonth,true,'mini-day-detail');}
 function renderFullCal(){
@@ -3142,6 +3181,7 @@ function renderFullCal(){
   }
 
   renderWeeklySummary(fullYear,fullMonth,dayPnL,dayTrades,capitalBase);
+  renderCalSummary(fullYear,fullMonth);
 }
 
 function renderWeeklySummary(year,month,dayPnL,dayTrades,capitalBase){
