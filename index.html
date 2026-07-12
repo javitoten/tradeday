@@ -2082,18 +2082,47 @@ function normalizeTradeAmounts(){
       if(t.amount!=='BE'||t.amount_pct!=='0%'){t.amount='BE';t.amount_pct='0%';repaired.push(t);}
       return;
     }
-    const usdNum=t.amount?parseFloat(String(t.amount).replace(/[^0-9.\-]/g,'')):NaN;
-    const pctNum=t.amount_pct?parseFloat(String(t.amount_pct).replace(/[^0-9.\-]/g,'')):NaN;
+    const amountStr=t.amount?String(t.amount):'';
+    const pctStr=t.amount_pct?String(t.amount_pct):'';
+    // Un valor en $ válido debe contener el símbolo "$". Si el campo amount
+    // en realidad contiene un "%" (bug de versiones antiguas que guardaban
+    // el porcentaje también en el campo de dólares), NO es un $ válido aunque
+    // parseFloat consiga extraer un número de él.
+    const amountIsValidUSD=amountStr.includes('$');
+    const pctIsValidPct=pctStr.includes('%');
     const baseCapital=currentCapitalBeforeTrade(t.id);
-    if(isNaN(usdNum)&&!isNaN(pctNum)&&baseCapital){
-      const usdVal=baseCapital*pctNum/100;
-      t.amount=(usdVal>=0?'+':'')+usdVal.toLocaleString('es-ES',{maximumFractionDigits:2})+'$';
-      repaired.push(t);
-    } else if(isNaN(pctNum)&&!isNaN(usdNum)&&baseCapital){
-      const pctVal=usdNum/baseCapital*100;
-      t.amount_pct=(pctVal>=0?'+':'')+pctVal.toFixed(2)+'%';
-      repaired.push(t);
+    let changed=false;
+    if(amountIsValidUSD&&pctIsValidPct){
+      return; // ya está correcto, no tocar
     }
+    if(!amountIsValidUSD&&pctIsValidPct&&baseCapital){
+      // amount falta o está mal (p.ej. contiene "%" por error) → recalcular $ desde el % real
+      const pctNum=parseFloat(pctStr.replace(/[^0-9.\-]/g,''));
+      if(!isNaN(pctNum)){
+        const usdVal=baseCapital*pctNum/100;
+        t.amount=(usdVal>=0?'+':'')+usdVal.toLocaleString('es-ES',{maximumFractionDigits:2})+'$';
+        changed=true;
+      }
+    } else if(!amountIsValidUSD&&!pctIsValidPct&&amountStr&&baseCapital){
+      // ni amount ni amount_pct están bien formados, pero amount trae un número
+      // (probablemente el % guardado por error en ambos campos) → usarlo como %
+      const numFromAmount=parseFloat(amountStr.replace(/[^0-9.\-]/g,''));
+      if(!isNaN(numFromAmount)){
+        const usdVal=baseCapital*numFromAmount/100;
+        t.amount=(usdVal>=0?'+':'')+usdVal.toLocaleString('es-ES',{maximumFractionDigits:2})+'$';
+        t.amount_pct=(numFromAmount>=0?'+':'')+numFromAmount.toFixed(2)+'%';
+        changed=true;
+      }
+    }
+    if(!pctIsValidPct&&amountIsValidUSD&&baseCapital){
+      const usdNum=parseFloat(amountStr.replace(/[^0-9.\-]/g,''));
+      if(!isNaN(usdNum)){
+        const pctVal=usdNum/baseCapital*100;
+        t.amount_pct=(pctVal>=0?'+':'')+pctVal.toFixed(2)+'%';
+        changed=true;
+      }
+    }
+    if(changed)repaired.push(t);
   });
   repaired.forEach(t=>{
     sb.from('trades').update({amount:t.amount,amount_pct:t.amount_pct}).eq('id',t.id);
