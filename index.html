@@ -1850,6 +1850,12 @@ async function signupEmail(){
   if(error){showAuthError('signup-error',error.message);return;}
   if(data.user){
     await sb.from('profiles').upsert({id:data.user.id,username});
+    // Email de bienvenida (fire-and-forget, no bloquea el registro si falla)
+    fetch(SUPABASE_URL+'/functions/v1/send-welcome-email',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON,'apikey':SUPABASE_ANON},
+      body:JSON.stringify({record:{id:data.user.id,username}})
+    }).catch(()=>{});
   }
   // Si Supabase requiere confirmación de email, no habrá sesión todavía:
   // avisamos al usuario en vez de dejar la pantalla en silencio.
