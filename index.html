@@ -236,6 +236,24 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .badge-buy{background:#052A1A;color:#4ADE80;border:1px solid #0A3A1A}
 .badge-sell{background:#2A0505;color:#F87171;border:1px solid #3A1010}
 
+/* MIS OPERACIONES — GALERÍA DE TRADES */
+.ops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.trade-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:transform .15s ease,border-color .15s ease;display:flex;flex-direction:column}
+.trade-card:hover{transform:translateY(-2px);border-color:var(--border3)}
+.trade-card-imgwrap{position:relative;width:100%;aspect-ratio:4/3;background:var(--bg3);overflow:hidden;flex-shrink:0}
+.trade-card-img{width:100%;height:100%;object-fit:cover;display:block}
+.trade-card-noimg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:28px}
+.trade-card-del{position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:50%;background:rgba(10,11,14,.72);backdrop-filter:blur(2px);border:1px solid var(--border2);color:var(--text2);display:flex;align-items:center;justify-content:center;font-size:12px;opacity:0;transition:opacity .15s ease}
+.trade-card:hover .trade-card-del{opacity:1}
+.trade-card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:7px}
+.trade-card-pair{font-size:14px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:5px}
+.trade-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px}
+.trade-card-pct{font-weight:700}
+.trade-card-date{color:var(--text3)}
+.trade-card-tags{display:flex;gap:6px;flex-wrap:wrap}
+.trade-card-tag-session{font-size:11px;color:var(--text3);background:var(--bg4);border:1px solid var(--border2);border-radius:20px;padding:2px 8px;font-weight:600}
+.ops-empty{grid-column:1/-1;text-align:center;color:var(--text3);padding:40px 20px;font-size:13px}
+
 /* CALENDAR */
 .cal-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
 .cal-day-label{text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:4px 0;text-transform:uppercase;letter-spacing:.04em}
@@ -248,7 +266,6 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .cal-day.journal{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border)}
 .cal-day.today{outline:2px solid var(--accent);outline-offset:1px}
 .cal-day.empty{opacity:0;pointer-events:none}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .cal-nav-btn{width:28px;height:28px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:all .15s}
 .cal-nav-btn:hover{color:var(--text);border-color:var(--border3)}
 .cal-legend{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap}
@@ -382,14 +399,6 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .save-confirm-notes{font-size:11px;color:var(--text2);line-height:1.5;background:var(--bg3);border-radius:var(--radius);padding:8px 10px;max-height:64px;overflow:hidden}
 .save-confirm-img{width:100%;border-radius:var(--radius);max-height:120px;object-fit:cover;display:block;border:1px solid var(--border2)}
 
-/* TABLE */
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-th{font-size:10px;font-weight:700;color:var(--text3);text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em}
-td{font-size:13px;padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text)}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg3)}
-
 /* JOURNAL ANALYSIS CARD */
 .journal-analysis{background:var(--purple-bg);border:1px solid #2A1A4A;border-radius:var(--radius-lg);padding:14px 16px;margin-top:10px}
 .journal-analysis-title{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
@@ -406,7 +415,6 @@ tr:hover td{background:var(--bg3)}
 .rt-block-time{font-size:12px;font-weight:700;color:var(--accent);width:52px;flex-shrink:0;font-family:'Inter',monospace}
 .rt-block-name{flex:1;font-size:13px;font-weight:600;min-width:0}
 .rt-block-actions{display:flex;gap:4px;flex-shrink:0}
-.rt-add-block-row{display:grid;grid-template-columns:90px 50px 1fr auto;gap:8px;align-items:center;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-lg);padding:12px 14px}
 
 .rt-checklist-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);background:var(--bg3);transition:all .15s;cursor:pointer}
 .rt-checklist-item:hover{background:var(--bg4)}
@@ -638,9 +646,11 @@ tr:hover td{background:var(--bg3)}
   .we-bar-label{width:78px;font-size:11px}
   div[style*="grid-template-columns:1fr 1fr"]:has(.we-section){grid-template-columns:1fr !important}
 
-  /* ── MIS OPERACIONES (tabla) ── */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:560px}
+  /* ── MIS OPERACIONES (galería) ── */
+  .ops-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .trade-card-body{padding:9px 10px 11px;gap:5px}
+  .trade-card-pair{font-size:12.5px}
+  .trade-card-meta{font-size:10.5px}
 
   /* ── MI PLAN ── */
   .form-row{grid-template-columns:1fr}
@@ -1350,12 +1360,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
             </div>
           </div>
         </div>
-        <div class="table-wrap card" style="padding:0;overflow-x:auto">
-          <table>
-            <thead><tr><th>Fecha</th><th>Par</th><th>Tipo</th><th>Sesión</th><th>Resultado</th><th>G/P</th><th></th></tr></thead>
-            <tbody id="ops-table-body"></tbody>
-          </table>
-        </div>
+        <div class="ops-grid" id="ops-grid"></div>
       </div>
 
 
@@ -1663,7 +1668,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
       <!-- CONFIG -->
       <div id="view-config" style="display:none;flex-direction:column;gap:20px">
-        <div class="section-title" style="font-size:17px">Configuración</div>
+        <div><div class="section-title" style="font-size:17px">Configuración</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Build 2026-07-15</div></div>
         <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:14px">Perfil</div>
           <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-input" id="cfg-username" placeholder="Tu nombre"></div>
@@ -2497,8 +2502,6 @@ function analyzeSentimentText(text){
   const top=detected.slice(0,2).map(d=>d[0]);
   return {tags:top,top:top[0]};
 }
-function analyzeJournalSentiment(text){return analyzeSentimentText(text);}
-
 function suggestionForSentiment(sentiment,isTrade){
   if(!sentiment){
     return isTrade
@@ -3026,29 +3029,39 @@ function routineComplianceBlockHTML(dateKey){
   </div>`;
 }
 
-function tradeRowHTML(t){
-  const amtColor=t.result==='win'?'var(--green)':t.result==='loss'?'var(--red)':'var(--text2)';
-  const amtDisplay=t.result==='be'?'<span style="color:var(--text2)">BE</span>':`<span style="color:${amtColor};font-weight:700">${t.amount||'—'}</span>${t.amount_pct?`<br><span style="font-size:11px;color:${amtColor};opacity:.8">${t.amount_pct}</span>`:''}`;
-  return `<tr>
-    <td>${fmtDate(t.date)}</td>
-    <td style="font-weight:600">${t.pair||'—'}${t.image_url?` <i class="ti ti-photo" style="font-size:11px;color:var(--text3)" title="Tiene captura"></i>`:''}</td>
-    <td><span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction||''}</span></td>
-    <td>${t.session||'—'}</td>
-    <td><span class="badge ${t.result==='win'?'badge-win':t.result==='loss'?'badge-loss':'badge-be'}">${t.result==='win'?'Win':t.result==='loss'?'Loss':'BE'}</span></td>
-    <td>${amtDisplay}</td>
-    <td style="text-align:right">
-      <button class="icon-btn" onclick="editTradeEntry('${t.id}')"><i class="ti ti-edit"></i></button>
-      <button class="icon-btn danger" onclick="deleteTrade('${t.id}')"><i class="ti ti-trash"></i></button>
-    </td>
-  </tr>`;
+function tradeCardHTML(t){
+  const isWin=t.result==='win', isLoss=t.result==='loss';
+  const resLabel=isWin?'WIN':isLoss?'LOSS':'BE';
+  const badgeCls=isWin?'badge-win':isLoss?'badge-loss':'badge-be';
+  const pctColor=isWin?'var(--green)':isLoss?'var(--red)':'var(--text2)';
+  const pctLabel=t.amount_pct?esc(t.amount_pct.replace(/^\+/,'')):(t.result==='be'?'BE':'—');
+  const img=t.image_url;
+  return `<div class="trade-card" onclick="editTradeEntry('${t.id}')">
+    <div class="trade-card-imgwrap">
+      ${img?`<img src="${esc(img)}" class="trade-card-img" alt="Captura ${esc(t.pair||'')}" loading="lazy">`:`<div class="trade-card-noimg"><i class="ti ti-photo-off"></i></div>`}
+      <button class="trade-card-del" onclick="event.stopPropagation();deleteTrade('${t.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="trade-card-body">
+      <div class="trade-card-pair">${esc(t.pair||'—')}</div>
+      <div class="trade-card-meta">
+        <span class="badge ${badgeCls}">${resLabel}</span>
+        <span class="trade-card-pct" style="color:${pctColor}">${pctLabel}</span>
+        <span class="trade-card-date">${fmtDate(t.date)}</span>
+      </div>
+      <div class="trade-card-tags">
+        ${t.direction?`<span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${esc(t.direction)}</span>`:''}
+        ${t.session?`<span class="trade-card-tag-session">${esc(t.session)}</span>`:''}
+      </div>
+    </div>
+  </div>`;
 }
 
 function renderOpsList(){
-  const el=document.getElementById('ops-table-body');
+  const el=document.getElementById('ops-grid');
   if(!el)return;
   const sorted=[...allTrades].sort((a,b)=>b.date.localeCompare(a.date));
-  if(!sorted.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">No hay trades registrados en esta cuenta aún.</td></tr>';return;}
-  el.innerHTML=sorted.map(tradeRowHTML).join('');
+  if(!sorted.length){el.innerHTML='<div class="ops-empty">No hay trades registrados en esta cuenta aún.</div>';return;}
+  el.innerHTML=sorted.map(tradeCardHTML).join('');
 }
 
 function mergeEntries(){
@@ -3092,6 +3105,17 @@ function editTradeEntry(id){
       if(t.emotions.some(em=>c.textContent.includes(em)))c.classList.add('sel-emotion');
     });
   }
+  if(t.followed_plan){
+    document.querySelectorAll('#t-plan .chip').forEach(c=>{
+      if(c.textContent.includes(t.followed_plan))selectChip('t-plan',c,c.textContent.includes('100%')?'sel-win':c.textContent.includes('Parcialmente')?'sel-be':'sel-loss');
+    });
+  }
+  window._tradeImageUrl=t.image_url||'';
+  const imgInput=document.getElementById('t-image-input');
+  if(imgInput)imgInput.value='';
+  const imgPrev=document.getElementById('t-image-preview'),imgPrevImg=document.getElementById('t-image-preview-img');
+  if(t.image_url&&imgPrev&&imgPrevImg){imgPrevImg.src=t.image_url;imgPrev.style.display='block';}
+  else if(imgPrev){imgPrev.style.display='none';if(imgPrevImg)imgPrevImg.src='';}
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar cambios';
   openModal('modal-trade');
 }
@@ -3851,6 +3875,11 @@ function openTradeForm(){
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-notes').value='';
   ['t-dir','t-sess','t-res','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  window._tradeImageUrl='';
+  const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
+  const imgPrev2=document.getElementById('t-image-preview'),imgPrevImg2=document.getElementById('t-image-preview-img');
+  if(imgPrev2)imgPrev2.style.display='none';
+  if(imgPrevImg2)imgPrevImg2.src='';
   openModal('modal-trade');
 }
 function openJournalForm(){
