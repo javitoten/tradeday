@@ -1876,34 +1876,41 @@ async function sha256Hex(str){
   const buf=await crypto.subtle.digest('SHA-256',enc);
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+let _gisResolved=false;
 async function handleGoogleCredential(response){
+  _gisResolved=true;
   const{error}=await sb.auth.signInWithIdToken({provider:'google',token:response.credential,nonce:_gisNonceRaw});
   if(error){toast('Error al iniciar sesión con Google: '+error.message);}
 }
 async function loginGoogleClassic(){
+  if(_gisResolved)return;
+  _gisResolved=true;
   await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});
 }
 async function loginGoogle(){
   // Método moderno: login con Google en un recuadro sobre la propia página,
   // sin pasar por la pantalla de redirección de Supabase. Si el script de
-  // Google no ha cargado todavía (o falla), usamos el método clásico de respaldo.
+  // Google no ha cargado todavía, falla, o no muestra nada en unos segundos,
+  // usamos el método clásico de respaldo para que el usuario nunca se quede
+  // sin forma de iniciar sesión.
   if(!window.google||!google.accounts||!google.accounts.id){
     await loginGoogleClassic();
     return;
   }
+  _gisResolved=false;
   try{
     _gisNonceRaw=crypto.randomUUID();
     const hashedNonce=await sha256Hex(_gisNonceRaw);
     google.accounts.id.initialize({
       client_id:GOOGLE_CLIENT_ID,
       callback:handleGoogleCredential,
-      nonce:hashedNonce,
-      use_fedcm_for_prompt:true
+      nonce:hashedNonce
     });
     google.accounts.id.prompt((notification)=>{
       if(notification.isNotDisplayed&&notification.isNotDisplayed()){loginGoogleClassic();}
       else if(notification.isSkippedMoment&&notification.isSkippedMoment()){loginGoogleClassic();}
     });
+    setTimeout(()=>{if(!_gisResolved)loginGoogleClassic();},3000);
   }catch(e){
     await loginGoogleClassic();
   }
