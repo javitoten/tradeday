@@ -1231,6 +1231,20 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
               </div>
             </div>
 
+            <!-- ANÁLISIS DE BREAKEVEN -->
+            <div>
+              <div class="section-sub" style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Análisis de Breakeven</div>
+              <div class="metric-grid" style="margin-bottom:14px">
+                <div class="metric-card"><div class="metric-label">Total BE</div><div class="metric-value" id="dm-be-total">—</div></div>
+                <div class="metric-card"><div class="metric-label">BE Win</div><div class="metric-value pos" id="dm-be-win">—</div><div class="metric-delta" id="dm-be-win-pct">—</div></div>
+                <div class="metric-card"><div class="metric-label">BE Loss</div><div class="metric-value neg" id="dm-be-loss">—</div><div class="metric-delta" id="dm-be-loss-pct">—</div></div>
+              </div>
+              <div class="card" style="background:var(--bg3)">
+                <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:14px;text-transform:uppercase;letter-spacing:.07em">Distribución de resultados (Win / Loss / BE Win / BE Loss)</div>
+                <div class="donut-wrap" id="donut-results"><div style="font-size:12px;color:var(--text3)">Sin datos todavía</div></div>
+              </div>
+            </div>
+
             <!-- ANÁLISIS POR SESIÓN -->
             <div>
               <div class="section-sub" style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Rendimiento por sesión</div>
@@ -1735,8 +1749,13 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       </div>
       <div class="form-section">Resultado</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win')">✅ Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss')">❌ Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be')">➖ BE</div></div></div>
+        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()">✅ Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()">❌ Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()">➖ BE</div></div></div>
         <div class="form-group"><label class="form-label">P&L ($ o %)</label><input class="form-input" type="text" placeholder="300 o 3%" id="t-amount"><div class="form-hint">No hace falta poner +/−, se aplica según el resultado. Si pones %, se calcula el $ según el capital actual de la cuenta (y viceversa)</div></div>
+      </div>
+      <div class="form-group" id="t-be-type-group" style="display:none">
+        <label class="form-label">¿Cómo terminó el Breakeven?</label>
+        <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')">✅ BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')">❌ BE Loss</div></div>
+        <div class="form-hint">BE Win: llegó a ir a favor y se protegió en breakeven. BE Loss: nunca se desarrolló a favor y se cerró en breakeven.</div>
       </div>
       <div class="form-section">Análisis</div>
       <div class="form-group"><label class="form-label">¿Cómo te sentiste?</label><div class="chip-group" id="t-emo"><div class="chip" onclick="toggleChip(this,'sel-emotion')">😌 Tranquilo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😤 Impaciente</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😨 Con miedo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">🤑 Eufórico</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😡 Frustrado</div></div></div>
@@ -2236,6 +2255,8 @@ async function saveTrade(){
   const sessEl=document.querySelector('#t-sess .chip[class*="sel-"]');
   const resEl=document.querySelector('#t-res .chip[class*="sel-"]');
   const planEl=document.querySelector('#t-plan .chip[class*="sel-"]');
+  const beTypeEl=document.querySelector('#t-be-type .chip[class*="sel-"]');
+  const isBEResult=!!(resEl&&resEl.classList.contains('sel-be'));
   const emotions=Array.from(document.querySelectorAll('#t-emo .chip.sel-emotion')).map(e=>e.textContent.replace(/[^\w\sáéíóú]/g,'').trim());
 
   const missing=[];
@@ -2243,19 +2264,23 @@ async function saveTrade(){
   if(!pair)missing.push('el par');
   if(!dirEl)missing.push('la dirección (Buy/Sell)');
   if(!resEl)missing.push('el resultado (Win/Loss/BE)');
+  if(isBEResult&&!beTypeEl)missing.push('cómo terminó el Breakeven (BE Win/BE Loss)');
   if(missing.length){
     toast('Completa: '+missing.join(', '));
     if(!pair)document.getElementById('t-pair').classList.add('field-invalid');
     if(!dirEl)document.getElementById('t-dir').classList.add('chip-group-invalid');
     if(!resEl)document.getElementById('t-res').classList.add('chip-group-invalid');
+    if(isBEResult&&!beTypeEl)document.getElementById('t-be-type').classList.add('chip-group-invalid');
     return;
   }
   document.getElementById('t-pair').classList.remove('field-invalid');
   document.getElementById('t-dir').classList.remove('chip-group-invalid');
   document.getElementById('t-res').classList.remove('chip-group-invalid');
+  document.getElementById('t-be-type').classList.remove('chip-group-invalid');
 
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader ti-spin"></i>Guardando...';
   const result=resEl.classList.contains('sel-win')?'win':resEl.classList.contains('sel-loss')?'loss':'be';
+  const beType=result==='be'&&beTypeEl?(beTypeEl.classList.contains('sel-win')?'be_win':'be_loss'):null;
   const direction=dirEl.classList.contains('sel-buy')?'Buy':'Sell';
   const session=sessEl?(sessEl.classList.contains('sel-london')?'Londres':sessEl.classList.contains('sel-ny')?'New York':'Asia'):'Londres';
 
@@ -2308,7 +2333,7 @@ async function saveTrade(){
     }
   }
 
-  const payload={date,pair,direction,session,result,amount:amountUSD,amount_pct:amountPct,
+  const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,
     followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
     emotions,notes,image_url:imageUrl||null};
 
@@ -2326,7 +2351,7 @@ async function saveTrade(){
   await loadData();
   showSaveConfirmation({
     type:'trade',date,
-    resultLabel:result==='win'?'Win':result==='loss'?'Loss':'BE',
+    resultLabel:result==='win'?'Win':result==='loss'?'Loss':(beType==='be_win'?'BE Win':beType==='be_loss'?'BE Loss':'BE'),
     resultClass:result==='win'?'badge-win':result==='loss'?'badge-loss':'badge-be',
     emotion:emotions.join(', '),
     summary:notes?notes.slice(0,140):(amountUSD&&amountUSD!=='BE'?`Resultado: ${amountUSD}${amountPct?' ('+amountPct+')':''}`:''),
@@ -2638,7 +2663,7 @@ function tradeJournalHTML(t){
       <div style="display:flex;align-items:center;gap:8px">
         <div class="entry-left-bar ${t.result||'be'}" style="width:3px;height:18px;border-radius:2px"></div>
         <span style="font-size:13px;font-weight:700">${t.pair||'Trade'}</span>
-        <span class="badge ${t.result==='win'?'badge-win':t.result==='loss'?'badge-loss':'badge-be'}">${t.result==='win'?'Win':t.result==='loss'?'Loss':'BE'}</span>
+        <span class="badge ${t.result==='win'?'badge-win':t.result==='loss'?'badge-loss':'badge-be'}">${t.result==='win'?'Win':t.result==='loss'?'Loss':(t.be_type==='be_win'?'BE Win':t.be_type==='be_loss'?'BE Loss':'BE')}</span>
         <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction||''}</span>
         <span style="font-size:11px;color:var(--text3)">${t.session||''}</span>
       </div>
@@ -3075,7 +3100,7 @@ function routineComplianceBlockHTML(dateKey){
 
 function tradeCardHTML(t){
   const isWin=t.result==='win', isLoss=t.result==='loss';
-  const resLabel=isWin?'WIN':isLoss?'LOSS':'BE';
+  const resLabel=isWin?'WIN':isLoss?'LOSS':(t.be_type==='be_win'?'BE WIN':t.be_type==='be_loss'?'BE LOSS':'BE');
   const badgeCls=isWin?'badge-win':isLoss?'badge-loss':'badge-be';
   const pctColor=isWin?'var(--green)':isLoss?'var(--red)':'var(--text2)';
   const pctLabel=t.amount_pct?esc(t.amount_pct.replace(/^\+/,'')):(t.result==='be'?'BE':'—');
@@ -3118,7 +3143,7 @@ function entryHTML(e){
   const amtColor=e.result==='win'?'var(--green)':e.result==='loss'?'var(--red)':'var(--text2)';
   const badges=isJ
     ?`<span class="badge badge-journal">Diario</span>${e.mood?`<span style="font-size:11px;color:var(--text3)">${esc(e.mood)}</span>`:''}`
-    :`<span class="badge ${e.result==='win'?'badge-win':e.result==='loss'?'badge-loss':'badge-be'}">${e.result==='win'?'Win':e.result==='loss'?'Loss':'BE'}</span><span class="badge ${e.direction==='Buy'?'badge-buy':'badge-sell'}">${e.direction||''}</span><span style="font-size:11px;color:var(--text3)">${esc(e.session||'')}</span>`;
+    :`<span class="badge ${e.result==='win'?'badge-win':e.result==='loss'?'badge-loss':'badge-be'}">${e.result==='win'?'Win':e.result==='loss'?'Loss':(e.be_type==='be_win'?'BE Win':e.be_type==='be_loss'?'BE Loss':'BE')}</span><span class="badge ${e.direction==='Buy'?'badge-buy':'badge-sell'}">${e.direction||''}</span><span style="font-size:11px;color:var(--text3)">${esc(e.session||'')}</span>`;
   const preview=esc(isJ?(e.content||'').slice(0,65):(e.notes||'').slice(0,65));
   const delCall=isJ?`deleteJournal('${e.id}')`:`deleteTrade('${e.id}')`;
   const editCall=isJ?`editJournalEntry('${e.id}')`:`editTradeEntry('${e.id}')`;
@@ -3135,7 +3160,7 @@ function editTradeEntry(id){
   document.getElementById('t-pair').value=t.pair||'';
   document.getElementById('t-amount').value=(t.amount||'').replace(/[+\-]/,'').trim();
   document.getElementById('t-notes').value=t.notes||'';
-  ['t-dir','t-sess','t-res','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
   if(t.direction==='Buy')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(1)'),'sel-buy');
   if(t.direction==='Sell')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(2)'),'sel-sell');
   document.querySelectorAll('#t-sess .chip').forEach(c=>{
@@ -3144,6 +3169,9 @@ function editTradeEntry(id){
   if(t.result==='win')selectChip('t-res',document.querySelector('#t-res .chip:nth-child(1)'),'sel-win');
   if(t.result==='loss')selectChip('t-res',document.querySelector('#t-res .chip:nth-child(2)'),'sel-loss');
   if(t.result==='be')selectChip('t-res',document.querySelector('#t-res .chip:nth-child(3)'),'sel-be');
+  updateBeTypeVisibility();
+  if(t.be_type==='be_win')selectChip('t-be-type',document.querySelector('#t-be-type .chip:nth-child(1)'),'sel-win');
+  if(t.be_type==='be_loss')selectChip('t-be-type',document.querySelector('#t-be-type .chip:nth-child(2)'),'sel-loss');
   if(t.emotions&&t.emotions.length){
     document.querySelectorAll('#t-emo .chip').forEach(c=>{
       if(t.emotions.some(em=>c.textContent.includes(em)))c.classList.add('sel-emotion');
@@ -3918,7 +3946,8 @@ function openTradeForm(){
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-notes').value='';
-  ['t-dir','t-sess','t-res','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  updateBeTypeVisibility();
   window._tradeImageUrl='';
   const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
   const imgPrev2=document.getElementById('t-image-preview'),imgPrevImg2=document.getElementById('t-image-preview-img');
@@ -3951,6 +3980,16 @@ function abandonConfirm(){
 }
 function selectChip(gId,el,cls){const g=document.getElementById(gId);if(!g)return;g.querySelectorAll('.chip').forEach(c=>c.className='chip');el.classList.add(cls);}
 function toggleChip(el,cls){if(el.classList.contains(cls))el.className='chip';else el.classList.add(cls);}
+function updateBeTypeVisibility(){
+  const resEl=document.querySelector('#t-res .chip[class*="sel-"]');
+  const isBE=!!(resEl&&resEl.classList.contains('sel-be'));
+  const grp=document.getElementById('t-be-type-group');
+  if(grp)grp.style.display=isBE?'block':'none';
+  if(!isBE){
+    const beGroup=document.getElementById('t-be-type');
+    if(beGroup)beGroup.querySelectorAll('.chip').forEach(c=>c.className='chip');
+  }
+}
 function toggleMetrics(){metricsOpen=!metricsOpen;document.getElementById('metrics-body').style.display=metricsOpen?'block':'none';document.getElementById('m-chev').style.transform=metricsOpen?'rotate(180deg)':'none';}
 
 function toggleDashMetrics(){
@@ -3993,9 +4032,22 @@ function renderDashMetricsFull(){
   })[0];
   setText('dm-best-session',bestSess?bestSess[0]:'—');
 
+  // Análisis de Breakeven: de los trades cerrados en BE, cuántos llegaron a ir
+  // a favor antes de protegerse (BE Win) frente a los que nunca avanzaron (BE Loss).
+  const beWinCount=trades.filter(t=>t.result==='be'&&t.be_type==='be_win').length;
+  const beLossCount=trades.filter(t=>t.result==='be'&&t.be_type==='be_loss').length;
+  setText('dm-be-total',bes.toString());
+  setText('dm-be-win',beWinCount.toString());
+  setText('dm-be-loss',beLossCount.toString());
+  const beWinPctEl=document.getElementById('dm-be-win-pct');
+  if(beWinPctEl)beWinPctEl.textContent=bes?Math.round(beWinCount/bes*100)+'% del BE':'—';
+  const beLossPctEl=document.getElementById('dm-be-loss-pct');
+  if(beLossPctEl)beLossPctEl.textContent=bes?Math.round(beLossCount/bes*100)+'% del BE':'—';
+
   renderAnnualCalendar();
   renderBuySellDonut(trades);
   renderSessionsDonut(trades);
+  renderResultsDonut(trades);
   renderSessionAnalysis(trades);
 }
 
@@ -4083,6 +4135,36 @@ function renderSessionsDonut(trades){
     </svg>
     <div class="donut-legend">
       ${sessions.map((s,i)=>`<div class="legend-item"><div class="legend-dot" style="background:${colors[s]}"></div>${s} <strong>${counts[i]}</strong> (${Math.round(counts[i]/total*100)}%)</div>`).join('')}
+    </div>`;
+}
+
+function renderResultsDonut(trades){
+  const el=document.getElementById('donut-results');
+  if(!el)return;
+  const cats=[
+    {label:'Win',count:trades.filter(t=>t.result==='win').length,color:'var(--green)'},
+    {label:'Loss',count:trades.filter(t=>t.result==='loss').length,color:'var(--red)'},
+    {label:'BE Win',count:trades.filter(t=>t.result==='be'&&t.be_type==='be_win').length,color:'var(--blue)'},
+    {label:'BE Loss',count:trades.filter(t=>t.result==='be'&&t.be_type==='be_loss').length,color:'var(--amber)'},
+    {label:'BE sin clasificar',count:trades.filter(t=>t.result==='be'&&!t.be_type).length,color:'var(--text3)'}
+  ].filter(c=>c.count>0);
+  const total=cats.reduce((a,c)=>a+c.count,0);
+  if(!total){el.innerHTML='<div style="font-size:12px;color:var(--text3)">Sin datos todavía</div>';return;}
+  const circ=2*Math.PI*26;
+  let offset=circ*0.25;
+  let circles='';
+  cats.forEach(c=>{
+    const len=circ*c.count/total;
+    circles+=`<circle cx="38" cy="38" r="26" fill="none" stroke="${c.color}" stroke-width="11" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${offset}" transform="rotate(-90 38 38)"/>`;
+    offset-=len;
+  });
+  el.innerHTML=`
+    <svg width="76" height="76" viewBox="0 0 76 76">
+      <circle cx="38" cy="38" r="26" fill="none" stroke="var(--bg4)" stroke-width="11"/>
+      ${circles}
+    </svg>
+    <div class="donut-legend">
+      ${cats.map(c=>`<div class="legend-item"><div class="legend-dot" style="background:${c.color}"></div>${c.label} <strong>${c.count}</strong> (${Math.round(c.count/total*100)}%)</div>`).join('')}
     </div>`;
 }
 
