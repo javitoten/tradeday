@@ -2624,7 +2624,16 @@ function clauseStartBefore(normStr,idx){
 function isNegatedAt(normStr,idx){
   const start=clauseStartBefore(normStr,idx);
   const before=normStr.slice(start,idx);
-  return /\b(no|sin|nunca|jamas|ni|tampoco|apenas|nada)\b/.test(before);
+  return /\b(no|sin|nunca|jamas|ni|tampoco|apenas|nada|evite|evito|deje de|decidi no)\b/.test(before);
+}
+/* Marcadores temporales que sitúan una emoción en un período PASADO (p.ej. "ayer", "la sesión
+   anterior"). Una emoción marcada como pasada no debe contarse como el estado emocional dominante
+   de HOY, aunque sí puede usarse para explicar una decisión posterior (ver isPastMarked). */
+const TEMPORAL_PAST_RE=/\b(ayer|el dia anterior|la sesion anterior|la jornada anterior|el otro dia)\b/;
+function isPastMarked(normStr,idx){
+  const start=clauseStartBefore(normStr,idx);
+  const before=normStr.slice(start,idx);
+  return TEMPORAL_PAST_RE.test(before);
 }
 /* Evita falsos positivos cuando la coincidencia es en realidad la segunda mitad de una palabra con
    prefijo negativo pegado (p.ej. "motivad" dentro de "desmotivado", "contento" dentro de "descontento",
@@ -2692,7 +2701,7 @@ function fillTemplate(tpl,vars){
    banco de palabras sueltas y frases/expresiones típicas (no solo la palabra exacta). */
 const EMOTION_LEXICON={
   'Confianza':['confianza','confiado','confiada','convencido','convencida','seguro de mi mismo','segura de mi misma','firme en mi decision','tenia claro','lo tenia claro','control total','me senti fuerte','solido','solida','sabia lo que hacia','confiaba en mi analisis','confiaba en la entrada','plena confianza','muy seguro','muy segura'],
-  'Duda':['duda','dudaba','dudas','inseguro','insegura','inseguridad','no estaba seguro','no estaba segura','no las tenia todas conmigo','no confiaba','no confie','perdi la confianza','sin confianza','me daba respeto','vacilante','vacile','indeciso','indecisa','titubee','titubeante','no sabia si entrar','no sabia si era buena idea','entre con dudas'],
+  'Duda':['duda','dudaba','dudas','dude','dudo demasiado','dude demasiado','inseguro','insegura','inseguridad','no estaba seguro','no estaba segura','no las tenia todas conmigo','no confiaba','no confie','perdi la confianza','sin confianza','me daba respeto','vacilante','vacile','indeciso','indecisa','titubee','titubeante','no sabia si entrar','no sabia si era buena idea','entre con dudas','entre sin conviccion','sin conviccion en la entrada','entre sin estar convencido','entre sin estar convencida'],
   'Miedo':['miedo','panico','asustado','asustada','me asuste','entre con miedo','miedo a perder','miedo a equivocarme','me temblaba el pulso','se me encogio el estomago','terror','pavor','me daba miedo','con miedo a fallar'],
   'Frustración':['frustra','frustrado','frustrada','molest','enfad','rabia','rabioso','rabiosa','harto','harta','fastidi','indignad','impotencia','me saco de quicio','me cabree','estoy quemado','estoy quemada','me hizo enfadar'],
   'Ansiedad':['ansie','ansiedad','nervios','nervioso','nerviosa','estres','estresado','estresada','agobi','agobiado','agobiada','presion','presionado','presionada','inquiet','tension','tenso','tensa','me costaba respirar','pulso acelerado','taquicardia','se me acelero el corazon'],
@@ -2715,8 +2724,11 @@ const POSITIVE_EMOTION_TAGS=['Confianza','Paciencia','Disciplina','Motivación',
 const BEHAVIOR_LEXICON={
   'Saltarse el plan':{polarity:'negative',triggers:['salte el plan','me salte el plan','no segui el plan','no respete el plan','rompi mi plan','ignore mi plan','no respete mi propio plan','no respete mi plan']},
   'Operar por aburrimiento':{polarity:'negative',triggers:['por aburrimiento','entre porque estaba aburrido','entre porque estaba aburrida','operar sin motivo','entre sin razon']},
-  'Operar por venganza':{polarity:'negative',triggers:['revenge trading','queria recuperar','por venganza','recuperar lo perdido','entre para recuperar','queria recuperar las perdidas','operar en caliente']},
-  'Sobreoperar':{polarity:'negative',triggers:['sobreopere','sobreoperar','demasiadas operaciones','muchas operaciones seguidas','exceso de operaciones','no pare de operar']},
+  'Operar por venganza':{polarity:'negative',triggers:['revenge trading','queria recuperar','por venganza','recuperar lo perdido','entre para recuperar','queria recuperar las perdidas','queria recuperar la perdida','operar en caliente','por recuperar','opere por recuperar','entre por recuperar']},
+  'Operar por FOMO':{polarity:'negative',triggers:['por fomo','opere por fomo','entre por fomo','miedo a perderme el movimiento','miedo a quedarme fuera del movimiento','no queria quedarme fuera']},
+  'Indecisión / cambios de opinión':{polarity:'negative',triggers:['cambie de opinion varias veces','cambie de opinion muchas veces','no dejaba de cambiar de opinion','cambiaba de idea constantemente','cambie de idea varias veces']},
+  'Falta de control emocional':{polarity:'negative',triggers:['no he controlado mis emociones','no controle mis emociones','no supe controlar mis emociones','no logre controlar mis emociones','perdi el control emocional','me deje llevar por las emociones','me deje llevar por el miedo','me deje llevar por la euforia','me deje llevar por la ansiedad','me deje llevar por la frustracion','no controle mis nervios','deje que las emociones me dominaran','no logre controlar la impulsividad']},
+  'Sobreoperar':{polarity:'negative',triggers:['sobreopera','demasiadas operaciones','muchas operaciones seguidas','exceso de operaciones','no pare de operar']},
   'Entrar demasiado pronto':{polarity:'negative',triggers:['entre demasiado pronto','entre antes de tiempo','entre sin confirmacion','me adelante a la señal','me adelante a la senal','entre demasiado rapido']},
   'Entrar demasiado tarde':{polarity:'negative',triggers:['entre tarde','entre demasiado tarde','perdi la entrada','llegue tarde a la operacion','el precio ya se habia movido']},
   'No esperar confirmación':{polarity:'negative',triggers:['sin esperar confirmacion','no espere confirmacion','no espere la confirmacion','no confirme la señal','no confirme la senal','entre sin señal clara','entre sin senal clara','no esperaba esa entrada','no me esperaba esa entrada','no esperaba entrar ahi']},
@@ -2729,17 +2741,18 @@ const BEHAVIOR_LEXICON={
   'Dejar correr una pérdida':{polarity:'negative',triggers:['deje correr la perdida','no corte a tiempo','aguante demasiado la perdida','no acepte la perdida a tiempo','espere a que se diera la vuelta']},
   'Falta de disciplina':{polarity:'negative',triggers:['no fui disciplinado','no fui disciplinada','no he sido disciplinado','no he sido disciplinada','no tuve un dia disciplinado','no fue un dia disciplinado','poco disciplinado','poco disciplinada','me falto disciplina','no fui muy disciplinado','no fui nada disciplinado']},
   'Setup poco claro':{polarity:'negative',triggers:['setup no era claro','el setup no fue claro','setup poco claro','señal poco clara','senal poco clara','no tenia una señal clara','no tenia una senal clara','sin una señal clara','sin una senal clara','no era el setup ideal','setup dudoso','entrada poco clara']},
-  'Resultado no refleja ejecución':{polarity:'negative',triggers:['aunque gane','aunque haya ganado','aunque salio bien','aunque haya salido bien','aunque me haya ido bien','aunque me fue bien','a pesar de ganar','a pesar del resultado','a pesar de que gane','tuve suerte','fue pura suerte','fue solo suerte','gane de suerte','no fue merito mio','no repetiria esta operacion','no volveria a repetir esta entrada','no lo volveria a hacer','no volveria a hacer esto']},
-  'Seguir el plan':{polarity:'positive',triggers:['segui el plan','respete mi plan','plan ejecutado correctamente','cumpli con mi estrategia','me ceni a mis reglas','todo segun el plan']},
-  'Esperar con paciencia':{polarity:'positive',triggers:['espere pacientemente','espere la confirmacion','no me precipite','deje que el mercado viniera a mi','espere el momento correcto']},
+  'Resultado no refleja ejecución':{polarity:'negative',triggers:['aunque gane','aunque haya ganado','aunque salio bien','aunque haya salido bien','aunque me haya ido bien','aunque me fue bien','a pesar de ganar','a pesar del resultado','a pesar de que gane','tuve suerte','fue pura suerte','fue solo suerte','gane de suerte','no fue merito mio','no repetiria esta operacion','no volveria a repetir esta entrada','no lo volveria a hacer','no volveria a hacer esto','no volveria a hacerlo']},
+  'Seguir el plan':{polarity:'positive',triggers:['segui el plan','respete mi plan','respete el plan','plan ejecutado correctamente','cumpli con mi estrategia','me ceni a mis reglas','todo segun el plan','cerre siguiendo mi plan','cerre segun mi plan']},
+  'Esperar con paciencia':{polarity:'positive',triggers:['espere pacientemente','espere la confirmacion','espere confirmacion','espere mi setup','espere a mi setup','no me precipite','deje que el mercado viniera a mi','espere el momento correcto']},
   'Aceptar la pérdida sin frustración':{polarity:'positive',triggers:['acepte la perdida','perdida bien gestionada','lo tome con calma','no me afecto la perdida','segui adelante sin problema']},
-  'Buena gestión del riesgo':{polarity:'positive',triggers:['buena gestion del riesgo','respete mi riesgo','arriesgue lo justo','tamaño de posicion correcto','tamano de posicion correcto','gestion de riesgo correcta']},
+  'Buena gestión del riesgo':{polarity:'positive',triggers:['buena gestion del riesgo','respete mi riesgo','arriesgue lo justo','tamaño de posicion correcto','tamano de posicion correcto','gestion de riesgo correcta','gestione correctamente el riesgo','gestione bien el riesgo']},
   'Buena preparación':{polarity:'positive',triggers:['buena preparacion','prepare bien la sesion','hice los deberes','estudie el mercado antes','llegue preparado','llegue preparada']},
   'Buena gestión emocional':{polarity:'positive',triggers:['buena gestion emocional','controle mis emociones','mantuve la calma en todo momento','no deje que las emociones me dominaran']},
-  'Constancia':{polarity:'positive',triggers:['constancia','sigo constante','llevo varios dias seguidos','mantengo la rutina','dia tras dia sigo mi proceso']},
+  'Constancia':{polarity:'positive',triggers:['constancia','sigo constante','llevo varios dias seguidos','mantengo la rutina','segui mi rutina','dia tras dia sigo mi proceso','fui consistente','soy consistente']},
   'Honestidad en el journal':{polarity:'positive',triggers:['siendo honesto conmigo mismo','siendo honesta conmigo misma','reconozco que','admito que','soy sincero','soy sincera','aprendi que','me di cuenta de que','fui consciente de que','lo reconozco','tengo que reconocer que','debo admitir que']},
   'Aceptar los errores':{polarity:'positive',triggers:['acepto el error','reconozco el error','aprendi del error','fue un fallo mio y lo asumo']},
-  'Control de impulsos':{polarity:'positive',triggers:['controle el impulso','resisti las ganas de entrar','no me deje llevar por el impulso','me contuve']},
+  'Control de impulsos':{polarity:'positive',triggers:['controle el impulso','resisti las ganas de entrar','no me deje llevar por el impulso','me contuve','no forc']},
+  'Evitar operar por autocontrol':{polarity:'positive',triggers:['me he mantenido fuera del mercado','me mantuve fuera del mercado','me manteni fuera del mercado','me quede fuera del mercado','decidi quedarme fuera del mercado','preferi quedarme fuera del mercado','opte por quedarme fuera del mercado','decidi no operar','preferi no operar','opte por no operar','evite operar','evite entrar al mercado','hoy no he operado','hoy no opere','no opere hoy','pause por hoy','deje de operar por hoy','no opere por disciplina','no opere hoy por disciplina','decidi no operar por disciplina','evite operar por emociones','evite operar por las emociones','evite entrar por emociones']},
 };
 
 /* Palabras positivas que, cuando aparecen NEGADAS en el texto (aunque no coincidan con ninguna frase
@@ -2785,6 +2798,16 @@ const RESILIENCE_TEMPLATES=[
   'Aunque aparece {emotion_low} en el relato, lo gestionaste bien: {thing_low}.',
   'Buen manejo emocional: sentiste {emotion_low} pero aun así lograste {thing_low}.',
   'Destaca la resiliencia — {emotion_low} presente, pero {thing_low} de todas formas.',
+];
+
+/* Plantillas para el caso causa-efecto: una emoción de un período PASADO (ayer, la sesión anterior)
+   se usa como motivo consciente para evitar operar hoy. Esto es autocontrol y disciplina, no debe
+   leerse como si la emoción pasada fuera el estado de ánimo de la entrada actual. */
+const CAUSAL_SELFCONTROL_TEMPLATES=[
+  'Reconocer que ayer sentiste {past_emotion_low} y decidir no operar hoy por eso es una muestra de autoconocimiento y disciplina — justo el tipo de control que evita que un estado emocional se traslade a nuevas operaciones.',
+  'Detectar {past_emotion_low} en la sesión anterior y usarlo como motivo para quedarte fuera del mercado hoy es una señal clara de madurez y autocontrol.',
+  'Esto es exactamente el tipo de gestión emocional que marca la diferencia: identificaste {past_emotion_low} el día anterior y decidiste no arrastrarlo a la sesión de hoy.',
+  'Buen criterio: en lugar de operar arrastrando {past_emotion_low} de ayer, elegiste esperar — eso es disciplina, no falta de acción.',
 ];
 
 /* ── BANCO DE RESPUESTAS (variabilidad) ── */
@@ -2887,6 +2910,16 @@ const SUGGESTION_BANK_BEHAVIOR={
   'Falta de disciplina':['Reconocer un día poco disciplinado, incluso con buen resultado, es un buen punto de partida: anota qué se saltó exactamente.','La disciplina no se mide por el resultado del día sino por cuánto se siguió el plan; vale la pena revisar qué falló hoy.'],
   'Setup poco claro':['Cuando el setup no es claro, la opción más disciplinada suele ser no operar, aunque a veces salga bien igualmente.','Un setup dudoso que termina en ganancia no deja de ser una operación de mayor riesgo del habitual; convendría evitarlo la próxima vez.'],
   'Resultado no refleja ejecución':['El resultado económico y la calidad de la ejecución son cosas distintas: vale la pena registrar ambas por separado.','Ganar con una ejecución dudosa no valida el proceso; identificar esto es clave para no repetir el mismo error con menos suerte.'],
+  'Falta de control emocional':['Antes de la próxima entrada, identifica qué emoción concreta te está empujando a operar y date un minuto antes de actuar.','Perder el control emocional suele ser la antesala de otros errores (sobreoperar, saltarse el plan); ponerle nombre a la emoción es el primer paso.'],
+  'Operar por FOMO':['El FOMO suele desaparecer si te repites que siempre habrá otra oportunidad; dejar pasar un movimiento no es un error.','Cuando sientas que "se te escapa" el mercado, es buena señal para no entrar: la mejor entrada es la que cumple tu plan, no la más rápida.'],
+  'Indecisión / cambios de opinión':['Cambiar de idea varias veces suele ser señal de que el análisis previo no estaba lo bastante claro; define tu sesgo antes de mirar el precio en tiempo real.','Si notas que dudas y cambias de opinión constantemente, puede ser mejor esperar a la siguiente sesión con la mente más clara.'],
+};
+
+/* Sugerencias de refuerzo para cuando lo único detectado es un comportamiento POSITIVO (sin emociones
+   ni comportamientos negativos): el objetivo es reforzar el hábito, no señalar un error inexistente. */
+const SUGGESTION_BANK_POSITIVE_BEHAVIOR={
+  'Evitar operar por autocontrol':['Repetir este tipo de decisión — reconocer un estado poco favorable y no operar — es una de las habilidades más valiosas de un trader; documenta qué lo hizo posible.','Buena decisión: anota qué señales internas te avisaron de que no era buen día para operar, para reconocerlas más rápido la próxima vez.'],
+  'Control de impulsos':['Ese control del impulso es justo lo que separa una entrada bien pensada de una reactiva; documenta qué te ayudó a frenarte.'],
 };
 
 /* ── MOTOR PRINCIPAL ── */
@@ -2894,28 +2927,55 @@ function analyzeJournalText(text,seedKey){
   if(!text||!text.trim())return null;
   const norm=normText(text);
 
+  // Palabras/frases explícitamente cubiertas por un trigger literal (emoción o comportamiento). Se usa
+  // para que el mecanismo genérico de "negación → flip" (más abajo) no reinterprete un tramo de texto
+  // que ya coincidió con una frase explícita y más específica (p.ej. "no operé por disciplina" ya es un
+  // trigger positivo completo: no debe además contar como "Falta de disciplina" por el flip genérico).
+  const coveredSpans=[];
   const emoHitsAll={};
+  const pastEmoTags=new Set();
   Object.keys(EMOTION_LEXICON).forEach(tag=>{
-    const hits=findHits(norm,EMOTION_LEXICON[tag]).filter(h=>!h.negated);
-    if(hits.length)emoHitsAll[tag]=hits.reduce((a,h)=>a+h.weight,0);
+    const allHits=findHits(norm,EMOTION_LEXICON[tag]);
+    const activeHits=allHits.filter(h=>!h.negated);
+    // Solo los aciertos NO negados cuentan como "cubiertos": un acierto negado (p.ej. "disciplin" dentro
+    // de "no ... disciplinado") no aporta evidencia propia y no debe bloquear el mecanismo de flip, que
+    // existe precisamente para reinterpretar ese mismo tramo negado.
+    activeHits.forEach(h=>coveredSpans.push([h.index,h.index+h.trigger.length]));
+    const presentHits=activeHits.filter(h=>!isPastMarked(norm,h.index));
+    if(activeHits.some(h=>isPastMarked(norm,h.index)))pastEmoTags.add(tag);
+    if(presentHits.length)emoHitsAll[tag]=presentHits.reduce((a,h)=>a+h.weight,0);
   });
   const behHitsAll={};
   Object.entries(BEHAVIOR_LEXICON).forEach(([tag,def])=>{
-    const hits=findHits(norm,def.triggers).filter(h=>!h.negated);
-    if(hits.length)behHitsAll[tag]=hits.reduce((a,h)=>a+h.weight,0);
+    const hits=findHits(norm,def.triggers);
+    const activeHits=hits.filter(h=>!h.negated);
+    activeHits.forEach(h=>coveredSpans.push([h.index,h.index+h.trigger.length]));
+    if(activeHits.length)behHitsAll[tag]=activeHits.reduce((a,h)=>a+h.weight,0);
   });
+  function isCovered(idx){return coveredSpans.some(([s,e])=>idx>=s&&idx<e);}
+  const explicitBehTags=new Set(Object.keys(behHitsAll));
   // Auto-flip: palabras positivas en su forma NEGADA se convierten en evidencia de un comportamiento
   // negativo concreto, aunque no coincidan literalmente con ninguna frase del léxico de comportamientos.
+  const flipOnlyTags=new Set();
   Object.entries(NEGATION_FLIP_STEMS).forEach(([stem,flip])=>{
     let idx=norm.indexOf(stem);
     while(idx!==-1){
-      if(isNegatedAt(norm,idx)){
+      if(isNegatedAt(norm,idx)&&!isCovered(idx)){
         if(flip.kind==='emotion')emoHitsAll[flip.tag]=(emoHitsAll[flip.tag]||0)+1;
-        else behHitsAll[flip.tag]=(behHitsAll[flip.tag]||0)+1;
+        else{
+          behHitsAll[flip.tag]=(behHitsAll[flip.tag]||0)+1;
+          if(!explicitBehTags.has(flip.tag))flipOnlyTags.add(flip.tag);
+        }
       }
       idx=norm.indexOf(stem,idx+stem.length);
     }
   });
+  // Si el texto ya reconoce explícitamente que EVITÓ operar o EVITÓ forzar una entrada, un "setup poco
+  // claro" o "falta de disciplina" detectados solo por el flip genérico (sin frase explícita propia)
+  // no son un error de ejecución — describen la MISMA razón por la que se evitó operar, no un fallo aparte.
+  if(behHitsAll['Evitar operar por autocontrol']||behHitsAll['Control de impulsos']){
+    ['Falta de disciplina','Setup poco claro'].forEach(t=>{if(flipOnlyTags.has(t))delete behHitsAll[t];});
+  }
 
   const emoSorted=Object.entries(emoHitsAll).sort((a,b)=>b[1]-a[1]);
   const behSorted=Object.entries(behHitsAll).sort((a,b)=>b[1]-a[1]);
@@ -2927,7 +2987,7 @@ function analyzeJournalText(text,seedKey){
   const segEmoTags=segments.map(seg=>{
     const s=new Set();
     Object.keys(EMOTION_LEXICON).forEach(tag=>{
-      if(findHits(seg.text,EMOTION_LEXICON[tag]).some(h=>!h.negated))s.add(tag);
+      if(findHits(seg.text,EMOTION_LEXICON[tag]).some(h=>!h.negated&&!isPastMarked(seg.text,h.index)))s.add(tag);
     });
     return s;
   });
@@ -2964,6 +3024,13 @@ function analyzeJournalText(text,seedKey){
       combos.push({id:'resiliencia'+i,type:'positive',text:fillTemplate(pick(RESILIENCE_TEMPLATES,seedKey,'resiliencia'+i),vars)});
     }
   }
+  // Causa-efecto: una emoción de un período pasado (ayer, sesión anterior) explica por qué hoy se
+  // evitó operar. Esto tiene prioridad sobre cualquier lectura de la emoción como estado de ánimo actual.
+  if(pastEmoTags.size&&behHitsAll['Evitar operar por autocontrol']){
+    const pastEmotion=[...pastEmoTags][0];
+    const vars={past_emotion_low:pastEmotion.toLowerCase()};
+    combos.unshift({id:'autocontrol_causal',type:'positive',text:fillTemplate(pick(CAUSAL_SELFCONTROL_TEMPLATES,seedKey,'autocontrol_causal'),vars)});
+  }
 
   return{
     emotions:emoSorted.map(([tag,weight])=>({tag,weight})),
@@ -2986,6 +3053,10 @@ function buildSuggestion(analysis,isTrade,seedKey){
   if(analysis.behaviors.negative.length){
     const bank=SUGGESTION_BANK_BEHAVIOR[analysis.behaviors.negative[0].tag];
     if(bank)return pick(bank,seedKey,'suggestion-beh');
+  }
+  if(!analysis.emotions.length&&analysis.behaviors.positive.length){
+    const bank=SUGGESTION_BANK_POSITIVE_BEHAVIOR[analysis.behaviors.positive[0].tag];
+    if(bank)return pick(bank,seedKey,'suggestion-posbeh');
   }
   if(analysis.emotions.length){
     const bank=SUGGESTION_BANK[analysis.top]||GENERIC_SUGGESTIONS;
@@ -3032,8 +3103,17 @@ function buildAnalysisParts(analysis,seedKey,opts){
     if(topPos)parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,'posbeh'),{beh:topPos.tag.toLowerCase()}));
     return parts;
   }
+  // Sin emociones ni comportamientos negativos, pero sí un comportamiento positivo autoreportado
+  // (p.ej. "No operé por disciplina."): debe reconocerse igual, no diluirse en el resultado de la operación.
+  if(analysis&&analysis.behaviors.positive.length){
+    const beh=analysis.behaviors.positive[0].tag.toLowerCase();
+    parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,'posbeh-only'),{beh}));
+    return parts;
+  }
+  // Sin ninguna señal textual clara: el resultado de la operación se menciona solo como contexto,
+  // nunca como conclusión sobre la calidad de la ejecución (el texto libre, cuando existe, manda).
   if(opts.isTrade){
-    parts.push(`El trader ejecutó una operación ${opts.resultWord} en ${opts.pairSafe} siguiendo su análisis inicial.`);
+    parts.push(`Hay una reflexión registrada en esta operación, aunque no se detecta un patrón emocional o de comportamiento claro. Resultado (solo como contexto): ${opts.resultWord} en ${opts.pairSafe}.`);
   } else {
     parts.push(pick(JOURNAL_NO_SIGNAL_TEMPLATES,seedKey,'nosignal'));
   }
