@@ -2532,7 +2532,12 @@ function renderDaySummary(){
     const j=todayJournals[todayJournals.length-1];
     html+=`<div>Hoy no hubo operaciones. ${j.reason?`Motivo: <strong>${esc(j.reason)}</strong>.`:''}</div>`;
     const sentiment=analyzeSentimentText(j.content);
-    if(sentiment)html+=`<div style="margin-top:6px">Estado emocional detectado: <span style="font-weight:600;color:${SENTIMENT_COLORS[sentiment.top]||'var(--text)'}">${sentiment.tags.join(' y ')}</span>.</div>`;
+    if(sentiment&&sentiment.tags.length)html+=`<div style="margin-top:6px">Estado emocional detectado: <span style="font-weight:600;color:${SENTIMENT_COLORS[sentiment.top]||'var(--text)'}">${sentiment.tags.join(' y ')}</span>.</div>`;
+    if(sentiment&&(sentiment.behaviors.negative.length||sentiment.behaviors.positive.length)){
+      const b=sentiment.behaviors.negative[0]||sentiment.behaviors.positive[0];
+      const bCol=sentiment.behaviors.negative[0]?'var(--red)':'var(--green)';
+      html+=`<div style="margin-top:4px;font-size:12px;color:var(--text3)">Patrón detectado: <span style="color:${bCol};font-weight:600">${b.tag}</span></div>`;
+    }
     if(routineBlocks.length&&routineLogsCache[todayStr]){
       const completedMap=routineLogsCache[todayStr];
       const done=Object.values(completedMap).filter(Boolean).length;
@@ -2594,84 +2599,372 @@ function renderRecent(){
   if(!all.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:24px">Aún no hay entradas. ¡Añade tu primer trade!</div>';return;}
   el.innerHTML=all.map(entryHTML).join('');
 }
-/* ── ANÁLISIS DE SENTIMIENTO (basado en palabras clave, sin IA externa) ── */
-const SENTIMENT_LEXICON={
-  'Confianza':['confianza','seguro','convencido','firme','claro','control','tranquilo','tranquila'],
-  'Frustración':['frustra','molest','enfad','rabia','harto','harta','fastidi'],
-  'Ansiedad':['ansie','nervios','estrés','estres','agobi','presión','presion','inquiet'],
-  'Paciencia':['pacien','esperar','calma','sin prisa','prudente'],
-  'Disciplina':['disciplin','plan','reglas','respet','constanc'],
-  'Impulsividad':['impulsiv','prisa','apresur','sin pensar','fomo','aburrimiento','aburrido','aburrida'],
-  'Duda':['duda','inseguro','insegura','no estaba segur','vacil','indecis'],
+/* ── MOTOR DE ANÁLISIS AVANZADO DEL JOURNAL (basado en reglas y palabras clave, sin IA externa) ── */
+
+/* Utilidades de texto: normaliza (minúsculas + sin acentos) para que "estrés"/"estres", "según"/"segun" etc. coincidan igual */
+function normText(s){
+  return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+}
+
+/* Detecta si una coincidencia está negada justo antes (p.ej. "no tenia miedo", "sin confianza") */
+function isNegatedAt(normStr,idx){
+  const start=Math.max(0,idx-26);
+  const before=normStr.slice(start,idx);
+  return /\b(no|sin|nunca|jamas|ni|tampoco)\s+([a-z]+\s+){0,2}$/.test(before);
+}
+/* Evita falsos positivos cuando la coincidencia es en realidad la segunda mitad de una palabra con
+   prefijo negativo pegado (p.ej. "motivad" dentro de "desmotivado", "contento" dentro de "descontento",
+   "tensa" dentro de "intensa") */
+function isPrefixNegated(normStr,idx){
+  const seg=normStr.slice(Math.max(0,idx-4),idx);
+  return /(^|[^a-z])(des|in|im)$/.test(seg);
+}
+
+/* Busca coincidencias de una lista de triggers (palabras o frases) dentro de un texto ya normalizado */
+function findHits(normStr,triggers){
+  const hits=[];
+  triggers.forEach(trig=>{
+    const t=normText(trig);
+    if(!t)return;
+    let idx=normStr.indexOf(t);
+    while(idx!==-1){
+      const negated=isNegatedAt(normStr,idx)||(t.indexOf(' ')===-1&&isPrefixNegated(normStr,idx));
+      hits.push({trigger:t,index:idx,weight:t.split(' ').length,negated});
+      idx=normStr.indexOf(t,idx+t.length);
+    }
+  });
+  return hits;
+}
+
+/* Divide un texto normalizado en segmentos separados por conectores de contraste (pero, sin embargo, aunque...) */
+function splitNormSegments(normStr){
+  const re=/\b(pero|sin embargo|aunque|no obstante|a pesar de|eso si)\b/g;
+  const segs=[];let last=0;let m;let afterContrast=false;
+  while((m=re.exec(normStr))){
+    segs.push({text:normStr.slice(last,m.index),afterContrast});
+    last=m.index+m[0].length;
+    afterContrast=true;
+  }
+  segs.push({text:normStr.slice(last),afterContrast});
+  return segs.filter(s=>s.text.trim().length>0);
+}
+
+/* Generador pseudoaleatorio determinista (mulberry32) a partir de un texto semilla, para variar las respuestas
+   sin que una misma entrada cambie de redacción cada vez que se re-renderiza */
+function hashSeed(str){
+  let h=2166136261;
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
+  return h>>>0;
+}
+function seededRandom(seed){
+  let t=seed+=0x6D2B79F5;
+  t=Math.imul(t^t>>>15,t|1);
+  t^=t+Math.imul(t^t>>>7,t|61);
+  return((t^t>>>14)>>>0)/4294967296;
+}
+function pick(arr,seedStr,salt){
+  if(!arr||!arr.length)return'';
+  const r=seededRandom(hashSeed(seedStr+'|'+(salt||'')));
+  return arr[Math.floor(r*arr.length)];
+}
+function fillTemplate(tpl,vars){
+  if(!tpl)return'';
+  let out=tpl.replace(/\{(\w+)\}/g,(_,k)=>(vars[k]!==undefined?vars[k]:''));
+  return out.charAt(0).toUpperCase()+out.slice(1);
+}
+
+/* ── BANCO DE EMOCIONES ──
+   12 categorías canónicas que cubren el espectro emocional habitual en trading, cada una con un amplio
+   banco de palabras sueltas y frases/expresiones típicas (no solo la palabra exacta). */
+const EMOTION_LEXICON={
+  'Confianza':['confianza','confiado','confiada','convencido','convencida','seguro de mi mismo','segura de mi misma','firme en mi decision','tenia claro','lo tenia claro','control total','me senti fuerte','solido','solida','sabia lo que hacia','confiaba en mi analisis','confiaba en la entrada','plena confianza','muy seguro','muy segura'],
+  'Duda':['duda','dudaba','dudas','inseguro','insegura','inseguridad','no estaba seguro','no estaba segura','no las tenia todas conmigo','no confiaba','no confie','perdi la confianza','sin confianza','me daba respeto','vacilante','vacile','indeciso','indecisa','titubee','titubeante','no sabia si entrar','no sabia si era buena idea','entre con dudas'],
+  'Miedo':['miedo','panico','asustado','asustada','me asuste','entre con miedo','miedo a perder','miedo a equivocarme','me temblaba el pulso','se me encogio el estomago','terror','pavor','me daba miedo','con miedo a fallar'],
+  'Frustración':['frustra','frustrado','frustrada','molest','enfad','rabia','rabioso','rabiosa','harto','harta','fastidi','indignad','impotencia','me saco de quicio','me cabree','estoy quemado','estoy quemada','me hizo enfadar'],
+  'Ansiedad':['ansie','ansiedad','nervios','nervioso','nerviosa','estres','estresado','estresada','agobi','agobiado','agobiada','presion','presionado','presionada','inquiet','tension','tenso','tensa','me costaba respirar','pulso acelerado','taquicardia','se me acelero el corazon'],
+  'Paciencia':['pacien','esperar','espere pacientemente','calma','con calma','sin prisa','prudente','tranquilo','tranquila','tranquilidad','serenidad','sereno','serena','relajado','relajada','a mi ritmo','sin agobios','deje que el precio viniera','espere la confirmacion'],
+  'Impulsividad':['impulsiv','prisa','apresur','sin pensar','fomo','aburrimiento','aburrido','aburrida','impacien','no pude esperar','no aguante mas','entre sin mirar','actue sin pensar','me deje llevar','entre de golpe'],
+  'Disciplina':['disciplin','plan','reglas','respet','constanc','segui mi sistema','segui mis reglas','me ceni al plan','cumpli mi plan','cumpli con mi estrategia'],
+  'Motivación':['motivad','motivacion','con ganas','ilusion','ilusionado','ilusionada','energia positiva','con energia','entusiasm','con fuerza para seguir','con muchas ganas'],
+  'Desmotivación':['desmotivad','desmotivacion','sin ganas','cansad','cansancio','fatiga','agotad','agotamiento','bloqueo mental','bloqueado','bloqueada','mente en blanco','no tenia energia','sin fuerzas','harto de perder','quemado','quemada'],
+  'Euforia':['euforia','eufori','en racha','me sentia invencible','exceso de confianza','sobreconfianza','alegria','feliz','contento','contenta','orgullo','orgulloso','orgullosa','satisfaccion','satisfecho','satisfecha','emocionado','emocionada','no podia fallar'],
+  'Culpa':['culpa','culpable','arrepent','me arrepiento','decepcion','decepcionado','decepcionada','no debi','fue un error mio','me equivoque','verguenza','me siento mal por'],
 };
+const NEGATIVE_EMOTION_TAGS=['Duda','Miedo','Frustración','Ansiedad','Impulsividad','Desmotivación','Culpa'];
+const POSITIVE_EMOTION_TAGS=['Confianza','Paciencia','Disciplina','Motivación','Euforia'];
+
+/* ── BANCO DE HÁBITOS Y COMPORTAMIENTOS ──
+   Comportamientos concretos observados en la ejecución, separados en negativos (a vigilar) y positivos (a reforzar). */
+const BEHAVIOR_LEXICON={
+  'Saltarse el plan':{polarity:'negative',triggers:['salte el plan','me salte el plan','no segui el plan','rompi mi plan','ignore mi plan','no respete mi propio plan']},
+  'Operar por aburrimiento':{polarity:'negative',triggers:['por aburrimiento','entre porque estaba aburrido','entre porque estaba aburrida','operar sin motivo','entre sin razon']},
+  'Operar por venganza':{polarity:'negative',triggers:['revenge trading','queria recuperar','por venganza','recuperar lo perdido','entre para recuperar','queria recuperar las perdidas','operar en caliente']},
+  'Sobreoperar':{polarity:'negative',triggers:['sobreopere','sobreoperar','demasiadas operaciones','muchas operaciones seguidas','exceso de operaciones','no pare de operar']},
+  'Entrar demasiado pronto':{polarity:'negative',triggers:['entre demasiado pronto','entre antes de tiempo','entre sin confirmacion','me adelante a la señal','me adelante a la senal','entre demasiado rapido']},
+  'Entrar demasiado tarde':{polarity:'negative',triggers:['entre tarde','entre demasiado tarde','perdi la entrada','llegue tarde a la operacion','el precio ya se habia movido']},
+  'No esperar confirmación':{polarity:'negative',triggers:['sin esperar confirmacion','no espere confirmacion','no confirme la señal','no confirme la senal','entre sin señal clara','entre sin senal clara']},
+  'Mover el stop':{polarity:'negative',triggers:['mover el stop','movi el stop','amplie el stop','quite el stop','elimine el stop loss','cambie el stop de sitio']},
+  'No respetar el riesgo':{polarity:'negative',triggers:['no respete el riesgo','arriesgue mas de lo normal','me sali del riesgo','supere mi riesgo maximo','arriesgue de mas']},
+  'Aumentar el lotaje':{polarity:'negative',triggers:['aumente el lotaje','subi el tamaño de posicion','subi el tamano de posicion','duplique el lote','entre con mas tamaño del habitual','meti mas volumen del normal']},
+  'Operar fuera de horario':{polarity:'negative',triggers:['fuera de mi horario','fuera de horario habitual','opere fuera de mi sesion','opere a una hora que no toca']},
+  'Forzar operaciones':{polarity:'negative',triggers:['forzar la entrada','force la operacion','busque una excusa para entrar','me invente una señal','me invente una senal','quise operar si o si']},
+  'Cerrar antes de tiempo':{polarity:'negative',triggers:['cerre antes de tiempo','cerre demasiado pronto','sali antes de lo previsto','cerre por miedo','no deje correr la ganancia']},
+  'Dejar correr una pérdida':{polarity:'negative',triggers:['deje correr la perdida','no corte a tiempo','aguante demasiado la perdida','no acepte la perdida a tiempo','espere a que se diera la vuelta']},
+  'Seguir el plan':{polarity:'positive',triggers:['segui el plan','respete mi plan','plan ejecutado correctamente','cumpli con mi estrategia','me ceni a mis reglas','todo segun el plan']},
+  'Esperar con paciencia':{polarity:'positive',triggers:['espere pacientemente','espere la confirmacion','no me precipite','deje que el mercado viniera a mi','espere el momento correcto']},
+  'Aceptar la pérdida sin frustración':{polarity:'positive',triggers:['acepte la perdida','perdida bien gestionada','lo tome con calma','no me afecto la perdida','segui adelante sin problema']},
+  'Buena gestión del riesgo':{polarity:'positive',triggers:['buena gestion del riesgo','respete mi riesgo','arriesgue lo justo','tamaño de posicion correcto','tamano de posicion correcto','gestion de riesgo correcta']},
+  'Buena preparación':{polarity:'positive',triggers:['buena preparacion','prepare bien la sesion','hice los deberes','estudie el mercado antes','llegue preparado','llegue preparada']},
+  'Buena gestión emocional':{polarity:'positive',triggers:['buena gestion emocional','controle mis emociones','mantuve la calma en todo momento','no deje que las emociones me dominaran']},
+  'Constancia':{polarity:'positive',triggers:['constancia','sigo constante','llevo varios dias seguidos','mantengo la rutina','dia tras dia sigo mi proceso']},
+  'Honestidad en el journal':{polarity:'positive',triggers:['siendo honesto conmigo mismo','siendo honesta conmigo misma','reconozco que','admito que','soy sincero','soy sincera']},
+  'Aceptar los errores':{polarity:'positive',triggers:['acepto el error','reconozco el error','aprendi del error','fue un fallo mio y lo asumo']},
+  'Control de impulsos':{polarity:'positive',triggers:['controle el impulso','resisti las ganas de entrar','no me deje llevar por el impulso','me contuve']},
+};
+
+/* ── REGLAS DE COMBINACIÓN ──
+   Relacionan emociones y comportamientos detectados en el MISMO tramo de texto (separado por conectores
+   de contraste como "pero") para producir una interpretación más rica que la suma de etiquetas sueltas. */
+const COMBO_RULES=[
+  {id:'miedo_duda_ejecucion',type:'negative',emotions:['Miedo','Duda'],behaviors:['Cerrar antes de tiempo','No esperar confirmación','Entrar demasiado pronto','Saltarse el plan'],
+    templates:['El miedo y la falta de confianza parecen haber influido directamente en la ejecución: {behavior_low}.','Se detecta una posible falta de confianza en la ejecución — el miedo pudo llevarte a {behavior_low}.','La inseguridad detectada coincide con {behavior_low}, lo que sugiere que el estado emocional condicionó la operativa.']},
+  {id:'euforia_sobreconfianza',type:'negative',emotions:['Euforia'],behaviors:['Aumentar el lotaje','Operar por venganza','Sobreoperar','Forzar operaciones'],
+    templates:['La euforia detectada, combinada con {behavior_low}, es una señal clásica de sobreconfianza y posible pérdida de disciplina.','Cuidado: el entusiasmo excesivo junto con {behavior_low} suele preceder a errores de gestión del riesgo.','Este patrón (euforia junto a {behavior_low}) es típico de rachas ganadoras que terminan mal por exceso de confianza.']},
+  {id:'frustracion_venganza',type:'negative',emotions:['Frustración'],behaviors:['Operar por venganza','Sobreoperar','No respetar el riesgo'],
+    templates:['La frustración parece haber llevado a {behavior_low}, un patrón de revenge trading a vigilar de cerca.','Cuando la frustración se combina con {behavior_low}, el riesgo de una espiral de pérdidas aumenta considerablemente.','Ojo con este patrón: frustración seguida de {behavior_low} suele empeorar el resultado del día.']},
+  {id:'ansiedad_riesgo',type:'negative',emotions:['Ansiedad','Miedo'],behaviors:['No respetar el riesgo','Aumentar el lotaje','Mover el stop'],
+    templates:['La ansiedad detectada, junto con {behavior_low}, sugiere que el riesgo asumido pudo no ser el habitual.','Cuando aparecen nervios o presión y además {behavior_low}, conviene revisar el tamaño de posición antes de la próxima entrada.','Este patrón (tensión + {behavior_low}) suele venir de un riesgo mal calibrado para el estado emocional del momento.']},
+  {id:'cansancio_sobreoperar',type:'negative',emotions:['Desmotivación'],behaviors:['Sobreoperar','Operar fuera de horario','Forzar operaciones'],
+    templates:['El cansancio o la falta de energía detectados, junto con {behavior_low}, es una combinación que suele desgastar los resultados.','Operar cansado y además {behavior_low} rara vez sale bien: quizá convenga parar antes.']},
+  {id:'culpa_no_aceptar',type:'negative',emotions:['Culpa'],behaviors:['Dejar correr una pérdida','No respetar el riesgo'],
+    templates:['La culpa o el arrepentimiento detectados, junto con {behavior_low}, sugieren dificultad para aceptar el error a tiempo.','Cuando aparece decepción con uno mismo y además {behavior_low}, conviene trabajar la aceptación del error como parte del proceso.']},
+  {id:'disciplina_positiva',type:'positive',emotions:['Confianza','Disciplina','Paciencia'],behaviors:['Seguir el plan','Buena gestión del riesgo','Esperar con paciencia'],
+    templates:['Excelente combinación: {emotion_low} respaldada por {behavior_low} — así se construye una operativa consistente.','Este es el tipo de comportamiento que conviene repetir: {emotion_low} junto con {behavior_low}.','Buen ejemplo de ejecución: {emotion_low} y {behavior_low} suelen ir de la mano en tus mejores días.']},
+  {id:'gestion_emocional_ejemplar',type:'positive',emotions:['Paciencia','Confianza'],behaviors:['Aceptar la pérdida sin frustración','Buena gestión emocional'],
+    templates:['Muy buena gestión emocional: {emotion_low} incluso al {behavior_low}.','Este tipo de temple — {emotion_low} y {behavior_low} — es justo lo que separa a un trader consistente.']},
+  {id:'motivacion_preparacion',type:'positive',emotions:['Motivación'],behaviors:['Buena preparación','Constancia'],
+    templates:['La motivación detectada, junto con {behavior_low}, es una base sólida para mantener el proceso a largo plazo.','Buena señal: motivación y {behavior_low} suelen anticipar rachas de buenos resultados.']},
+  {id:'control_impulsos_positivo',type:'positive',emotions:['Paciencia','Disciplina'],behaviors:['Control de impulsos','Honestidad en el journal'],
+    templates:['Destaca el control mostrado: {emotion_low} junto con {behavior_low}.','Buen trabajo interno: {emotion_low} respaldada por {behavior_low} — sigue así.']},
+];
+
+/* Plantillas para el caso de contraste: emoción negativa "superada" por un comportamiento/emoción positiva
+   tras un conector como "pero" (p.ej. "Tenía miedo, pero respeté mi plan") */
+const RESILIENCE_TEMPLATES=[
+  'A pesar de sentir {emotion_low}, conseguiste {thing_low} — una muestra de fortaleza mental.',
+  'Aunque aparece {emotion_low} en el relato, lo gestionaste bien: {thing_low}.',
+  'Buen manejo emocional: sentiste {emotion_low} pero aun así lograste {thing_low}.',
+  'Destaca la resiliencia — {emotion_low} presente, pero {thing_low} de todas formas.',
+];
+
+/* ── BANCO DE RESPUESTAS (variabilidad) ── */
+const JOURNAL_OPENING_TEMPLATES=[
+  'El estado de ánimo predominante de esta entrada parece ser {emo}.',
+  'Se detecta principalmente {emo} como emoción dominante en lo escrito.',
+  'Lo que escribiste refleja sobre todo {emo}.',
+  'La emoción que más se repite en esta reflexión es {emo}.',
+  'Predomina {emo} en el tono de esta entrada.',
+];
+const TRADE_OPENING_TEMPLATES=[
+  'Ejecutaste una operación {result} en {pair}. El sentimiento predominante parece ser {emo}.',
+  'En esta operación {result} sobre {pair}, destaca sobre todo {emo}.',
+  'La operación en {pair} terminó en {result}, con {emo} como estado mental más presente.',
+  '{pair}: operación {result} marcada principalmente por {emo}.',
+  'Se aprecia {emo} como hilo conductor de esta operación {result} en {pair}.',
+];
+const JOURNAL_NO_SIGNAL_TEMPLATES=[
+  'Reflexión registrada sin patrones emocionales claros detectados.',
+  'No se detectan emociones dominantes claras en esta entrada; el contenido queda registrado igualmente.',
+  'Entrada registrada; el texto no deja un patrón emocional evidente esta vez.',
+];
+const NEG_BEHAVIOR_TEMPLATES=[
+  'Además, se detecta un patrón a vigilar: {beh}.',
+  'También aparece un comportamiento a corregir: {beh}.',
+  'Un aspecto de la ejecución a revisar: {beh}.',
+  'Conviene prestar atención a esto: {beh}.',
+];
+const POS_BEHAVIOR_TEMPLATES=[
+  'Se destaca un buen hábito: {beh}.',
+  'Un punto muy positivo de esta entrada: {beh}.',
+  'Buen trabajo en este aspecto: {beh}.',
+  'Vale la pena reforzar esto: {beh}.',
+];
+
+/* Banco de sugerencias ("posible mejora") por cada emoción dominante, con varias alternativas para evitar
+   respuestas repetitivas entre entradas similares */
+const SUGGESTION_BANK={
+  'Miedo':['Revisa si la entrada cumplía todos los criterios de tu plan antes de dejar que el miedo decida por ti.','Cuando aparezca miedo, respira y confirma que la señal sigue siendo válida antes de actuar.','El miedo suele avisar de algo: revisa si el tamaño de posición era el adecuado para tu tolerancia al riesgo.'],
+  'Duda':['Revisa si la entrada cumplía todos los criterios de tu plan antes de ejecutar la operación.','Cuando aparezca duda, es preferible esperar mayor confirmación antes de entrar.','Si dudas a mitad de la operación, vuelve a tu plan escrito: ahí está la respuesta, no en la emoción del momento.'],
+  'Frustración':['La frustración suele preceder a errores de gestión. Considera alejarte del gráfico unos minutos antes de la próxima operación.','Después de una operación frustrante, una pausa breve suele evitar decisiones impulsivas.','Anota qué desencadenó la frustración: identificar el patrón es el primer paso para gestionarlo.'],
+  'Ansiedad':['Revisa si el tamaño de posición o el contexto de mercado están generando presión innecesaria.','La ansiedad suele reducirse operando con un riesgo por operación más cómodo para ti.','Si notas tensión antes de entrar, puede ser señal de que el setup no está tan claro como parece.'],
+  'Paciencia':['Buen trabajo manteniendo este enfoque. Documenta qué hizo posible este estado para repetirlo.','La paciencia mostrada hoy es un activo: anota el contexto para reconocerlo en el futuro.','Sigue priorizando la calidad de la entrada sobre la cantidad de operaciones.'],
+  'Disciplina':['Buen trabajo manteniendo este enfoque. Documenta qué hizo posible este estado para repetirlo.','La disciplina mostrada hoy es la base de la consistencia a largo plazo: sigue así.','Anota qué reglas seguiste hoy con más cuidado: te servirá como referencia en días más difíciles.'],
+  'Confianza':['Buena señal. Confirma que la confianza vino del análisis y no de rachas anteriores.','La confianza es útil si está respaldada por tu plan; revisa que no venga solo del resultado de operaciones previas.','Aprovecha este estado para revisar tu plan con calma, sin la presión de decisiones bajo estrés.'],
+  'Impulsividad':['Recuerda mantener la disciplina del plan incluso en días sin oportunidades claras; evita forzar entradas por aburrimiento.','Antes de entrar por impulso, prueba a esperar dos minutos y revisar de nuevo los criterios del plan.','La impulsividad suele bajar si defines de antemano cuántas operaciones vas a buscar como máximo hoy.'],
+  'Motivación':['Buena energía: canalízala hacia seguir tu plan al pie de la letra, no hacia forzar más operaciones.','Aprovecha la motivación para preparar bien la sesión, no para operar más de la cuenta.'],
+  'Desmotivación':['Si notas cansancio o falta de energía, puede ser buen momento para reducir tamaño o directamente descansar.','La falta de motivación suele mejorar con una pausa; no es obligatorio operar todos los días.','Cuando el bloqueo mental aparece, revisar tu plan por escrito ayuda a recuperar claridad.'],
+  'Euforia':['Cuidado con el exceso de confianza tras una buena racha: es cuando más se suelen relajar las reglas.','La euforia es un buen momento para revisar que el tamaño de posición no se haya disparado sin darte cuenta.','Disfruta el buen momento, pero mantén el mismo proceso que te trajo hasta aquí.'],
+  'Culpa':['El error ya pasó: lo importante ahora es qué aprendizaje concreto te llevas para la próxima vez.','En lugar de quedarte con la culpa, anota una acción concreta para evitar que se repita.','La autocrítica excesiva no mejora el proceso; sé tan objetivo contigo mismo como lo serías con otro trader.'],
+};
+const GENERIC_SUGGESTIONS=['Sigue registrando tu estado mental: con más datos podrás detectar patrones más claros.','Cuantas más entradas detalladas escribas, más preciso será este análisis con el tiempo.'];
+const JOURNAL_NO_SIGNAL_SUGGESTIONS=['Sigue registrando tu estado mental: con más datos podrás detectar patrones más claros.','Intenta describir no solo qué pasó, sino cómo te sentiste: eso enriquece mucho el análisis.'];
+const TRADE_NO_SIGNAL_SUGGESTIONS=['Añade notas sobre tu mentalidad y gestión en próximas operaciones para detectar patrones de comportamiento.','Describir brevemente cómo te sentiste durante la operación ayuda a detectar patrones con el tiempo.'];
+
+/* ── MOTOR PRINCIPAL ── */
+function analyzeJournalText(text,seedKey){
+  if(!text||!text.trim())return null;
+  const norm=normText(text);
+
+  const emoHitsAll={};
+  Object.keys(EMOTION_LEXICON).forEach(tag=>{
+    const hits=findHits(norm,EMOTION_LEXICON[tag]).filter(h=>!h.negated);
+    if(hits.length)emoHitsAll[tag]=hits.reduce((a,h)=>a+h.weight,0);
+  });
+  const behHitsAll={};
+  Object.entries(BEHAVIOR_LEXICON).forEach(([tag,def])=>{
+    const hits=findHits(norm,def.triggers).filter(h=>!h.negated);
+    if(hits.length)behHitsAll[tag]=hits.reduce((a,h)=>a+h.weight,0);
+  });
+
+  const emoSorted=Object.entries(emoHitsAll).sort((a,b)=>b[1]-a[1]);
+  const behSorted=Object.entries(behHitsAll).sort((a,b)=>b[1]-a[1]);
+  const behPositive=behSorted.filter(([tag])=>BEHAVIOR_LEXICON[tag].polarity==='positive').map(([tag,weight])=>({tag,weight}));
+  const behNegative=behSorted.filter(([tag])=>BEHAVIOR_LEXICON[tag].polarity==='negative').map(([tag,weight])=>({tag,weight}));
+
+  // Segmentación por conectores de contraste, para relacionar emociones y comportamientos según el contexto
+  const segments=splitNormSegments(norm);
+  const segEmoTags=segments.map(seg=>{
+    const s=new Set();
+    Object.keys(EMOTION_LEXICON).forEach(tag=>{
+      if(findHits(seg.text,EMOTION_LEXICON[tag]).some(h=>!h.negated))s.add(tag);
+    });
+    return s;
+  });
+  const segBehTags=segments.map(seg=>{
+    const s=new Set();
+    Object.entries(BEHAVIOR_LEXICON).forEach(([tag,def])=>{
+      if(findHits(seg.text,def.triggers).some(h=>!h.negated))s.add(tag);
+    });
+    return s;
+  });
+
+  const combos=[];
+  COMBO_RULES.forEach(rule=>{
+    for(let i=0;i<segments.length;i++){
+      const eHit=rule.emotions.find(e=>segEmoTags[i].has(e));
+      const bHit=rule.behaviors.find(b=>segBehTags[i].has(b));
+      if(eHit&&bHit){
+        const vars={emotion_low:eHit.toLowerCase(),behavior_low:bHit.toLowerCase()};
+        combos.push({id:rule.id,type:rule.type,text:fillTemplate(pick(rule.templates,seedKey,rule.id+i),vars)});
+        break;
+      }
+    }
+  });
+  // Caso de contraste: emoción negativa seguida de "pero" + comportamiento/emoción positiva
+  for(let i=1;i<segments.length;i++){
+    if(!segments[i].afterContrast)continue;
+    const negEmoPrev=[...segEmoTags[i-1]].find(t=>NEGATIVE_EMOTION_TAGS.includes(t));
+    if(!negEmoPrev)continue;
+    const posBehCur=[...segBehTags[i]].find(t=>BEHAVIOR_LEXICON[t].polarity==='positive');
+    const posEmoCur=[...segEmoTags[i]].find(t=>POSITIVE_EMOTION_TAGS.includes(t));
+    const thing=posBehCur||posEmoCur;
+    if(thing){
+      const vars={emotion_low:negEmoPrev.toLowerCase(),thing_low:thing.toLowerCase()};
+      combos.push({id:'resiliencia'+i,type:'positive',text:fillTemplate(pick(RESILIENCE_TEMPLATES,seedKey,'resiliencia'+i),vars)});
+    }
+  }
+
+  return{
+    emotions:emoSorted.map(([tag,weight])=>({tag,weight})),
+    behaviors:{negative:behNegative,positive:behPositive},
+    combos:combos.slice(0,2),
+    top:emoSorted.length?emoSorted[0][0]:null,
+    tags:emoSorted.slice(0,2).map(([t])=>t),
+  };
+}
+
+/* Envoltorio con la firma original (un solo argumento de texto), usado por el resto de la app
+   donde no se dispone de un id estable; la semilla se deriva del propio texto. */
 function analyzeSentimentText(text){
   if(!text||!text.trim())return null;
-  const lower=text.toLowerCase();
-  const scores={};
-  Object.entries(SENTIMENT_LEXICON).forEach(([tag,words])=>{
-    scores[tag]=words.filter(w=>lower.includes(w)).length;
-  });
-  const detected=Object.entries(scores).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]);
-  if(!detected.length)return null;
-  const top=detected.slice(0,2).map(d=>d[0]);
-  return {tags:top,top:top[0]};
+  return analyzeJournalText(text,'legacy:'+normText(text).slice(0,60));
 }
-function suggestionForSentiment(sentiment,isTrade){
-  if(!sentiment){
-    return isTrade
-      ? 'Añade notas sobre tu mentalidad y gestión en próximas operaciones para detectar patrones de comportamiento.'
-      : 'Sigue registrando tu estado mental: con más datos podrás detectar patrones más claros.';
+
+function buildSuggestion(analysis,isTrade,seedKey){
+  if(!analysis||!analysis.emotions.length){
+    return pick(isTrade?TRADE_NO_SIGNAL_SUGGESTIONS:JOURNAL_NO_SIGNAL_SUGGESTIONS,seedKey,'suggestion-nosignal');
   }
-  if(sentiment.top==='Impulsividad')return 'Recuerda mantener la disciplina del plan incluso en días sin oportunidades claras; evita forzar entradas por aburrimiento.';
-  if(sentiment.top==='Frustración')return 'La frustración suele preceder a errores de gestión. Considera alejarte del gráfico unos minutos antes de la próxima operación.';
-  if(sentiment.top==='Ansiedad')return 'Revisa si el tamaño de posición o el contexto de mercado están generando presión innecesaria.';
-  if(sentiment.top==='Duda')return 'Revisa si la entrada cumplía todos los criterios de tu plan antes de ejecutar la operación.';
-  if(sentiment.top==='Disciplina'||sentiment.top==='Paciencia')return 'Buen trabajo manteniendo este enfoque. Documenta qué hizo posible este estado para repetirlo.';
-  if(sentiment.top==='Confianza')return 'Buena señal. Confirma que la confianza vino del análisis y no de rachas anteriores.';
-  return 'Sigue registrando tu estado mental: con más datos podrás detectar patrones más claros.';
+  const bank=SUGGESTION_BANK[analysis.top]||GENERIC_SUGGESTIONS;
+  return pick(bank,seedKey,'suggestion');
 }
 
 function generateJournalSummary(j){
-  const sentiment=analyzeSentimentText(j.content);
+  const seedKey='j:'+(j.id||j.date||Math.random());
+  const analysis=analyzeJournalText(j.content,seedKey);
   const hasContent=j.content&&j.content.trim().length>0;
-  let summary='';
+  const parts=[];
   if(!hasContent){
-    summary='Entrada de diario sin contenido escrito.';
-  } else if(j.reason){
-    summary=`Día sin operar (${esc(j.reason.toLowerCase())}). `+(sentiment?`El estado de ánimo predominante parece ser ${sentiment.tags.join(' y ').toLowerCase()}.`:'Reflexión registrada sin patrones emocionales claros detectados.');
+    parts.push('Entrada de diario sin contenido escrito.');
   } else {
-    summary=sentiment?`El sentimiento predominante del día parece ser ${sentiment.tags.join(' y ').toLowerCase()}.`:'Reflexión registrada del día.';
+    if(j.reason)parts.push(`Día sin operar (${esc(j.reason.toLowerCase())}).`);
+    if(analysis&&analysis.emotions.length){
+      const emo=analysis.tags.join(' y ').toLowerCase();
+      parts.push(fillTemplate(pick(JOURNAL_OPENING_TEMPLATES,seedKey,'opening'),{emo}));
+    } else {
+      parts.push(pick(JOURNAL_NO_SIGNAL_TEMPLATES,seedKey,'nosignal'));
+    }
+    if(analysis&&analysis.combos.length){
+      analysis.combos.forEach(c=>parts.push(c.text));
+    } else if(analysis){
+      const topNeg=analysis.behaviors.negative[0],topPos=analysis.behaviors.positive[0];
+      if(topNeg)parts.push(fillTemplate(pick(NEG_BEHAVIOR_TEMPLATES,seedKey,'negbeh'),{beh:topNeg.tag.toLowerCase()}));
+      if(topPos)parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,'posbeh'),{beh:topPos.tag.toLowerCase()}));
+    }
   }
-  const suggestion=suggestionForSentiment(sentiment,false);
-  return {summary,sentiment,suggestion};
+  return{summary:parts.join(' '),sentiment:analysis,suggestion:buildSuggestion(analysis,false,seedKey)};
 }
 
 function generateTradeSummary(t){
-  const sentiment=analyzeSentimentText(t.notes);
+  const seedKey='t:'+(t.id||t.date||Math.random());
+  const analysis=analyzeJournalText(t.notes,seedKey);
   const hasNotes=t.notes&&t.notes.trim().length>0;
   const resultWord=t.result==='win'?'ganadora':t.result==='loss'?'perdedora':'en breakeven';
-  let summary='';
   const pairSafe=esc(t.pair||'mercado');
+  const parts=[];
   if(!hasNotes){
-    summary=`Operación ${resultWord} en ${pairSafe} sin notas adicionales registradas.`;
-  } else if(sentiment){
-    summary=sentiment.tags.length>1
-      ? `El trader ejecutó una operación ${resultWord} en ${pairSafe}. El sentimiento predominante parece ser ${sentiment.tags[0].toLowerCase()}, aunque aparece cierta ${sentiment.tags[1].toLowerCase()} durante la gestión.`
-      : `El trader ejecutó una operación ${resultWord} en ${pairSafe}. El sentimiento predominante parece ser ${sentiment.tags[0].toLowerCase()}.`;
+    parts.push(`Operación ${resultWord} en ${pairSafe} sin notas adicionales registradas.`);
   } else {
-    summary=`El trader ejecutó una operación ${resultWord} en ${pairSafe} siguiendo su análisis inicial.`;
+    if(analysis&&analysis.emotions.length){
+      const emo=analysis.tags.join(' y ').toLowerCase();
+      parts.push(fillTemplate(pick(TRADE_OPENING_TEMPLATES,seedKey,'opening'),{result:resultWord,pair:pairSafe,emo}));
+    } else {
+      parts.push(`El trader ejecutó una operación ${resultWord} en ${pairSafe} siguiendo su análisis inicial.`);
+    }
+    if(analysis&&analysis.combos.length){
+      analysis.combos.forEach(c=>parts.push(c.text));
+    } else if(analysis){
+      const topNeg=analysis.behaviors.negative[0],topPos=analysis.behaviors.positive[0];
+      if(topNeg)parts.push(fillTemplate(pick(NEG_BEHAVIOR_TEMPLATES,seedKey,'negbeh'),{beh:topNeg.tag.toLowerCase()}));
+      if(topPos)parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,'posbeh'),{beh:topPos.tag.toLowerCase()}));
+    }
   }
-  const suggestion=suggestionForSentiment(sentiment,true);
-  return {summary,sentiment,suggestion};
+  return{summary:parts.join(' '),sentiment:analysis,suggestion:buildSuggestion(analysis,true,seedKey)};
 }
 
-const SENTIMENT_COLORS={'Confianza':'var(--green)','Frustración':'var(--red)','Ansiedad':'var(--amber)','Paciencia':'var(--blue)','Disciplina':'var(--accent)','Impulsividad':'var(--purple)','Duda':'var(--text2)'};
+const SENTIMENT_COLORS={'Confianza':'var(--green)','Duda':'var(--text2)','Miedo':'var(--red)','Frustración':'var(--red)','Ansiedad':'var(--amber)','Paciencia':'var(--blue)','Impulsividad':'var(--purple)','Disciplina':'var(--accent)','Motivación':'var(--green)','Desmotivación':'var(--text3)','Euforia':'var(--purple)','Culpa':'var(--amber)'};
 
 function analysisBlockHTML(analysis){
+  const sentiment=analysis.sentiment;
+  const badges=[];
+  if(sentiment){
+    sentiment.tags.forEach(t=>badges.push({label:t,color:SENTIMENT_COLORS[t]||'var(--text2)'}));
+    sentiment.behaviors.negative.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--red)'}));
+    sentiment.behaviors.positive.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--green)'}));
+  }
   return `<div class="journal-analysis">
       <div class="journal-analysis-title"><i class="ti ti-sparkles"></i>Análisis del día</div>
       <div class="journal-analysis-row">${analysis.summary}</div>
-      ${analysis.sentiment?`<div class="journal-analysis-row">${analysis.sentiment.tags.map(t=>`<span class="sentiment-tag" style="background:${SENTIMENT_COLORS[t]}22;color:${SENTIMENT_COLORS[t]}">${t}</span>`).join('')}</div>`:''}
+      ${badges.length?`<div class="journal-analysis-row">${badges.map(b=>`<span class="sentiment-tag" style="background:${b.color}22;color:${b.color}">${b.label}</span>`).join('')}</div>`:''}
       ${analysis.suggestion?`<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${analysis.suggestion}</div>`:''}
     </div>`;
 }
@@ -2752,11 +3045,38 @@ function dateToKey(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
+const WE_HERO_TEMPLATES_MULTI=[
+  'Durante esta semana predominó {dom} y {sec}, detectado en {hits} menciones a lo largo de {n} entrada{s}.',
+  'Esta semana el registro emocional estuvo marcado sobre todo por {dom} y {sec}, con {hits} menciones en {n} entrada{s}.',
+  'El patrón dominante de la semana combina {dom} y {sec}, presente en {hits} menciones de {n} entrada{s}.',
+];
+const WE_HERO_TEMPLATES_SINGLE=[
+  'Durante esta semana predominó {dom} de forma consistente en tus entradas.',
+  'Esta semana, {dom} fue el estado emocional más presente y constante.',
+  '{dom_cap} se repite como emoción principal a lo largo de toda la semana.',
+];
+const WE_STRENGTH_TEMPLATES={
+  'Disciplina':['Buena disciplina general, respetando el plan en varias entradas.','Se nota disciplina constante a la hora de seguir tus reglas esta semana.'],
+  'Paciencia':['Paciencia a la hora de esperar las oportunidades adecuadas.','Buen manejo de la paciencia: no forzaste entradas esta semana.'],
+  'Confianza':['Confianza sostenida en el análisis y la ejecución.','Se mantuvo un buen nivel de confianza en tus decisiones esta semana.'],
+  'Motivación':['Buena motivación general a lo largo de la semana.','Se percibe una actitud motivada y con ganas en varias entradas.'],
+};
+const WE_IMPROVEMENT_TEMPLATES={
+  'Frustración':['Evitar operar inmediatamente después de una pérdida por frustración; conviene esperar y recuperar la calma.','La frustración detectada sugiere que conviene establecer una pausa obligatoria tras una pérdida.'],
+  'Impulsividad':['Vigilar las entradas impulsivas o por aburrimiento; revisa siempre los criterios del plan antes de ejecutar.','La impulsividad detectada mejora si defines de antemano el número máximo de operaciones del día.'],
+  'Ansiedad':['La ansiedad detectada puede venir de un riesgo mal calibrado; revisa el tamaño de posición.','Conviene revisar qué está generando la ansiedad de esta semana: puede ser el tamaño de posición o el contexto de mercado.'],
+  'Duda':['Cuando aparezca duda, es preferible esperar mayor confirmación antes de entrar.','La duda recurrente esta semana sugiere revisar si los criterios de entrada están lo bastante claros.'],
+  'Miedo':['El miedo detectado en varias entradas merece atención: revisa si el riesgo asumido es el adecuado para ti.','Cuando el miedo aparece repetidamente, suele ser señal de operar con un tamaño de posición incómodo.'],
+  'Culpa':['La culpa o el arrepentimiento detectados esta semana no ayudan al proceso: sé tan objetivo contigo mismo como lo serías con otro trader.','Conviene trabajar la aceptación del error: el resultado ya pasó, lo importante es el aprendizaje.'],
+  'Desmotivación':['La falta de energía detectada esta semana es una señal para revisar tu descanso y tu carga de operativa.','Cuando aparece cansancio de forma repetida, puede ser buen momento para reducir el ritmo unos días.'],
+};
+
 function renderWeeklyEmotional(){
   const{monday,sunday}=getWeekRange(weekEmoOffset);
   const M=gM();
   const label=weekEmoOffset===0?'Esta semana':weekEmoOffset===-1?'Semana pasada':`Semana del ${monday.getDate()} al ${sunday.getDate()} de ${M[monday.getMonth()]}`;
   setText('we-week-label',label+` · ${monday.getDate()}-${sunday.getDate()} ${M[monday.getMonth()].slice(0,3)}`);
+  const weekSeed='week:'+dateToKey(monday);
 
   // Recoger entradas (journals + trades con notas) dentro del rango de la semana
   const entries=[];
@@ -2775,15 +3095,20 @@ function renderWeeklyEmotional(){
     return;
   }
 
-  // Acumular conteo de cada emoción a lo largo de la semana
+  // Acumular conteo de cada emoción y de cada comportamiento a lo largo de la semana
   const tagCounts={};
   const dayTags={}; // dayIdx -> [tags]
+  const behPosCounts={}, behNegCounts={};
+  const weekCombos=[];
   entries.forEach(e=>{
     const s=analyzeSentimentText(e.text);
     if(s){
       s.tags.forEach(t=>{tagCounts[t]=(tagCounts[t]||0)+1;});
       if(!dayTags[e.dayIdx])dayTags[e.dayIdx]=[];
       dayTags[e.dayIdx].push(...s.tags);
+      s.behaviors.positive.forEach(b=>{behPosCounts[b.tag]=(behPosCounts[b.tag]||0)+1;});
+      s.behaviors.negative.forEach(b=>{behNegCounts[b.tag]=(behNegCounts[b.tag]||0)+1;});
+      s.combos.forEach(c=>{if(!weekCombos.some(x=>x.id===c.id))weekCombos.push(c);});
     }
   });
 
@@ -2800,8 +3125,8 @@ function renderWeeklyEmotional(){
 
   // 1. Estado emocional predominante
   const heroText=secondary
-    ? `Durante esta semana predominó ${dominant.toLowerCase()}${secondary?` y ${secondary.toLowerCase()}`:''}, detectado en ${totalTagHits} menciones a lo largo de ${entries.length} entrada${entries.length!==1?'s':''}.`
-    : `Durante esta semana predominó ${dominant.toLowerCase()} de forma consistente en tus entradas.`;
+    ? fillTemplate(pick(WE_HERO_TEMPLATES_MULTI,weekSeed,'hero'),{dom:dominant.toLowerCase(),sec:secondary.toLowerCase(),hits:totalTagHits,n:entries.length,s:entries.length!==1?'s':''})
+    : fillTemplate(pick(WE_HERO_TEMPLATES_SINGLE,weekSeed,'hero'),{dom:dominant.toLowerCase(),dom_cap:dominant});
 
   // 2. Evolución emocional día a día
   const DAY_NAMES=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -2820,40 +3145,50 @@ function renderWeeklyEmotional(){
   const weekTrades=entries.filter(e=>e.kind==='trade').map(e=>e.ref);
   let relationText='No hay suficientes operaciones con notas esta semana para relacionar emociones con resultados.';
   if(weekTrades.length>=2){
-    const positiveTags=['Confianza','Disciplina','Paciencia'];
-    const negativeTags=['Duda','Ansiedad','Impulsividad','Frustración'];
+    const positiveTags=['Confianza','Disciplina','Paciencia','Motivación'];
+    const negativeTags=['Duda','Ansiedad','Impulsividad','Frustración','Miedo','Culpa','Desmotivación'];
     const withPositive=weekTrades.filter(t=>{const s=analyzeSentimentText(t.notes);return s&&s.tags.some(tag=>positiveTags.includes(tag));});
     const withNegative=weekTrades.filter(t=>{const s=analyzeSentimentText(t.notes);return s&&s.tags.some(tag=>negativeTags.includes(tag));});
     const wrPositive=withPositive.length?Math.round(withPositive.filter(t=>t.result==='win').length/withPositive.length*100):null;
     const wrNegative=withNegative.length?Math.round(withNegative.filter(t=>t.result==='win').length/withNegative.length*100):null;
     if(wrPositive!==null&&wrNegative!==null){
-      relationText=`Las operaciones registradas con estados como confianza o disciplina tuvieron un ${wrPositive}% de aciertos, frente al ${wrNegative}% en operaciones marcadas por duda, ansiedad o impulsividad.`;
+      relationText=`Las operaciones registradas con estados como confianza, disciplina o motivación tuvieron un ${wrPositive}% de aciertos, frente al ${wrNegative}% en operaciones marcadas por duda, ansiedad, miedo o impulsividad.`;
     } else if(wrPositive!==null){
       relationText=`Las operaciones con un estado mental positivo (confianza, disciplina, paciencia) tuvieron un ${wrPositive}% de aciertos esta semana.`;
     } else if(wrNegative!==null){
-      relationText=`Las operaciones marcadas por duda, ansiedad o impulsividad tuvieron un ${wrNegative}% de aciertos, una señal a vigilar.`;
+      relationText=`Las operaciones marcadas por duda, ansiedad, miedo o impulsividad tuvieron un ${wrNegative}% de aciertos, una señal a vigilar.`;
     }
   }
 
-  // 4. Fortalezas
+  // 4. Fortalezas (emocionales + hábitos positivos)
   const strengths=[];
-  if(tagCounts['Disciplina'])strengths.push('Buena disciplina general, respetando el plan en varias entradas.');
-  if(tagCounts['Paciencia'])strengths.push('Paciencia a la hora de esperar las oportunidades adecuadas.');
-  if(tagCounts['Confianza'])strengths.push('Confianza sostenida en el análisis y la ejecución.');
+  ['Disciplina','Paciencia','Confianza','Motivación'].forEach(tag=>{
+    if(tagCounts[tag])strengths.push(pick(WE_STRENGTH_TEMPLATES[tag],weekSeed,'strength-'+tag));
+  });
   const journalDaysCount=new Set(entries.filter(e=>e.kind==='journal').map(e=>e.date)).size;
   if(journalDaysCount>=3)strengths.push(`Constancia registrando journal en ${journalDaysCount} días distintos de la semana.`);
+  const topPosBeh=Object.entries(behPosCounts).sort((a,b)=>b[1]-a[1])[0];
+  if(topPosBeh)strengths.push(`Buen hábito recurrente: ${topPosBeh[0].toLowerCase()} (detectado ${topPosBeh[1]} ${topPosBeh[1]===1?'vez':'veces'} esta semana).`);
   if(!strengths.length)strengths.push('Sigue escribiendo con detalle: con más entradas podremos identificar tus fortalezas con mayor precisión.');
 
-  // 5. Aspectos a mejorar
+  // 5. Aspectos a mejorar (emocionales + hábitos negativos)
   const improvements=[];
-  if(tagCounts['Frustración'])improvements.push('Evitar operar inmediatamente después de una pérdida por frustración; conviene esperar y recuperar la calma.');
-  if(tagCounts['Impulsividad'])improvements.push('Vigilar las entradas impulsivas o por aburrimiento; revisa siempre los criterios del plan antes de ejecutar.');
-  if(tagCounts['Ansiedad'])improvements.push('La ansiedad detectada puede venir de un riesgo mal calibrado; revisa el tamaño de posición.');
-  if(tagCounts['Duda'])improvements.push('Cuando aparezca duda, es preferible esperar mayor confirmación antes de entrar.');
+  ['Frustración','Impulsividad','Ansiedad','Duda','Miedo','Culpa','Desmotivación'].forEach(tag=>{
+    if(tagCounts[tag]&&WE_IMPROVEMENT_TEMPLATES[tag])improvements.push(pick(WE_IMPROVEMENT_TEMPLATES[tag],weekSeed,'improve-'+tag));
+  });
+  const topNegBeh=Object.entries(behNegCounts).sort((a,b)=>b[1]-a[1])[0];
+  if(topNegBeh)improvements.push(`Patrón a vigilar: ${topNegBeh[0].toLowerCase()} (detectado ${topNegBeh[1]} ${topNegBeh[1]===1?'vez':'veces'} esta semana).`);
   if(!improvements.length)improvements.push('Mantén el mismo nivel de disciplina mostrado esta semana; es una base sólida para las próximas.');
 
+  // 6. Patrones combinados detectados durante la semana (relación entre varias emociones/hábitos)
+  const patternsHTML=weekCombos.length?`
+    <div class="we-section">
+      <div class="we-section-title"><i class="ti ti-git-merge" style="color:var(--purple)"></i>Patrones detectados esta semana</div>
+      <ul class="we-list">${weekCombos.slice(0,4).map(c=>`<li><i class="ti ${c.type==='negative'?'ti-alert-triangle':'ti-circle-check'}" style="color:${c.type==='negative'?'var(--red)':'var(--green)'}"></i>${c.text}</li>`).join('')}</ul>
+    </div>`:'';
+
   // Barras visuales (porcentaje sobre el total de menciones detectadas)
-  const barsHTML=sortedTags.slice(0,5).map(([tag,count])=>{
+  const barsHTML=sortedTags.slice(0,6).map(([tag,count])=>{
     const pct=Math.round(count/totalTagHits*100);
     return `<div class="we-bar-row">
       <div class="we-bar-label">${tag}</div>
@@ -2880,6 +3215,7 @@ function renderWeeklyEmotional(){
       <div class="we-section-title"><i class="ti ti-link" style="color:var(--purple)"></i>Emociones y resultados</div>
       <div class="we-section-text">${relationText}</div>
     </div>
+    ${patternsHTML}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="we-section">
         <div class="we-section-title"><i class="ti ti-check" style="color:var(--green)"></i>Fortalezas de la semana</div>
@@ -2969,7 +3305,7 @@ async function computeDisciplineForWeek(offset){
 
   // E) Control emocional: ratio de menciones negativas vs total de menciones detectadas
   let emotionalScore=null;
-  const negativeTags=['Frustración','Ansiedad','Impulsividad','Duda'];
+  const negativeTags=['Frustración','Ansiedad','Impulsividad','Duda','Miedo','Culpa','Desmotivación'];
   let totalHits=0, negativeHits=0;
   [...weekTrades.map(t=>t.notes),...weekJournals.map(j=>j.content)].forEach(text=>{
     const s=analyzeSentimentText(text);
