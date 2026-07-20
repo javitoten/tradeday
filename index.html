@@ -2606,11 +2606,25 @@ function normText(s){
   return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 }
 
-/* Detecta si una coincidencia está negada justo antes (p.ej. "no tenia miedo", "sin confianza") */
+/* Conectores que delimitan el alcance de una negación: dentro de la misma cláusula, "no" aplica a
+   cualquier palabra posterior aunque haya varias palabras de por medio (p.ej. "no he tenido un día
+   muy disciplinado" → "disciplinado" sigue estando negado por el "no" inicial). */
+const CLAUSE_BOUNDARY_RE=/[.,;:]|\b(?:pero|aunque|sin embargo|no obstante|y|o|porque)\b/g;
+function clauseStartBefore(normStr,idx){
+  CLAUSE_BOUNDARY_RE.lastIndex=0;
+  let start=0,m;
+  while((m=CLAUSE_BOUNDARY_RE.exec(normStr))){
+    if(m.index>=idx)break;
+    start=m.index+m[0].length;
+  }
+  return start;
+}
+/* Detecta si una coincidencia está negada en algún punto anterior DENTRO de su misma cláusula
+   (p.ej. "no fui disciplinado", "sin confianza", "no he tenido un día muy disciplinado") */
 function isNegatedAt(normStr,idx){
-  const start=Math.max(0,idx-26);
+  const start=clauseStartBefore(normStr,idx);
   const before=normStr.slice(start,idx);
-  return /\b(no|sin|nunca|jamas|ni|tampoco)\s+([a-z]+\s+){0,2}$/.test(before);
+  return /\b(no|sin|nunca|jamas|ni|tampoco|apenas|nada)\b/.test(before);
 }
 /* Evita falsos positivos cuando la coincidencia es en realidad la segunda mitad de una palabra con
    prefijo negativo pegado (p.ej. "motivad" dentro de "desmotivado", "contento" dentro de "descontento",
@@ -2683,7 +2697,7 @@ const EMOTION_LEXICON={
   'Frustración':['frustra','frustrado','frustrada','molest','enfad','rabia','rabioso','rabiosa','harto','harta','fastidi','indignad','impotencia','me saco de quicio','me cabree','estoy quemado','estoy quemada','me hizo enfadar'],
   'Ansiedad':['ansie','ansiedad','nervios','nervioso','nerviosa','estres','estresado','estresada','agobi','agobiado','agobiada','presion','presionado','presionada','inquiet','tension','tenso','tensa','me costaba respirar','pulso acelerado','taquicardia','se me acelero el corazon'],
   'Paciencia':['pacien','esperar','espere pacientemente','calma','con calma','sin prisa','prudente','tranquilo','tranquila','tranquilidad','serenidad','sereno','serena','relajado','relajada','a mi ritmo','sin agobios','deje que el precio viniera','espere la confirmacion'],
-  'Impulsividad':['impulsiv','prisa','apresur','sin pensar','fomo','aburrimiento','aburrido','aburrida','impacien','no pude esperar','no aguante mas','entre sin mirar','actue sin pensar','me deje llevar','entre de golpe'],
+  'Impulsividad':['impulsiv','por impulso','entre por impulso','actue por impulso','entrada por impulso','prisa','apresur','sin pensar','fomo','aburrimiento','aburrido','aburrida','impacien','no pude esperar','no aguante mas','entre sin mirar','actue sin pensar','me deje llevar','entre de golpe'],
   'Disciplina':['disciplin','plan','reglas','respet','constanc','segui mi sistema','segui mis reglas','me ceni al plan','cumpli mi plan','cumpli con mi estrategia'],
   'Motivación':['motivad','motivacion','con ganas','ilusion','ilusionado','ilusionada','energia positiva','con energia','entusiasm','con fuerza para seguir','con muchas ganas'],
   'Desmotivación':['desmotivad','desmotivacion','sin ganas','cansad','cansancio','fatiga','agotad','agotamiento','bloqueo mental','bloqueado','bloqueada','mente en blanco','no tenia energia','sin fuerzas','harto de perder','quemado','quemada'],
@@ -2694,22 +2708,28 @@ const NEGATIVE_EMOTION_TAGS=['Duda','Miedo','Frustración','Ansiedad','Impulsivi
 const POSITIVE_EMOTION_TAGS=['Confianza','Paciencia','Disciplina','Motivación','Euforia'];
 
 /* ── BANCO DE HÁBITOS Y COMPORTAMIENTOS ──
-   Comportamientos concretos observados en la ejecución, separados en negativos (a vigilar) y positivos (a reforzar). */
+   Comportamientos concretos observados en la ejecución, separados en negativos (a vigilar) y positivos (a reforzar).
+   Incluye también frases que expresan explícitamente una CONTRADICCIÓN entre el resultado económico y la
+   calidad de la ejecución ("aunque gané...", "tuve suerte", "no lo repetiría"), y hábitos que solo se detectan
+   cuando aparecen en su forma NEGADA (p.ej. "no fui disciplinado", "el setup no era claro"). */
 const BEHAVIOR_LEXICON={
-  'Saltarse el plan':{polarity:'negative',triggers:['salte el plan','me salte el plan','no segui el plan','rompi mi plan','ignore mi plan','no respete mi propio plan']},
+  'Saltarse el plan':{polarity:'negative',triggers:['salte el plan','me salte el plan','no segui el plan','no respete el plan','rompi mi plan','ignore mi plan','no respete mi propio plan','no respete mi plan']},
   'Operar por aburrimiento':{polarity:'negative',triggers:['por aburrimiento','entre porque estaba aburrido','entre porque estaba aburrida','operar sin motivo','entre sin razon']},
   'Operar por venganza':{polarity:'negative',triggers:['revenge trading','queria recuperar','por venganza','recuperar lo perdido','entre para recuperar','queria recuperar las perdidas','operar en caliente']},
   'Sobreoperar':{polarity:'negative',triggers:['sobreopere','sobreoperar','demasiadas operaciones','muchas operaciones seguidas','exceso de operaciones','no pare de operar']},
   'Entrar demasiado pronto':{polarity:'negative',triggers:['entre demasiado pronto','entre antes de tiempo','entre sin confirmacion','me adelante a la señal','me adelante a la senal','entre demasiado rapido']},
   'Entrar demasiado tarde':{polarity:'negative',triggers:['entre tarde','entre demasiado tarde','perdi la entrada','llegue tarde a la operacion','el precio ya se habia movido']},
-  'No esperar confirmación':{polarity:'negative',triggers:['sin esperar confirmacion','no espere confirmacion','no confirme la señal','no confirme la senal','entre sin señal clara','entre sin senal clara']},
+  'No esperar confirmación':{polarity:'negative',triggers:['sin esperar confirmacion','no espere confirmacion','no espere la confirmacion','no confirme la señal','no confirme la senal','entre sin señal clara','entre sin senal clara','no esperaba esa entrada','no me esperaba esa entrada','no esperaba entrar ahi']},
   'Mover el stop':{polarity:'negative',triggers:['mover el stop','movi el stop','amplie el stop','quite el stop','elimine el stop loss','cambie el stop de sitio']},
   'No respetar el riesgo':{polarity:'negative',triggers:['no respete el riesgo','arriesgue mas de lo normal','me sali del riesgo','supere mi riesgo maximo','arriesgue de mas']},
   'Aumentar el lotaje':{polarity:'negative',triggers:['aumente el lotaje','subi el tamaño de posicion','subi el tamano de posicion','duplique el lote','entre con mas tamaño del habitual','meti mas volumen del normal']},
   'Operar fuera de horario':{polarity:'negative',triggers:['fuera de mi horario','fuera de horario habitual','opere fuera de mi sesion','opere a una hora que no toca']},
-  'Forzar operaciones':{polarity:'negative',triggers:['forzar la entrada','force la operacion','busque una excusa para entrar','me invente una señal','me invente una senal','quise operar si o si']},
+  'Forzar operaciones':{polarity:'negative',triggers:['forc','busque una excusa para entrar','me invente una señal','me invente una senal','quise operar si o si']},
   'Cerrar antes de tiempo':{polarity:'negative',triggers:['cerre antes de tiempo','cerre demasiado pronto','sali antes de lo previsto','cerre por miedo','no deje correr la ganancia']},
   'Dejar correr una pérdida':{polarity:'negative',triggers:['deje correr la perdida','no corte a tiempo','aguante demasiado la perdida','no acepte la perdida a tiempo','espere a que se diera la vuelta']},
+  'Falta de disciplina':{polarity:'negative',triggers:['no fui disciplinado','no fui disciplinada','no he sido disciplinado','no he sido disciplinada','no tuve un dia disciplinado','no fue un dia disciplinado','poco disciplinado','poco disciplinada','me falto disciplina','no fui muy disciplinado','no fui nada disciplinado']},
+  'Setup poco claro':{polarity:'negative',triggers:['setup no era claro','el setup no fue claro','setup poco claro','señal poco clara','senal poco clara','no tenia una señal clara','no tenia una senal clara','sin una señal clara','sin una senal clara','no era el setup ideal','setup dudoso','entrada poco clara']},
+  'Resultado no refleja ejecución':{polarity:'negative',triggers:['aunque gane','aunque haya ganado','aunque salio bien','aunque haya salido bien','aunque me haya ido bien','aunque me fue bien','a pesar de ganar','a pesar del resultado','a pesar de que gane','tuve suerte','fue pura suerte','fue solo suerte','gane de suerte','no fue merito mio','no repetiria esta operacion','no volveria a repetir esta entrada','no lo volveria a hacer','no volveria a hacer esto']},
   'Seguir el plan':{polarity:'positive',triggers:['segui el plan','respete mi plan','plan ejecutado correctamente','cumpli con mi estrategia','me ceni a mis reglas','todo segun el plan']},
   'Esperar con paciencia':{polarity:'positive',triggers:['espere pacientemente','espere la confirmacion','no me precipite','deje que el mercado viniera a mi','espere el momento correcto']},
   'Aceptar la pérdida sin frustración':{polarity:'positive',triggers:['acepte la perdida','perdida bien gestionada','lo tome con calma','no me afecto la perdida','segui adelante sin problema']},
@@ -2717,9 +2737,19 @@ const BEHAVIOR_LEXICON={
   'Buena preparación':{polarity:'positive',triggers:['buena preparacion','prepare bien la sesion','hice los deberes','estudie el mercado antes','llegue preparado','llegue preparada']},
   'Buena gestión emocional':{polarity:'positive',triggers:['buena gestion emocional','controle mis emociones','mantuve la calma en todo momento','no deje que las emociones me dominaran']},
   'Constancia':{polarity:'positive',triggers:['constancia','sigo constante','llevo varios dias seguidos','mantengo la rutina','dia tras dia sigo mi proceso']},
-  'Honestidad en el journal':{polarity:'positive',triggers:['siendo honesto conmigo mismo','siendo honesta conmigo misma','reconozco que','admito que','soy sincero','soy sincera']},
+  'Honestidad en el journal':{polarity:'positive',triggers:['siendo honesto conmigo mismo','siendo honesta conmigo misma','reconozco que','admito que','soy sincero','soy sincera','aprendi que','me di cuenta de que','fui consciente de que','lo reconozco','tengo que reconocer que','debo admitir que']},
   'Aceptar los errores':{polarity:'positive',triggers:['acepto el error','reconozco el error','aprendi del error','fue un fallo mio y lo asumo']},
   'Control de impulsos':{polarity:'positive',triggers:['controle el impulso','resisti las ganas de entrar','no me deje llevar por el impulso','me contuve']},
+};
+
+/* Palabras positivas que, cuando aparecen NEGADAS en el texto (aunque no coincidan con ninguna frase
+   explícita del léxico), se convierten automáticamente en evidencia de un comportamiento negativo concreto.
+   Esto permite detectar variantes no previstas literalmente, p.ej. "no tuve un día muy disciplinado" o
+   "el setup no fue del todo claro", sin depender de tener la frase exacta en la lista de triggers. */
+const NEGATION_FLIP_STEMS={
+  'disciplin':{kind:'behavior',tag:'Falta de disciplina'},
+  'claro':{kind:'behavior',tag:'Setup poco claro'},
+  'confia':{kind:'emotion',tag:'Duda'}
 };
 
 /* ── REGLAS DE COMBINACIÓN ──
@@ -2790,6 +2820,32 @@ const POS_BEHAVIOR_TEMPLATES=[
   'Vale la pena reforzar esto: {beh}.',
 ];
 
+/* Plantillas que priorizan la reflexión escrita por encima del resultado económico de la operación:
+   se usan cuando el texto reconoce un fallo de ejecución (falta de disciplina, entrada forzada, setup
+   poco claro, etc.), sin importar si la operación terminó en ganancia o en pérdida. */
+const EXECUTION_VS_RESULT_WIN_TEMPLATES=[
+  'Aunque el resultado en {pair} fue {result}, el propio registro reconoce un fallo de ejecución ({issue}) — el resultado económico no debe confundirse con la calidad de la operación.',
+  'La operación en {pair} terminó {result}, pero el análisis escrito señala un problema de ejecución: {issue}. Ganar no significa que la operación fuera disciplinada.',
+  'Más allá de que el resultado fuera {result}, lo que destaca del texto es la autocrítica sobre la ejecución: {issue}.',
+  'Ojo con este patrón: el resultado en {pair} fue {result}, pero el propio relato admite {issue} — vale la pena separar ambas cosas.',
+];
+const EXECUTION_ISSUE_TEMPLATES=[
+  'La operación en {pair} terminó {result}. El propio registro señala un problema de ejecución: {issue}.',
+  'Más allá del resultado ({result}) en {pair}, lo relevante aquí es la autocrítica sobre la ejecución: {issue}.',
+  'En esta operación {result} sobre {pair}, el texto reconoce: {issue}.',
+];
+const JOURNAL_EXECUTION_TEMPLATES=[
+  'Lo que más destaca de esta entrada es la autocrítica sobre la ejecución: {issue}.',
+  'El texto reconoce un problema concreto: {issue}.',
+  'Por encima de cualquier otro detalle, el registro señala: {issue}.',
+];
+const AUTOCRITICA_PRAISE_TEMPLATES=[
+  'Reconocer esto, incluso cuando el resultado fue positivo, es una muestra de madurez: es exactamente el tipo de honestidad que mejora el proceso a largo plazo.',
+  'Vale la pena destacar esta autocrítica — separar el resultado de la calidad de la ejecución es una de las habilidades más importantes de un trader.',
+  'Esta capacidad de reconocer el error, más allá del resultado, es justo lo que construye consistencia a largo plazo.',
+  'Buena reflexión: el resultado no invalida la crítica, y reconocerlo así ayuda a corregir el patrón antes de que se repita.',
+];
+
 /* Banco de sugerencias ("posible mejora") por cada emoción dominante, con varias alternativas para evitar
    respuestas repetitivas entre entradas similares */
 const SUGGESTION_BANK={
@@ -2810,6 +2866,29 @@ const GENERIC_SUGGESTIONS=['Sigue registrando tu estado mental: con más datos p
 const JOURNAL_NO_SIGNAL_SUGGESTIONS=['Sigue registrando tu estado mental: con más datos podrás detectar patrones más claros.','Intenta describir no solo qué pasó, sino cómo te sentiste: eso enriquece mucho el análisis.'];
 const TRADE_NO_SIGNAL_SUGGESTIONS=['Añade notas sobre tu mentalidad y gestión en próximas operaciones para detectar patrones de comportamiento.','Describir brevemente cómo te sentiste durante la operación ayuda a detectar patrones con el tiempo.'];
 
+/* Sugerencias específicas por cada hábito negativo detectado — tienen prioridad sobre las sugerencias
+   basadas en emociones, porque un comportamiento concreto y autoreportado es una señal más precisa que
+   una emoción genérica. */
+const SUGGESTION_BANK_BEHAVIOR={
+  'Saltarse el plan':['Antes de la próxima entrada, repasa por escrito los criterios de tu plan: si no se cumplen todos, no hay operación.','Saltarse el plan suele notarse más en el resultado a largo plazo que en una operación aislada; vuelve a las reglas escritas.'],
+  'Operar por aburrimiento':['Si notas que buscas operar por aburrimiento, aléjate del gráfico y vuelve solo cuando haya una señal real.','El aburrimiento suele ser la antesala de entradas sin fundamento: define de antemano qué harás en días sin setups claros.'],
+  'Operar por venganza':['El revenge trading rara vez arregla una pérdida anterior; conviene parar por hoy tras detectarlo.','Cuando aparece el impulso de "recuperar" una pérdida, es buen momento para cerrar la plataforma un rato.'],
+  'Sobreoperar':['Define un número máximo de operaciones por día y respétalo, incluso en días con muchas señales aparentes.','Sobreoperar suele diluir la calidad de las entradas; menos operaciones bien seleccionadas suele rendir mejor.'],
+  'Entrar demasiado pronto':['Espera a que se cumplan todos los criterios de confirmación antes de entrar, aunque el precio ya se esté moviendo.','Entrar antes de tiempo suele deberse a miedo a perderse el movimiento; confía en que habrá más oportunidades.'],
+  'Entrar demasiado tarde':['Si sientes que llegas tarde a la entrada, probablemente sea mejor dejarla pasar que perseguir el precio.','Llegar tarde a una entrada suele empeorar la relación riesgo/beneficio; está bien dejar pasar la operación.'],
+  'No esperar confirmación':['La confirmación existe para reducir el margen de error: dale una oportunidad antes de la próxima entrada.','Sin confirmación clara, el riesgo de la operación sube aunque el resultado final sea bueno.'],
+  'Mover el stop':['Mover el stop suele ser una señal de que el riesgo inicial no estaba bien calculado; ajústalo antes de entrar, no durante.','Definir el stop antes de la operación y no tocarlo es una de las reglas más simples y más difíciles de mantener.'],
+  'No respetar el riesgo':['Revisa el riesgo asumido frente al que sueles marcarte como límite; ajustarlo antes de operar evita este patrón.','Cuando el riesgo se sale de lo habitual, conviene preguntarse qué llevó a esa decisión antes de la próxima entrada.'],
+  'Aumentar el lotaje':['Aumentar el tamaño de posición fuera de lo habitual suele venir de una emoción (euforia, urgencia) más que de un análisis; vale la pena revisarlo.','Mantener el mismo tamaño de posición constante, gane o pierda, es una de las bases de la gestión de riesgo.'],
+  'Operar fuera de horario':['Operar fuera de tu horario habitual suele significar menos preparación y contexto; considera limitarte a tu ventana habitual.','Si te encuentras operando fuera de horario, pregúntate qué necesidad estás cubriendo con esa operación.'],
+  'Forzar operaciones':['Forzar una entrada suele ser señal de que no había un setup real; está bien no operar si no se cumplen los criterios.','La próxima vez que sientas la necesidad de forzar una entrada, tómalo como una señal para cerrar la plataforma.'],
+  'Cerrar antes de tiempo':['Cerrar antes de tiempo suele venir del miedo a perder lo ganado; revisa si tu plan de salida estaba bien definido de antemano.','Definir el objetivo de salida antes de entrar ayuda a no cerrar solo por miedo cuando el precio se mueve a favor.'],
+  'Dejar correr una pérdida':['No cortar una pérdida a tiempo suele ser el error más costoso a largo plazo; conviene revisar por qué costó tanto aceptarla.','Tener el stop definido de antemano evita depender de la fuerza de voluntad para cortar una pérdida.'],
+  'Falta de disciplina':['Reconocer un día poco disciplinado, incluso con buen resultado, es un buen punto de partida: anota qué se saltó exactamente.','La disciplina no se mide por el resultado del día sino por cuánto se siguió el plan; vale la pena revisar qué falló hoy.'],
+  'Setup poco claro':['Cuando el setup no es claro, la opción más disciplinada suele ser no operar, aunque a veces salga bien igualmente.','Un setup dudoso que termina en ganancia no deja de ser una operación de mayor riesgo del habitual; convendría evitarlo la próxima vez.'],
+  'Resultado no refleja ejecución':['El resultado económico y la calidad de la ejecución son cosas distintas: vale la pena registrar ambas por separado.','Ganar con una ejecución dudosa no valida el proceso; identificar esto es clave para no repetir el mismo error con menos suerte.'],
+};
+
 /* ── MOTOR PRINCIPAL ── */
 function analyzeJournalText(text,seedKey){
   if(!text||!text.trim())return null;
@@ -2824,6 +2903,18 @@ function analyzeJournalText(text,seedKey){
   Object.entries(BEHAVIOR_LEXICON).forEach(([tag,def])=>{
     const hits=findHits(norm,def.triggers).filter(h=>!h.negated);
     if(hits.length)behHitsAll[tag]=hits.reduce((a,h)=>a+h.weight,0);
+  });
+  // Auto-flip: palabras positivas en su forma NEGADA se convierten en evidencia de un comportamiento
+  // negativo concreto, aunque no coincidan literalmente con ninguna frase del léxico de comportamientos.
+  Object.entries(NEGATION_FLIP_STEMS).forEach(([stem,flip])=>{
+    let idx=norm.indexOf(stem);
+    while(idx!==-1){
+      if(isNegatedAt(norm,idx)){
+        if(flip.kind==='emotion')emoHitsAll[flip.tag]=(emoHitsAll[flip.tag]||0)+1;
+        else behHitsAll[flip.tag]=(behHitsAll[flip.tag]||0)+1;
+      }
+      idx=norm.indexOf(stem,idx+stem.length);
+    }
   });
 
   const emoSorted=Object.entries(emoHitsAll).sort((a,b)=>b[1]-a[1]);
@@ -2891,11 +2982,62 @@ function analyzeSentimentText(text){
 }
 
 function buildSuggestion(analysis,isTrade,seedKey){
-  if(!analysis||!analysis.emotions.length){
-    return pick(isTrade?TRADE_NO_SIGNAL_SUGGESTIONS:JOURNAL_NO_SIGNAL_SUGGESTIONS,seedKey,'suggestion-nosignal');
+  if(!analysis)return pick(isTrade?TRADE_NO_SIGNAL_SUGGESTIONS:JOURNAL_NO_SIGNAL_SUGGESTIONS,seedKey,'suggestion-nosignal');
+  if(analysis.behaviors.negative.length){
+    const bank=SUGGESTION_BANK_BEHAVIOR[analysis.behaviors.negative[0].tag];
+    if(bank)return pick(bank,seedKey,'suggestion-beh');
   }
-  const bank=SUGGESTION_BANK[analysis.top]||GENERIC_SUGGESTIONS;
-  return pick(bank,seedKey,'suggestion');
+  if(analysis.emotions.length){
+    const bank=SUGGESTION_BANK[analysis.top]||GENERIC_SUGGESTIONS;
+    return pick(bank,seedKey,'suggestion');
+  }
+  return pick(isTrade?TRADE_NO_SIGNAL_SUGGESTIONS:JOURNAL_NO_SIGNAL_SUGGESTIONS,seedKey,'suggestion-nosignal');
+}
+
+/* Construye el cuerpo del análisis para una entrada de Journal o de Trade. La prioridad es siempre:
+   1) combinaciones emoción+comportamiento (COMBO_RULES) — la interpretación más específica disponible;
+   2) comportamientos negativos autoreportados (incluye "Resultado no refleja ejecución", "Falta de
+      disciplina", etc.) — la reflexión escrita del usuario prevalece sobre el resultado económico;
+   3) emociones detectadas sin comportamiento negativo asociado;
+   4) sin señal clara. */
+function buildAnalysisParts(analysis,seedKey,opts){
+  const parts=[];
+  if(analysis&&analysis.combos.length){
+    analysis.combos.forEach(c=>parts.push(c.text));
+    return parts;
+  }
+  if(analysis&&analysis.behaviors.negative.length){
+    const issue=analysis.behaviors.negative[0].tag.toLowerCase();
+    if(opts.isTrade){
+      const bank=opts.resultWin?EXECUTION_VS_RESULT_WIN_TEMPLATES:EXECUTION_ISSUE_TEMPLATES;
+      parts.push(fillTemplate(pick(bank,seedKey,'execution'),{result:opts.resultWord,pair:opts.pairSafe,issue}));
+    } else {
+      parts.push(fillTemplate(pick(JOURNAL_EXECUTION_TEMPLATES,seedKey,'execution'),{issue}));
+    }
+    if(analysis.behaviors.negative.length>1){
+      const extra=analysis.behaviors.negative.slice(1,3).map(b=>b.tag.toLowerCase()).join(', ');
+      parts.push(`También se detecta: ${extra}.`);
+    }
+    parts.push(pick(AUTOCRITICA_PRAISE_TEMPLATES,seedKey,'autocritica'));
+    return parts;
+  }
+  if(analysis&&analysis.emotions.length){
+    const emo=analysis.tags.join(' y ').toLowerCase();
+    if(opts.isTrade){
+      parts.push(fillTemplate(pick(TRADE_OPENING_TEMPLATES,seedKey,'opening'),{result:opts.resultWord,pair:opts.pairSafe,emo}));
+    } else {
+      parts.push(fillTemplate(pick(JOURNAL_OPENING_TEMPLATES,seedKey,'opening'),{emo}));
+    }
+    const topPos=analysis.behaviors.positive[0];
+    if(topPos)parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,'posbeh'),{beh:topPos.tag.toLowerCase()}));
+    return parts;
+  }
+  if(opts.isTrade){
+    parts.push(`El trader ejecutó una operación ${opts.resultWord} en ${opts.pairSafe} siguiendo su análisis inicial.`);
+  } else {
+    parts.push(pick(JOURNAL_NO_SIGNAL_TEMPLATES,seedKey,'nosignal'));
+  }
+  return parts;
 }
 
 function generateJournalSummary(j){
@@ -2907,19 +3049,7 @@ function generateJournalSummary(j){
     parts.push('Entrada de diario sin contenido escrito.');
   } else {
     if(j.reason)parts.push(`Día sin operar (${esc(j.reason.toLowerCase())}).`);
-    if(analysis&&analysis.emotions.length){
-      const emo=analysis.tags.join(' y ').toLowerCase();
-      parts.push(fillTemplate(pick(JOURNAL_OPENING_TEMPLATES,seedKey,'opening'),{emo}));
-    } else {
-      parts.push(pick(JOURNAL_NO_SIGNAL_TEMPLATES,seedKey,'nosignal'));
-    }
-    if(analysis&&analysis.combos.length){
-      analysis.combos.forEach(c=>parts.push(c.text));
-    } else if(analysis){
-      const topNeg=analysis.behaviors.negative[0],topPos=analysis.behaviors.positive[0];
-      if(topNeg)parts.push(fillTemplate(pick(NEG_BEHAVIOR_TEMPLATES,seedKey,'negbeh'),{beh:topNeg.tag.toLowerCase()}));
-      if(topPos)parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,'posbeh'),{beh:topPos.tag.toLowerCase()}));
-    }
+    parts.push(...buildAnalysisParts(analysis,seedKey,{isTrade:false}));
   }
   return{summary:parts.join(' '),sentiment:analysis,suggestion:buildSuggestion(analysis,false,seedKey)};
 }
@@ -2930,23 +3060,11 @@ function generateTradeSummary(t){
   const hasNotes=t.notes&&t.notes.trim().length>0;
   const resultWord=t.result==='win'?'ganadora':t.result==='loss'?'perdedora':'en breakeven';
   const pairSafe=esc(t.pair||'mercado');
-  const parts=[];
+  let parts;
   if(!hasNotes){
-    parts.push(`Operación ${resultWord} en ${pairSafe} sin notas adicionales registradas.`);
+    parts=[`Operación ${resultWord} en ${pairSafe} sin notas adicionales registradas.`];
   } else {
-    if(analysis&&analysis.emotions.length){
-      const emo=analysis.tags.join(' y ').toLowerCase();
-      parts.push(fillTemplate(pick(TRADE_OPENING_TEMPLATES,seedKey,'opening'),{result:resultWord,pair:pairSafe,emo}));
-    } else {
-      parts.push(`El trader ejecutó una operación ${resultWord} en ${pairSafe} siguiendo su análisis inicial.`);
-    }
-    if(analysis&&analysis.combos.length){
-      analysis.combos.forEach(c=>parts.push(c.text));
-    } else if(analysis){
-      const topNeg=analysis.behaviors.negative[0],topPos=analysis.behaviors.positive[0];
-      if(topNeg)parts.push(fillTemplate(pick(NEG_BEHAVIOR_TEMPLATES,seedKey,'negbeh'),{beh:topNeg.tag.toLowerCase()}));
-      if(topPos)parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,'posbeh'),{beh:topPos.tag.toLowerCase()}));
-    }
+    parts=buildAnalysisParts(analysis,seedKey,{isTrade:true,resultWord,pairSafe,resultWin:t.result==='win'});
   }
   return{summary:parts.join(' '),sentiment:analysis,suggestion:buildSuggestion(analysis,true,seedKey)};
 }
