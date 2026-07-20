@@ -858,8 +858,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         Continuar con Google
       </button>
       <div class="auth-divider">o con email</div>
-      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="login-email" placeholder="tu@email.com"></div>
-      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="login-pass" placeholder="••••••••"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="login-email" placeholder="tu@email.com" maxlength="254" autocomplete="email"></div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="login-pass" placeholder="••••••••" maxlength="128" autocomplete="current-password"></div>
       <button class="btn btn-primary btn-full" onclick="loginEmail()">Iniciar sesión</button>
       <div class="auth-footer-text" style="margin-bottom:6px"><a onclick="showScreen('forgot')">¿Olvidaste tu contraseña?</a></div>
       <div class="auth-footer-text">¿No tienes cuenta? <a onclick="showScreen('signup')">Regístrate gratis</a></div>
@@ -881,9 +881,9 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         Continuar con Google
       </button>
       <div class="auth-divider">o con email</div>
-      <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-input" type="text" id="signup-username" placeholder="Ej: Javier"></div>
-      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="signup-email" placeholder="tu@email.com"></div>
-      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="signup-pass" placeholder="Mínimo 8 caracteres"></div>
+      <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-input" type="text" id="signup-username" placeholder="Ej: Javier" maxlength="40" autocomplete="name"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="signup-email" placeholder="tu@email.com" maxlength="254" autocomplete="email"></div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="signup-pass" placeholder="Mín. 8 caracteres, con mayúsculas, minúsculas y números" maxlength="128" autocomplete="new-password"></div>
       <button class="btn btn-primary btn-full" onclick="signupEmail()">Crear cuenta gratis</button>
       <div class="auth-footer-text">¿Ya tienes cuenta? <a onclick="showScreen('login')">Inicia sesión</a></div>
     </div>
@@ -914,7 +914,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       <h2 class="auth-title">Nueva contraseña</h2>
       <p class="auth-sub">Elige una contraseña nueva para tu cuenta</p>
       <div class="auth-error" id="reset-error"></div>
-      <div class="form-group"><label class="form-label">Nueva contraseña</label><input class="form-input" type="password" id="reset-pass" placeholder="Mínimo 8 caracteres"></div>
+      <div class="form-group"><label class="form-label">Nueva contraseña</label><input class="form-input" type="password" id="reset-pass" placeholder="Mín. 8 caracteres, con mayúsculas, minúsculas y números" maxlength="128" autocomplete="new-password"></div>
       <button class="btn btn-primary btn-full" onclick="updatePasswordFromReset()">Guardar nueva contraseña</button>
     </div>
   </div>
@@ -1036,7 +1036,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         </div>
         <div class="form-group">
           <label class="form-label">Nombre de la cuenta</label>
-          <input class="form-input" id="ob-account-name" placeholder="Ej: FTMO Principal, Pepperstone...">
+          <input class="form-input" id="ob-account-name" placeholder="Ej: FTMO Principal, Pepperstone..." maxlength="60">
         </div>
         <div style="display:flex;gap:8px;margin-top:4px">
           <button class="btn btn-ghost" onclick="obPrev()" style="flex:1">Atrás</button>
@@ -1050,7 +1050,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         <p class="onboarding-sub" style="margin-bottom:20px">Esto nos permitirá calcular tus porcentajes de ganancia y pérdida automáticamente.</p>
         <div class="form-group">
           <label class="form-label">Capital actual ($)</label>
-          <input class="form-input" type="number" id="ob-capital" placeholder="Ej: 5000, 25000, 100000..." style="font-size:18px;padding:14px;font-weight:700">
+          <input class="form-input" type="number" id="ob-capital" placeholder="Ej: 5000, 25000, 100000..." style="font-size:18px;padding:14px;font-weight:700" min="1" max="100000000" step="0.01">
           <div class="form-hint">Puedes actualizarlo cuando quieras desde configuración</div>
         </div>
         <div style="display:flex;gap:8px;margin-top:4px">
@@ -1686,7 +1686,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         <div><div class="section-title" style="font-size:17px">Configuración</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Build 2026-07-15</div></div>
         <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:14px">Perfil</div>
-          <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-input" id="cfg-username" placeholder="Tu nombre"></div>
+          <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-input" id="cfg-username" placeholder="Tu nombre" maxlength="40"></div>
           <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar cambios</button></div>
         </div>
         <div class="card">
@@ -1759,7 +1759,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       </div>
       <div class="form-section">Análisis</div>
       <div class="form-group"><label class="form-label">¿Cómo te sentiste?</label><div class="chip-group" id="t-emo"><div class="chip" onclick="toggleChip(this,'sel-emotion')">😌 Tranquilo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😤 Impaciente</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😨 Con miedo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">🤑 Eufórico</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😡 Frustrado</div></div></div>
-      <div class="form-group"><label class="form-label">Notas</label><textarea class="form-input" id="t-notes" rows="3" placeholder="¿Qué salió bien? ¿Qué mejorar?"></textarea></div>
+      <div class="form-group"><label class="form-label">Notas</label><textarea class="form-input" id="t-notes" rows="3" placeholder="¿Qué salió bien? ¿Qué mejorar?" maxlength="2000"></textarea></div>
       <div class="form-group"><label class="form-label">¿Seguiste el plan?</label><div class="chip-group" id="t-plan"><div class="chip" onclick="selectChip('t-plan',this,'sel-win')">✅ Sí, al 100%</div><div class="chip" onclick="selectChip('t-plan',this,'sel-be')">⚠️ Parcialmente</div><div class="chip" onclick="selectChip('t-plan',this,'sel-loss')">❌ No</div></div></div>
       <div class="form-group">
         <label class="form-label">Captura del trade (opcional)</label>
@@ -1769,7 +1769,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         </div>
         <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2)">
           <i class="ti ti-photo-up" style="font-size:16px"></i>Subir captura
-          <input type="file" id="t-image-input" accept="image/*" style="display:none" onchange="previewTradeImage(event)">
+          <input type="file" id="t-image-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="previewTradeImage(event)">
         </label>
       </div>
     </div>
@@ -1793,10 +1793,10 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       <div class="form-group"><label class="form-label">Reflexión del día</label>
         <div class="journal-editor">
           <div class="journal-editor-top"><i class="ti ti-pencil" style="font-size:14px;color:var(--text3)"></i><span style="font-size:12px;color:var(--text3)">Escribe libremente</span></div>
-          <textarea id="j-content" placeholder="¿Qué observaste en el mercado? ¿Qué aprendiste hoy?&#10;&#10;No hay respuestas incorrectas. Escribe con honestidad." rows="5"></textarea>
+          <textarea id="j-content" placeholder="¿Qué observaste en el mercado? ¿Qué aprendiste hoy?&#10;&#10;No hay respuestas incorrectas. Escribe con honestidad." rows="5" maxlength="4000"></textarea>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">¿Algo que recordar para mañana?</label><input class="form-input" id="j-tomorrow" placeholder="Ej: Revisar el setup de XAUUSD..."></div>
+      <div class="form-group"><label class="form-label">¿Algo que recordar para mañana?</label><input class="form-input" id="j-tomorrow" placeholder="Ej: Revisar el setup de XAUUSD..." maxlength="300"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="confirmCloseJournal()">Cancelar</button>
@@ -1814,8 +1814,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         <div class="account-type-card selected-real" id="new-at-real" onclick="newAccType('real')"><div class="account-type-icon">💰</div><div class="account-type-title">Cuenta real</div><div class="account-type-sub">Capital propio</div></div>
         <div class="account-type-card" id="new-at-funded" onclick="newAccType('funded')"><div class="account-type-icon">🏦</div><div class="account-type-title">Cuenta fondeada</div><div class="account-type-sub">Prop firm / FTMO...</div></div>
       </div>
-      <div class="form-group"><label class="form-label">Nombre de la cuenta</label><input class="form-input" id="new-acc-name" placeholder="Ej: FTMO #2, IC Markets..."></div>
-      <div class="form-group"><label class="form-label">Capital inicial ($)</label><input class="form-input" type="number" id="new-acc-capital" placeholder="Ej: 10000"></div>
+      <div class="form-group"><label class="form-label">Nombre de la cuenta</label><input class="form-input" id="new-acc-name" placeholder="Ej: FTMO #2, IC Markets..." maxlength="60"></div>
+      <div class="form-group"><label class="form-label">Capital inicial ($)</label><input class="form-input" type="number" id="new-acc-capital" placeholder="Ej: 10000" min="1" max="100000000" step="0.01"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-add-account')">Cancelar</button>
@@ -1857,22 +1857,25 @@ const gD=()=>lang==='es'?DAYS_ES:DAYS_EN;
 
 /* ── AUTH ── */
 async function loginEmail(){
-  const email=document.getElementById('login-email').value;
+  const email=document.getElementById('login-email').value.trim().slice(0,254);
   const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){showAuthError('login-error','Completa email y contraseña.');return;}
   const{error}=await sb.auth.signInWithPassword({email,password:pass});
-  if(error){showAuthError('login-error',error.message);}
+  if(error){showAuthError('login-error',friendlyAuthError(error));}
 }
 async function signupEmail(){
-  const email=document.getElementById('signup-email').value;
+  const email=document.getElementById('signup-email').value.trim().slice(0,254);
   const pass=document.getElementById('signup-pass').value;
-  const username=document.getElementById('signup-username').value||'Trader';
+  const username=(document.getElementById('signup-username').value||'Trader').trim().slice(0,40)||'Trader';
   const errEl=document.getElementById('signup-error'),okEl=document.getElementById('signup-success');
   if(errEl)errEl.style.display='none';
   if(okEl)okEl.style.display='none';
   if(!email||!pass){showAuthError('signup-error','Completa email y contraseña.');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showAuthError('signup-error','Introduce un email válido.');return;}
   if(pass.length<8){showAuthError('signup-error','La contraseña debe tener al menos 8 caracteres.');return;}
+  if(!/[a-z]/.test(pass)||!/[A-Z]/.test(pass)||!/[0-9]/.test(pass)){showAuthError('signup-error','La contraseña debe incluir mayúsculas, minúsculas y números.');return;}
   const{data,error}=await sb.auth.signUp({email,password:pass});
-  if(error){showAuthError('signup-error',error.message);return;}
+  if(error){showAuthError('signup-error',friendlyAuthError(error));return;}
   if(data.user){
     await sb.from('profiles').upsert({id:data.user.id,username});
     // Email de bienvenida (fire-and-forget, no bloquea el registro si falla)
@@ -1899,7 +1902,7 @@ let _gisResolved=false;
 async function handleGoogleCredential(response){
   _gisResolved=true;
   const{error}=await sb.auth.signInWithIdToken({provider:'google',token:response.credential,nonce:_gisNonceRaw});
-  if(error){toast('Error al iniciar sesión con Google: '+error.message);}
+  if(error){toast('Error al iniciar sesión con Google: '+friendlyAuthError(error));}
 }
 async function loginGoogleClassic(){
   if(_gisResolved)return;
@@ -1941,19 +1944,20 @@ async function doLogout(){
 }
 function showAuthError(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display='block';}}
 async function sendResetEmail(){
-  const email=document.getElementById('forgot-email').value;
+  const email=document.getElementById('forgot-email').value.trim().slice(0,254);
   const errEl=document.getElementById('forgot-error'),okEl=document.getElementById('forgot-success');
   errEl.style.display='none';okEl.style.display='none';
   if(!email){showAuthError('forgot-error','Introduce tu email.');return;}
   const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
-  if(error){showAuthError('forgot-error',error.message);return;}
+  if(error){showAuthError('forgot-error',friendlyAuthError(error));return;}
   showAuthError('forgot-success','Te hemos enviado un enlace a tu email para restablecer la contraseña.');
 }
 async function updatePasswordFromReset(){
   const pass=document.getElementById('reset-pass').value;
   if(!pass||pass.length<8){showAuthError('reset-error','La contraseña debe tener al menos 8 caracteres.');return;}
+  if(!/[a-z]/.test(pass)||!/[A-Z]/.test(pass)||!/[0-9]/.test(pass)){showAuthError('reset-error','La contraseña debe incluir mayúsculas, minúsculas y números.');return;}
   const{error}=await sb.auth.updateUser({password:pass});
-  if(error){showAuthError('reset-error',error.message);return;}
+  if(error){showAuthError('reset-error',friendlyAuthError(error));return;}
   toast('Contraseña actualizada. Ya puedes usarla para iniciar sesión.');
   await sb.auth.signOut();
   showScreen('login');
@@ -2044,12 +2048,12 @@ function updateObStep(){
 }
 async function obFinish(){
   const capital=parseFloat(document.getElementById('ob-capital').value);
-  if(!capital||capital<=0){toast('Introduce un capital válido');return;}
-  const name=document.getElementById('ob-account-name').value.trim();
+  if(!Number.isFinite(capital)||capital<=0||capital>100000000){toast('Introduce un capital válido');return;}
+  const name=document.getElementById('ob-account-name').value.trim().slice(0,60);
   const btn=document.getElementById('ob-finish-btn');
   btn.disabled=true;btn.textContent='Creando...';
   const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:obAccountType,capital}).select().single();
-  if(error){toast('Error: '+error.message);btn.disabled=false;btn.innerHTML='Empezar a operar <i class="ti ti-check"></i>';return;}
+  if(error){toast(friendlyDbError(error));btn.disabled=false;btn.innerHTML='Empezar a operar <i class="ti ti-check"></i>';return;}
   allAccounts=[data];currentAccountId=data.id;
   await loadData();
   showScreen('app');gotoView('dashboard');startInactivity();
@@ -2097,11 +2101,11 @@ function newAccType(type){
   document.getElementById('new-at-funded').className='account-type-card'+(type==='funded'?' selected-funded':'');
 }
 async function saveNewAccount(){
-  const name=document.getElementById('new-acc-name').value.trim();
+  const name=document.getElementById('new-acc-name').value.trim().slice(0,60);
   const capital=parseFloat(document.getElementById('new-acc-capital').value);
-  if(!name||!capital){toast('Rellena nombre y capital');return;}
+  if(!name||!Number.isFinite(capital)||capital<=0||capital>100000000){toast('Rellena nombre y un capital válido');return;}
   const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:newAccType_val,capital}).select().single();
-  if(error){toast('Error: '+error.message);return;}
+  if(error){toast(friendlyDbError(error));return;}
   allAccounts.push(data);
   currentAccountId=data.id;
   await loadData();
@@ -2247,10 +2251,10 @@ async function loadData(){
 async function saveTrade(){
   if(!currentUser||!currentAccountId)return;
   const btn=document.getElementById('t-save-btn');
-  const pair=document.getElementById('t-pair').value;
+  const pair=document.getElementById('t-pair').value.trim().slice(0,40);
   const date=document.getElementById('t-date').value;
-  let amount=document.getElementById('t-amount').value.trim();
-  const notes=document.getElementById('t-notes').value;
+  let amount=document.getElementById('t-amount').value.trim().slice(0,20);
+  const notes=document.getElementById('t-notes').value.trim().slice(0,2000);
   const dirEl=document.querySelector('#t-dir .chip[class*="sel-"]');
   const sessEl=document.querySelector('#t-sess .chip[class*="sel-"]');
   const resEl=document.querySelector('#t-res .chip[class*="sel-"]');
@@ -2324,9 +2328,15 @@ async function saveTrade(){
   let imageUrl=window._tradeImageUrl||'';
   const imgFile=document.getElementById('t-image-input')?.files?.[0];
   if(imgFile){
-    const fileName=`${currentUser.id}/${Date.now()}_${imgFile.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-    const{data:uploadData,error:uploadErr}=await sb.storage.from('trade-images').upload(fileName,imgFile,{upsert:true});
-    if(uploadErr){toast('Error subiendo imagen: '+uploadErr.message);}
+    if(!isAllowedImageFile(imgFile)){
+      toast('Solo se permiten imágenes JPG, PNG, WEBP o GIF de hasta 8 MB.');
+      btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
+      return;
+    }
+    const safeExt=IMAGE_MIME_EXT[imgFile.type]||'jpg';
+    const fileName=`${currentUser.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${safeExt}`;
+    const{data:uploadData,error:uploadErr}=await sb.storage.from('trade-images').upload(fileName,imgFile,{upsert:false,contentType:imgFile.type});
+    if(uploadErr){toast('Error subiendo imagen. Inténtalo de nuevo.');console.error('[Storage error]',uploadErr);}
     else{
       const{data:urlData}=sb.storage.from('trade-images').getPublicUrl(fileName);
       imageUrl=urlData.publicUrl;
@@ -2342,7 +2352,7 @@ async function saveTrade(){
     : await sb.from('trades').insert({user_id:currentUser.id,account_id:currentAccountId,...payload});
 
   btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
-  if(error){toast('Error: '+error.message);return;}
+  if(error){toast(friendlyDbError(error));return;}
   window._tradeImageUrl='';
   document.getElementById('t-image-input').value='';
   document.getElementById('t-image-preview').style.display='none';
@@ -2354,7 +2364,7 @@ async function saveTrade(){
     resultLabel:result==='win'?'Win':result==='loss'?'Loss':(beType==='be_win'?'BE Win':beType==='be_loss'?'BE Loss':'BE'),
     resultClass:result==='win'?'badge-win':result==='loss'?'badge-loss':'badge-be',
     emotion:emotions.join(', '),
-    summary:notes?notes.slice(0,140):(amountUSD&&amountUSD!=='BE'?`Resultado: ${amountUSD}${amountPct?' ('+amountPct+')':''}`:''),
+    summary:notes?esc(notes.slice(0,140)):(amountUSD&&amountUSD!=='BE'?`Resultado: ${esc(amountUSD)}${amountPct?' ('+esc(amountPct)+')':''}`:''),
     imageUrl:imageUrl||''
   });
 }
@@ -2362,6 +2372,11 @@ async function saveTrade(){
 function previewTradeImage(event){
   const file=event.target.files[0];
   if(!file)return;
+  if(!isAllowedImageFile(file)){
+    toast('Solo se permiten imágenes JPG, PNG, WEBP o GIF de hasta 8 MB.');
+    event.target.value='';
+    return;
+  }
   const reader=new FileReader();
   reader.onload=e=>{
     document.getElementById('t-image-preview-img').src=e.target.result;
@@ -2380,9 +2395,9 @@ function removeTradeImage(){
 async function saveJournal(){
   if(!currentUser||!currentAccountId)return;
   const date=document.getElementById('j-date').value;
-  const reason=document.getElementById('j-reason').value;
-  const content=document.getElementById('j-content').value;
-  const tomorrow=document.getElementById('j-tomorrow').value;
+  const reason=document.getElementById('j-reason').value.trim().slice(0,60);
+  const content=document.getElementById('j-content').value.trim().slice(0,4000);
+  const tomorrow=document.getElementById('j-tomorrow').value.trim().slice(0,300);
   const moodEl=document.querySelector('#j-mood .chip[class*="sel-"]');
   const mood=moodEl?moodEl.textContent.replace(/[^\w\sáéíóú]/g,'').trim():'';
   if(!date){toast('Selecciona una fecha');return;}
@@ -2401,7 +2416,7 @@ async function saveJournal(){
     ? await sb.from('journals').update({date,reason,mood,content,tomorrow}).eq('id',editingJournalId)
     : await sb.from('journals').insert({user_id:currentUser.id,account_id:currentAccountId,date,reason,mood,content,tomorrow});
   btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar diario';
-  if(error){toast('Error: '+error.message);return;}
+  if(error){toast(friendlyDbError(error));return;}
   closeModal('modal-journal');
   editingJournalId=null;
   await loadData();
@@ -2409,7 +2424,7 @@ async function saveJournal(){
     type:'journal',date,
     resultLabel:'',resultClass:'',
     emotion:mood,
-    summary:content?content.slice(0,140):(reason||''),
+    summary:content?esc(content.slice(0,140)):esc(reason||''),
     imageUrl:''
   });
 }
@@ -2419,7 +2434,7 @@ async function deleteJournal(id){if(!confirm('¿Eliminar?'))return;await sb.from
 
 async function saveConfig(){
   if(!currentUser)return;
-  const username=document.getElementById('cfg-username').value||userProfile.username;
+  const username=(document.getElementById('cfg-username').value||userProfile.username||'Trader').trim().slice(0,40)||'Trader';
   await sb.from('profiles').upsert({id:currentUser.id,username});
   userProfile.username=username;
   const sb_name=document.getElementById('sb-name');if(sb_name)sb_name.textContent=username;
@@ -2474,18 +2489,18 @@ function renderDaySummary(){
     const t=todayTrades[todayTrades.length-1];
     const amtColor=t.result==='win'?'var(--green)':t.result==='loss'?'var(--red)':'var(--text2)';
     const resultWord=t.result==='win'?'ganadora':t.result==='loss'?'perdedora':'en breakeven';
-    html+=`<div>Hoy operaste <strong>${t.pair||'mercado'}</strong> en sesión <strong>${t.session||'—'}</strong>. Resultado <span style="color:${amtColor};font-weight:700">${resultWord}</span>.</div>`;
+    html+=`<div>Hoy operaste <strong>${esc(t.pair||'mercado')}</strong> en sesión <strong>${esc(t.session||'—')}</strong>. Resultado <span style="color:${amtColor};font-weight:700">${resultWord}</span>.</div>`;
     if(t.amount||t.amount_pct){
       html+=`<div style="display:flex;gap:12px;margin-top:8px">`;
-      if(t.amount)html+=`<div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Resultado</div><div style="font-size:18px;font-weight:800;color:${amtColor}">${t.amount}</div></div>`;
-      if(t.amount_pct)html+=`<div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em">% cuenta</div><div style="font-size:18px;font-weight:800;color:${amtColor}">${t.amount_pct}</div></div>`;
+      if(t.amount)html+=`<div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Resultado</div><div style="font-size:18px;font-weight:800;color:${amtColor}">${esc(t.amount)}</div></div>`;
+      if(t.amount_pct)html+=`<div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em">% cuenta</div><div style="font-size:18px;font-weight:800;color:${amtColor}">${esc(t.amount_pct)}</div></div>`;
       html+=`<div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Operaciones</div><div style="font-size:18px;font-weight:800">${todayTrades.length}</div></div>`;
       html+=`</div>`;
     }
     if(t.notes)html+=`<div style="margin-top:8px;font-size:12px;color:var(--text3);border-left:2px solid var(--border2);padding-left:10px;font-style:italic">"${esc(t.notes.slice(0,120))}${t.notes.length>120?'…':''}"</div>`;
   } else if(todayJournals.length){
     const j=todayJournals[todayJournals.length-1];
-    html+=`<div>Hoy no hubo operaciones. ${j.reason?`Motivo: <strong>${j.reason}</strong>.`:''}</div>`;
+    html+=`<div>Hoy no hubo operaciones. ${j.reason?`Motivo: <strong>${esc(j.reason)}</strong>.`:''}</div>`;
     const sentiment=analyzeSentimentText(j.content);
     if(sentiment)html+=`<div style="margin-top:6px">Estado emocional detectado: <span style="font-weight:600;color:${SENTIMENT_COLORS[sentiment.top]||'var(--text)'}">${sentiment.tags.join(' y ')}</span>.</div>`;
     if(routineBlocks.length&&routineLogsCache[todayStr]){
@@ -2593,7 +2608,7 @@ function generateJournalSummary(j){
   if(!hasContent){
     summary='Entrada de diario sin contenido escrito.';
   } else if(j.reason){
-    summary=`Día sin operar (${j.reason.toLowerCase()}). `+(sentiment?`El estado de ánimo predominante parece ser ${sentiment.tags.join(' y ').toLowerCase()}.`:'Reflexión registrada sin patrones emocionales claros detectados.');
+    summary=`Día sin operar (${esc(j.reason.toLowerCase())}). `+(sentiment?`El estado de ánimo predominante parece ser ${sentiment.tags.join(' y ').toLowerCase()}.`:'Reflexión registrada sin patrones emocionales claros detectados.');
   } else {
     summary=sentiment?`El sentimiento predominante del día parece ser ${sentiment.tags.join(' y ').toLowerCase()}.`:'Reflexión registrada del día.';
   }
@@ -2606,14 +2621,15 @@ function generateTradeSummary(t){
   const hasNotes=t.notes&&t.notes.trim().length>0;
   const resultWord=t.result==='win'?'ganadora':t.result==='loss'?'perdedora':'en breakeven';
   let summary='';
+  const pairSafe=esc(t.pair||'mercado');
   if(!hasNotes){
-    summary=`Operación ${resultWord} en ${t.pair||'mercado'} sin notas adicionales registradas.`;
+    summary=`Operación ${resultWord} en ${pairSafe} sin notas adicionales registradas.`;
   } else if(sentiment){
     summary=sentiment.tags.length>1
-      ? `El trader ejecutó una operación ${resultWord} en ${t.pair||'mercado'}. El sentimiento predominante parece ser ${sentiment.tags[0].toLowerCase()}, aunque aparece cierta ${sentiment.tags[1].toLowerCase()} durante la gestión.`
-      : `El trader ejecutó una operación ${resultWord} en ${t.pair||'mercado'}. El sentimiento predominante parece ser ${sentiment.tags[0].toLowerCase()}.`;
+      ? `El trader ejecutó una operación ${resultWord} en ${pairSafe}. El sentimiento predominante parece ser ${sentiment.tags[0].toLowerCase()}, aunque aparece cierta ${sentiment.tags[1].toLowerCase()} durante la gestión.`
+      : `El trader ejecutó una operación ${resultWord} en ${pairSafe}. El sentimiento predominante parece ser ${sentiment.tags[0].toLowerCase()}.`;
   } else {
-    summary=`El trader ejecutó una operación ${resultWord} en ${t.pair||'mercado'} siguiendo su análisis inicial.`;
+    summary=`El trader ejecutó una operación ${resultWord} en ${pairSafe} siguiendo su análisis inicial.`;
   }
   const suggestion=suggestionForSentiment(sentiment,true);
   return {summary,sentiment,suggestion};
@@ -2638,8 +2654,8 @@ function journalEntryHTML(j){
       <div style="display:flex;align-items:center;gap:8px">
         <div class="entry-left-bar journal" style="width:3px;height:18px;border-radius:2px"></div>
         <span style="font-size:13px;font-weight:700">Diario</span>
-        ${j.reason?`<span class="badge badge-be">${j.reason}</span>`:''}
-        ${j.mood?`<span style="font-size:11px;color:var(--text3)">Ánimo: ${j.mood}</span>`:''}
+        ${j.reason?`<span class="badge badge-be">${esc(j.reason)}</span>`:''}
+        ${j.mood?`<span style="font-size:11px;color:var(--text3)">Ánimo: ${esc(j.mood)}</span>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="entry-date-lbl">${dateStr}</span>
@@ -2662,13 +2678,13 @@ function tradeJournalHTML(t){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:8px">
         <div class="entry-left-bar ${t.result||'be'}" style="width:3px;height:18px;border-radius:2px"></div>
-        <span style="font-size:13px;font-weight:700">${t.pair||'Trade'}</span>
+        <span style="font-size:13px;font-weight:700">${esc(t.pair||'Trade')}</span>
         <span class="badge ${t.result==='win'?'badge-win':t.result==='loss'?'badge-loss':'badge-be'}">${t.result==='win'?'Win':t.result==='loss'?'Loss':(t.be_type==='be_win'?'BE Win':t.be_type==='be_loss'?'BE Loss':'BE')}</span>
-        <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction||''}</span>
-        <span style="font-size:11px;color:var(--text3)">${t.session||''}</span>
+        <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${esc(t.direction||'')}</span>
+        <span style="font-size:11px;color:var(--text3)">${esc(t.session||'')}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <span class="entry-amount" style="color:${amtColor}">${t.result==='be'?'BE':(t.amount||'')}</span>
+        <span class="entry-amount" style="color:${amtColor}">${t.result==='be'?'BE':esc(t.amount||'')}</span>
         <span class="entry-date-lbl">${dateStr}</span>
         <button class="icon-btn" onclick="editTradeEntry('${t.id}')"><i class="ti ti-edit"></i></button>
         <button class="icon-btn danger" onclick="deleteTrade('${t.id}')"><i class="ti ti-trash"></i></button>
@@ -3143,11 +3159,11 @@ function entryHTML(e){
   const amtColor=e.result==='win'?'var(--green)':e.result==='loss'?'var(--red)':'var(--text2)';
   const badges=isJ
     ?`<span class="badge badge-journal">Diario</span>${e.mood?`<span style="font-size:11px;color:var(--text3)">${esc(e.mood)}</span>`:''}`
-    :`<span class="badge ${e.result==='win'?'badge-win':e.result==='loss'?'badge-loss':'badge-be'}">${e.result==='win'?'Win':e.result==='loss'?'Loss':(e.be_type==='be_win'?'BE Win':e.be_type==='be_loss'?'BE Loss':'BE')}</span><span class="badge ${e.direction==='Buy'?'badge-buy':'badge-sell'}">${e.direction||''}</span><span style="font-size:11px;color:var(--text3)">${esc(e.session||'')}</span>`;
+    :`<span class="badge ${e.result==='win'?'badge-win':e.result==='loss'?'badge-loss':'badge-be'}">${e.result==='win'?'Win':e.result==='loss'?'Loss':(e.be_type==='be_win'?'BE Win':e.be_type==='be_loss'?'BE Loss':'BE')}</span><span class="badge ${e.direction==='Buy'?'badge-buy':'badge-sell'}">${esc(e.direction||'')}</span><span style="font-size:11px;color:var(--text3)">${esc(e.session||'')}</span>`;
   const preview=esc(isJ?(e.content||'').slice(0,65):(e.notes||'').slice(0,65));
   const delCall=isJ?`deleteJournal('${e.id}')`:`deleteTrade('${e.id}')`;
   const editCall=isJ?`editJournalEntry('${e.id}')`:`editTradeEntry('${e.id}')`;
-  return`<div class="entry-row"><div class="entry-left-bar ${barCls}"></div><div class="entry-body"><div class="entry-top"><span class="entry-pair">${isJ?'Diario':esc(e.pair)}</span>${badges}</div>${preview?`<div class="entry-note-preview">${preview}${preview.length>=65?'…':''}</div>`:''}</div><div class="entry-right">${!isJ&&e.amount?`<span class="entry-amount" style="color:${amtColor}">${e.result==='be'?'BE':e.amount}</span>`:''}<span class="entry-date-lbl">${fmtDate(e.date)}</span><div class="entry-actions"><button class="icon-btn" onclick="${editCall}"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="${delCall}"><i class="ti ti-trash"></i></button></div></div></div>`;
+  return`<div class="entry-row"><div class="entry-left-bar ${barCls}"></div><div class="entry-body"><div class="entry-top"><span class="entry-pair">${isJ?'Diario':esc(e.pair)}</span>${badges}</div>${preview?`<div class="entry-note-preview">${preview}${preview.length>=65?'…':''}</div>`:''}</div><div class="entry-right">${!isJ&&e.amount?`<span class="entry-amount" style="color:${amtColor}">${e.result==='be'?'BE':esc(e.amount)}</span>`:''}<span class="entry-date-lbl">${fmtDate(e.date)}</span><div class="entry-actions"><button class="icon-btn" onclick="${editCall}"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="${delCall}"><i class="ti ti-trash"></i></button></div></div></div>`;
 }
 
 let editingTradeId=null, editingJournalId=null;
@@ -3432,6 +3448,53 @@ function setText(id,txt){const e=document.getElementById(id);if(e)e.textContent=
 function esc(s){if(s===null||s===undefined)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function toast(msg){const el=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
 
+/* ── MANEJO SEGURO DE ERRORES ──
+   Nunca mostramos al usuario detalles internos (mensajes de Postgres,
+   nombres de tabla/columna, stack traces, etc.). Los errores de Auth de
+   Supabase suelen ser seguros y útiles de mostrar (credenciales inválidas,
+   email ya registrado...), así que traducimos los más comunes y usamos un
+   mensaje genérico para cualquier otro caso. El detalle técnico completo
+   solo se registra en la consola del navegador (nunca en un servicio remoto)
+   para depuración, nunca se muestra en la interfaz. */
+const AUTH_ERROR_MAP=[
+  [/invalid login credentials/i,'Email o contraseña incorrectos.'],
+  [/email not confirmed/i,'Confirma tu email antes de iniciar sesión. Revisa tu bandeja de entrada.'],
+  [/user already registered|already registered/i,'Ya existe una cuenta con ese email.'],
+  [/password should be at least/i,'La contraseña es demasiado corta.'],
+  [/rate limit|too many requests/i,'Demasiados intentos. Espera unos minutos antes de volver a intentarlo.'],
+  [/invalid email/i,'El email introducido no es válido.'],
+  [/weak password|password is too weak/i,'La contraseña es demasiado débil. Usa al menos 8 caracteres, combinando letras y números.'],
+  [/network/i,'Error de conexión. Comprueba tu internet e inténtalo de nuevo.'],
+];
+function friendlyAuthError(error){
+  if(!error)return'Ha ocurrido un error. Inténtalo de nuevo.';
+  console.error('[Auth error]',error);
+  const msg=String(error.message||'');
+  for(const[re,friendly]of AUTH_ERROR_MAP){if(re.test(msg))return friendly;}
+  return'No se pudo completar la operación. Comprueba tus datos e inténtalo de nuevo.';
+}
+function friendlyDbError(error){
+  if(!error)return'Ha ocurrido un error. Inténtalo de nuevo.';
+  // Los errores de base de datos (Postgres/PostgREST) pueden incluir nombres
+  // de tablas, columnas o restricciones: nunca se muestran al usuario.
+  console.error('[DB error]',error);
+  return'No se pudo guardar. Inténtalo de nuevo en unos segundos.';
+}
+
+/* ── VALIDACIÓN DE IMÁGENES SUBIDAS ──
+   Solo se aceptan formatos de imagen rasterizados (nunca SVG, que puede
+   contener <script> ejecutable) y se limita el tamaño para evitar abuso del
+   almacenamiento. La extensión final del archivo se deriva del tipo MIME
+   validado, nunca del nombre original, para evitar dobles extensiones. */
+const IMAGE_MIME_EXT={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'};
+const MAX_IMAGE_BYTES=8*1024*1024; // 8 MB
+function isAllowedImageFile(file){
+  if(!file)return false;
+  if(!Object.prototype.hasOwnProperty.call(IMAGE_MIME_EXT,file.type))return false;
+  if(file.size>MAX_IMAGE_BYTES)return false;
+  return true;
+}
+
 /* ── CONFIRMACIÓN VISUAL DE GUARDADO ──
    Se muestra tras guardar un trade o un journal, con independencia de en qué
    vista esté el usuario, para dejar claro de forma evidente que la entrada
@@ -3442,10 +3505,10 @@ function showSaveConfirmation({type,date,resultLabel,resultClass,emotion,summary
   setText('sc-title',type==='trade'?'Trade guardado ✓':'Journal guardado ✓');
   setText('sc-date',fmtDate(date)+' · Último registro');
   let body='';
-  if(resultLabel)body+=`<div class="save-confirm-row"><span>Resultado</span><span class="badge ${resultClass}">${resultLabel}</span></div>`;
-  if(emotion)body+=`<div class="save-confirm-row"><span>Estado emocional</span><span style="color:var(--text)">${emotion}</span></div>`;
+  if(resultLabel)body+=`<div class="save-confirm-row"><span>Resultado</span><span class="badge ${resultClass}">${esc(resultLabel)}</span></div>`;
+  if(emotion)body+=`<div class="save-confirm-row"><span>Estado emocional</span><span style="color:var(--text)">${esc(emotion)}</span></div>`;
   if(summary)body+=`<div class="save-confirm-notes">${summary}</div>`;
-  if(imageUrl)body+=`<img src="${imageUrl}" class="save-confirm-img" alt="Captura del trade guardado">`;
+  if(imageUrl)body+=`<img src="${esc(imageUrl)}" class="save-confirm-img" alt="Captura del trade guardado">`;
   document.getElementById('sc-body').innerHTML=body;
   el.classList.add('show');
   clearTimeout(_saveConfirmTimer);
@@ -3774,7 +3837,7 @@ async function finishRoutineSetup(){
   } else {
     result=await sb.from('routines').insert(payload).select().single();
   }
-  if(result.error){toast('Error: '+result.error.message);return;}
+  if(result.error){toast(friendlyDbError(result.error));return;}
   currentRoutine=result.data;
   toast('Rutina guardada ✓');
   showRoutineScreen('active');
@@ -4414,7 +4477,7 @@ async function savePlanProgress(showToastMsg=true){
   } else {
     result=await sb.from('plans').insert(payload).select().single();
   }
-  if(result.error){toast('Error: '+result.error.message);return false;}
+  if(result.error){toast(friendlyDbError(result.error));return false;}
   currentPlan=result.data;
   planDirty=false;
   if(showToastMsg)toast(completed?'Plan guardado y completado ✓':'Progreso guardado · Plan en curso');
@@ -4451,7 +4514,7 @@ async function finishPlan(){
   } else {
     result=await sb.from('plans').insert(payload).select().single();
   }
-  if(result.error){toast('Error: '+result.error.message);return;}
+  if(result.error){toast(friendlyDbError(result.error));return;}
   currentPlan=result.data;
   planDirty=false;
   toast('Plan creado y completado ✓');
