@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://js.hcaptcha.com/1/api.js?render=explicit" defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -697,6 +698,15 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 const SUPABASE_URL  = 'https://btbtvwaiqvgwoivjsiim.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0YnR2d2FpcXZnd29pdmpzaWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTAyMzQsImV4cCI6MjA5NzA4NjIzNH0.aaOPMZOPp_xTsDIkvpwCihneBuhmtfW4JqKIULiEt_g';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const HCAPTCHA_SITEKEY = 'bbe863a0-5f52-46be-b604-ce72684a29f6';
+let hcapLoginId, hcapSignupId, hcapForgotId;
+document.addEventListener('DOMContentLoaded', function(){
+  if(window.hcaptcha){
+    hcapLoginId  = hcaptcha.render('hcap-login',  {sitekey:HCAPTCHA_SITEKEY, size:'invisible'});
+    hcapSignupId = hcaptcha.render('hcap-signup', {sitekey:HCAPTCHA_SITEKEY, size:'invisible'});
+    hcapForgotId = hcaptcha.render('hcap-forgot', {sitekey:HCAPTCHA_SITEKEY, size:'invisible'});
+  }
+});
 </script>
 
 <div class="loading-screen" id="loading">
@@ -860,6 +870,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       <div class="auth-divider">o con email</div>
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="login-email" placeholder="tu@email.com" maxlength="254" autocomplete="email"></div>
       <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="login-pass" placeholder="••••••••" maxlength="128" autocomplete="current-password"></div>
+      <div id="hcap-login"></div>
       <button class="btn btn-primary btn-full" onclick="loginEmail()">Iniciar sesión</button>
       <div class="auth-footer-text" style="margin-bottom:6px"><a onclick="showScreen('forgot')">¿Olvidaste tu contraseña?</a></div>
       <div class="auth-footer-text">¿No tienes cuenta? <a onclick="showScreen('signup')">Regístrate gratis</a></div>
@@ -884,6 +895,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-input" type="text" id="signup-username" placeholder="Ej: Javier" maxlength="40" autocomplete="name"></div>
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="signup-email" placeholder="tu@email.com" maxlength="254" autocomplete="email"></div>
       <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="signup-pass" placeholder="Mín. 8 caracteres, con mayúsculas, minúsculas y números" maxlength="128" autocomplete="new-password"></div>
+      <div id="hcap-signup"></div>
       <button class="btn btn-primary btn-full" onclick="signupEmail()">Crear cuenta gratis</button>
       <div class="auth-footer-text">¿Ya tienes cuenta? <a onclick="showScreen('login')">Inicia sesión</a></div>
     </div>
@@ -900,6 +912,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
       <div class="auth-error" id="forgot-error"></div>
       <div class="auth-error" id="forgot-success" style="display:none;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)"></div>
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="forgot-email" placeholder="tu@email.com"></div>
+      <div id="hcap-forgot"></div>
       <button class="btn btn-primary btn-full" onclick="sendResetEmail()">Enviar enlace</button>
       <div class="auth-footer-text"><a onclick="showScreen('login')">Volver a iniciar sesión</a></div>
     </div>
@@ -1856,11 +1869,25 @@ const gM=()=>lang==='es'?MONTHS_ES:MONTHS_EN;
 const gD=()=>lang==='es'?DAYS_ES:DAYS_EN;
 
 /* ── AUTH ── */
+async function getCaptchaToken(widgetId){
+  if(typeof hcaptcha==='undefined'||widgetId===undefined)return undefined;
+  try{
+    const res=await hcaptcha.execute(widgetId,{async:true});
+    return res&&res.response;
+  }catch(e){
+    return undefined;
+  }
+}
+function resetCaptcha(widgetId){
+  if(typeof hcaptcha!=='undefined'&&widgetId!==undefined){try{hcaptcha.reset(widgetId);}catch(e){}}
+}
 async function loginEmail(){
   const email=document.getElementById('login-email').value.trim().slice(0,254);
   const pass=document.getElementById('login-pass').value;
   if(!email||!pass){showAuthError('login-error','Completa email y contraseña.');return;}
-  const{error}=await sb.auth.signInWithPassword({email,password:pass});
+  const captchaToken=await getCaptchaToken(hcapLoginId);
+  const{error}=await sb.auth.signInWithPassword({email,password:pass,options:{captchaToken}});
+  resetCaptcha(hcapLoginId);
   if(error){showAuthError('login-error',friendlyAuthError(error));}
 }
 async function signupEmail(){
@@ -1874,7 +1901,9 @@ async function signupEmail(){
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showAuthError('signup-error','Introduce un email válido.');return;}
   if(pass.length<8){showAuthError('signup-error','La contraseña debe tener al menos 8 caracteres.');return;}
   if(!/[a-z]/.test(pass)||!/[A-Z]/.test(pass)||!/[0-9]/.test(pass)){showAuthError('signup-error','La contraseña debe incluir mayúsculas, minúsculas y números.');return;}
-  const{data,error}=await sb.auth.signUp({email,password:pass});
+  const captchaToken=await getCaptchaToken(hcapSignupId);
+  const{data,error}=await sb.auth.signUp({email,password:pass,options:{captchaToken}});
+  resetCaptcha(hcapSignupId);
   if(error){showAuthError('signup-error',friendlyAuthError(error));return;}
   if(data.user){
     await sb.from('profiles').upsert({id:data.user.id,username});
@@ -1948,7 +1977,9 @@ async function sendResetEmail(){
   const errEl=document.getElementById('forgot-error'),okEl=document.getElementById('forgot-success');
   errEl.style.display='none';okEl.style.display='none';
   if(!email){showAuthError('forgot-error','Introduce tu email.');return;}
-  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+  const captchaToken=await getCaptchaToken(hcapForgotId);
+  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href,captchaToken});
+  resetCaptcha(hcapForgotId);
   if(error){showAuthError('forgot-error',friendlyAuthError(error));return;}
   showAuthError('forgot-success','Te hemos enviado un enlace a tu email para restablecer la contraseña.');
 }
