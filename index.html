@@ -71,64 +71,152 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .btn-danger:hover{background:#3C0808}
 .btn-full{width:100%;justify-content:center;padding:11px}
 
-/* HOME */
-.home-hero{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 58px);border-bottom:1px solid var(--border)}
-.hero-left{display:flex;flex-direction:column;justify-content:center;padding:70px 56px;border-right:1px solid var(--border)}
-.hero-eyebrow{display:flex;align-items:center;gap:14px;margin-bottom:28px}
-.hero-eyebrow-line{width:36px;height:1px;background:var(--text3)}
-.hero-eyebrow-text{font-size:11px;font-weight:600;letter-spacing:.18em;color:var(--text3);text-transform:uppercase}
-.hero-title{font-size:clamp(52px,5.5vw,80px);font-weight:800;line-height:.95;letter-spacing:-.04em;margin-bottom:20px}
-.hero-title span{color:var(--accent)}
-.hero-subtitle{font-size:18px;color:var(--text2);line-height:1.65;max-width:420px;margin-bottom:44px}
-.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
-.hero-stats{display:flex;gap:36px;padding-top:36px;border-top:1px solid var(--border)}
-.hero-stat-num{font-size:24px;font-weight:800;letter-spacing:-.03em}
-.hero-stat-lbl{font-size:11px;color:var(--text3);margin-top:2px;font-weight:500}
-.hero-right{position:relative;overflow:hidden}
-.hero-img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.55) saturate(.8)}
-.hero-img-overlay{position:absolute;inset:0;background:linear-gradient(to right,var(--bg) 0%,transparent 30%),linear-gradient(to top,var(--bg) 0%,transparent 40%)}
-.hero-badge{position:absolute;bottom:36px;right:36px;background:rgba(10,11,14,.85);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:14px 18px;backdrop-filter:blur(12px)}
-.hero-badge-label{font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
-.hero-badge-val{font-size:22px;font-weight:800;color:var(--green);letter-spacing:-.03em}
+/* ══════════════════════════════════════════════
+   LANDING PAGE — rediseño inspirado en la filosofía visual
+   de Raycast (nav flotante, tipografía grande, glows, scroll-reveal)
+══════════════════════════════════════════════ */
 
-/* STATS BAR */
-.home-statsbar{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border)}
-.statsbar-cell{padding:36px;border-right:1px solid var(--border);text-align:center;transition:background .15s;cursor:default}
-.statsbar-cell:last-child{border-right:none}
-.statsbar-cell:hover{background:var(--bg2)}
-.statsbar-num{font-size:clamp(36px,4vw,52px);font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:8px}
-.statsbar-lbl{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--text3);text-transform:uppercase}
+/* -- reveal-on-scroll -- */
+.ld-reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+.ld-reveal.in{opacity:1;transform:none}
+.ld-reveal-1{transition-delay:.08s}
+.ld-reveal-2{transition-delay:.16s}
+.ld-reveal-3{transition-delay:.24s}
+.ld-reveal-4{transition-delay:.32s}
+@media (prefers-reduced-motion:reduce){
+  .ld-reveal{transition:none;opacity:1;transform:none}
+  .ld-mock{animation:none !important}
+}
 
-/* PHILOSOPHY */
-.home-philosophy{display:grid;grid-template-columns:5fr 7fr;border-bottom:1px solid var(--border)}
-.phil-left{padding:72px 56px;border-right:1px solid var(--border)}
-.phil-sticky{position:sticky;top:80px}
-.phil-heading{font-size:clamp(34px,3.5vw,48px);font-weight:800;line-height:1;letter-spacing:-.04em;margin-bottom:16px}
-.phil-accent{width:40px;height:3px;background:var(--accent);margin-bottom:18px;border-radius:2px}
-.phil-desc{font-size:14px;color:var(--text2);line-height:1.75}
-.phil-right{padding:72px 56px;display:flex;flex-direction:column;gap:56px}
-.phil-block{}
-.phil-img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:var(--radius-lg);display:block;margin-bottom:20px;filter:brightness(.65) saturate(.7)}
-.phil-num{font-size:42px;font-weight:800;color:var(--border3);line-height:1;letter-spacing:-.04em;margin-right:16px;float:left}
-.phil-block-title{font-size:17px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
-.phil-block-desc{font-size:13px;color:var(--text2);line-height:1.7;max-width:460px}
+/* -- pill buttons -- */
+.ld-btn{padding:13px 25px;border-radius:999px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none;font-family:inherit;transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s,background .2s,border-color .2s}
+.ld-btn-primary{background:var(--accent);color:#04120a}
+.ld-btn-primary:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 12px 26px -8px rgba(34,197,94,.55)}
+.ld-btn-primary:active{transform:translateY(0)}
+.ld-btn-ghost{background:var(--bg3);border:1px solid var(--border2);color:var(--text)}
+.ld-btn-ghost:hover{border-color:var(--border3);background:var(--bg4);transform:translateY(-2px)}
+.ld-btn-ghost:active{transform:translateY(0)}
+.ld-btn-sm{padding:8px 17px;font-size:12.5px}
 
-/* FEATURES */
-.home-features{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.feat-cell{background:var(--bg);padding:36px 28px;transition:background .2s}
-.feat-cell:hover{background:var(--bg2)}
-.feat-icon{width:38px;height:38px;border-radius:9px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent);margin-bottom:18px;border:1px solid var(--border2)}
-.feat-title{font-size:14px;font-weight:700;margin-bottom:7px;letter-spacing:-.02em}
-.feat-desc{font-size:12px;color:var(--text3);line-height:1.65}
+/* -- floating glass nav -- */
+.ld-nav-wrap{position:sticky;top:0;z-index:200;display:flex;justify-content:center;padding:18px 20px;background:linear-gradient(to bottom,var(--bg) 42%,transparent);pointer-events:none}
+.ld-nav-wrap>*{pointer-events:auto}
+.ld-nav{position:static;width:100%;max-width:1120px;height:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 10px 9px 22px;border-radius:999px;border:1px solid var(--border2);background:rgba(15,17,21,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 10px 30px -12px rgba(0,0,0,.5);transition:border-color .25s,box-shadow .25s,background .25s}
+.ld-nav.scrolled{border-color:var(--border3);background:rgba(15,17,21,.9);box-shadow:0 14px 36px -12px rgba(0,0,0,.65)}
 
-/* HOME CTA */
-.home-cta-section{padding:90px 56px;text-align:center;border-bottom:1px solid var(--border)}
-.home-cta-title{font-size:clamp(32px,3.5vw,50px);font-weight:800;letter-spacing:-.04em;margin-bottom:16px;line-height:1.1}
-.home-cta-sub{font-size:16px;color:var(--text2);margin-bottom:36px}
+/* -- hero -- */
+.ld-hero{position:relative;padding:76px 24px 0;display:flex;flex-direction:column;align-items:center;text-align:center;overflow:hidden}
+.ld-hero-glow{position:absolute;top:-260px;left:50%;transform:translateX(-50%);width:1200px;height:680px;background:radial-gradient(ellipse at center,rgba(34,197,94,.30) 0%,rgba(34,197,94,.12) 35%,transparent 70%);filter:blur(40px);pointer-events:none;z-index:0}
+.ld-badge{position:relative;z-index:1;display:inline-flex;align-items:center;gap:9px;padding:7px 16px 7px 12px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:30px}
+.ld-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);flex-shrink:0}
+.ld-h1{position:relative;z-index:1;font-size:clamp(40px,7.2vw,92px);font-weight:800;line-height:1.03;letter-spacing:-.045em;max-width:920px;margin-bottom:24px}
+.ld-h1 .accent{color:var(--accent)}
+.ld-sub{position:relative;z-index:1;font-size:clamp(15px,1.6vw,19px);color:var(--text2);line-height:1.65;max-width:580px;margin-bottom:38px}
+.ld-cta-row{position:relative;z-index:1;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:22px}
+.ld-trust{position:relative;z-index:1;font-size:12px;color:var(--text3);margin-bottom:68px}
 
-/* FOOTER */
-.home-footer{padding:32px 40px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)}
-.footer-copy{font-size:12px;color:var(--text3)}
+/* -- product mockup window -- */
+.ld-mock-wrap{position:relative;z-index:1;width:100%;max-width:980px;margin:0 auto;padding:0 20px 40px}
+.ld-mock{border-radius:18px;border:1px solid var(--border2);background:linear-gradient(180deg,var(--bg2),var(--bg));box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.02) inset;overflow:hidden;animation:ldFloat 7s ease-in-out infinite}
+@keyframes ldFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.ld-mock-bar{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--border)}
+.ld-mock-dot{width:9px;height:9px;border-radius:50%;background:var(--border3)}
+.ld-mock-title{margin:0 auto;font-size:11px;color:var(--text3);font-weight:600}
+.ld-mock-body{padding:28px;display:grid;gap:18px}
+.ld-mock-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ld-mock-metric{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px}
+.ld-mock-metric-lbl{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px}
+.ld-mock-metric-val{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.ld-mock-metric-val.up{color:var(--green)}
+.ld-mock-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
+.ld-mock-cell{aspect-ratio:1;border-radius:4px;background:var(--bg4)}
+.ld-mock-cell.g1{background:rgba(34,197,94,.28)}
+.ld-mock-cell.g2{background:rgba(34,197,94,.55)}
+.ld-mock-cell.g3{background:rgba(34,197,94,.88)}
+.ld-mock-cell.r1{background:rgba(239,68,68,.4)}
+.ld-mock-journal{display:flex;align-items:flex-start;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.ld-mock-journal-icon{width:28px;height:28px;border-radius:8px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.ld-mock-journal-text{font-size:12.5px;color:var(--text2);line-height:1.6}
+.ld-mock-journal-tag{display:inline-block;margin-top:7px;font-size:10px;font-weight:700;color:var(--green);background:var(--green-bg);border:1px solid var(--green-border);padding:2px 9px;border-radius:20px}
+
+/* -- trust stats bar -- */
+.ld-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.ld-stat{padding:42px 24px;text-align:center;border-right:1px solid var(--border);cursor:default;transition:background .2s}
+.ld-stat:last-child{border-right:none}
+.ld-stat:hover{background:var(--bg2)}
+.ld-stat-num{font-size:clamp(30px,3.4vw,44px);font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.ld-stat-lbl{font-size:11.5px;font-weight:600;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+
+/* -- shared section heading -- */
+.ld-section{padding:130px 24px}
+.ld-section-head{max-width:640px;margin:0 auto 68px;text-align:center}
+.ld-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.ld-h2{font-size:clamp(30px,4vw,52px);font-weight:800;letter-spacing:-.035em;line-height:1.08;margin-bottom:16px}
+.ld-section-desc{font-size:15.5px;color:var(--text2);line-height:1.7}
+
+/* -- philosophy (sticky narrative) -- */
+.ld-phil{display:grid;grid-template-columns:.85fr 1.15fr;border-top:1px solid var(--border)}
+.ld-phil-left{padding:110px 48px;border-right:1px solid var(--border)}
+.ld-phil-sticky{position:sticky;top:130px}
+.ld-phil-heading{font-size:clamp(32px,3.4vw,46px);font-weight:800;line-height:1.08;letter-spacing:-.035em;margin-bottom:18px}
+.ld-phil-accent{width:44px;height:3px;background:var(--accent);border-radius:2px;margin-bottom:20px}
+.ld-phil-desc{font-size:14.5px;color:var(--text2);line-height:1.8;max-width:380px}
+.ld-phil-right{padding:110px 48px;display:flex;flex-direction:column;gap:68px}
+.ld-phil-mock{border-radius:14px;border:1px solid var(--border2);background:var(--bg2);padding:20px;margin-bottom:24px}
+.ld-phil-mock-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.ld-phil-mock-row:last-child{border-bottom:none}
+.ld-phil-mock-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ld-phil-mock-dot.g{background:var(--green)}
+.ld-phil-mock-dot.n{background:var(--text3)}
+.ld-phil-mock-txt{font-size:12.5px;color:var(--text2);flex:1}
+.ld-phil-mock-val{font-size:12px;font-weight:700;color:var(--text3)}
+.ld-phil-mock-chip{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:var(--bg3);border:1px solid var(--border)}
+.ld-phil-mock-chip+.ld-phil-mock-chip{margin-top:8px}
+.ld-phil-mock-chip-name{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:9px}
+.ld-phil-mock-chip-name .sw{width:8px;height:8px;border-radius:50%}
+.ld-phil-mock-chip-val{font-size:12.5px;font-weight:700;color:var(--text2)}
+.ld-phil-num{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.06em;margin-bottom:10px;display:block}
+.ld-phil-title{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.ld-phil-text{font-size:13.5px;color:var(--text2);line-height:1.75;max-width:440px}
+
+/* -- features grid -- */
+.ld-features{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border)}
+.ld-feat{padding:44px 30px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:background .25s}
+.ld-feat:nth-child(4n){border-right:none}
+.ld-feat:hover{background:var(--bg2)}
+.ld-feat-icon{width:42px;height:42px;border-radius:11px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--accent);margin-bottom:20px;transition:transform .25s,border-color .25s}
+.ld-feat:hover .ld-feat-icon{transform:translateY(-3px) scale(1.05);border-color:var(--accent)}
+.ld-feat-title{font-size:15px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
+.ld-feat-desc{font-size:13px;color:var(--text3);line-height:1.65}
+
+/* -- pricing -- */
+.ld-pricing{padding:130px 24px;border-top:1px solid var(--border)}
+.ld-pricing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:800px;margin:0 auto}
+.ld-price-card{border:1px solid var(--border2);border-radius:20px;padding:36px;position:relative;transition:transform .25s,border-color .25s}
+.ld-price-card:hover{transform:translateY(-5px)}
+.ld-price-card.pro{border-color:var(--accent);background:linear-gradient(180deg,rgba(34,197,94,.07),transparent)}
+.ld-price-badge{position:absolute;top:-12px;right:28px;background:var(--accent);color:#04120a;font-size:10px;font-weight:800;letter-spacing:.07em;padding:4px 12px;border-radius:20px;text-transform:uppercase}
+.ld-price-tier{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text2);margin-bottom:14px}
+.ld-price-card.pro .ld-price-tier{color:var(--accent)}
+.ld-price-amount{font-size:42px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.ld-price-amount span{font-size:14px;color:var(--text3);font-weight:500}
+.ld-price-desc{font-size:13px;color:var(--text2);margin-bottom:26px}
+.ld-price-list{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:30px;font-size:13px;color:var(--text2)}
+.ld-price-list li{display:flex;align-items:center;gap:9px}
+.ld-price-list li i{color:var(--accent);font-size:14px}
+
+/* -- final CTA -- */
+.ld-cta{padding:140px 24px;text-align:center;border-top:1px solid var(--border);position:relative;overflow:hidden}
+.ld-cta-glow{position:absolute;bottom:-220px;left:50%;transform:translateX(-50%);width:900px;height:500px;background:radial-gradient(ellipse at center,rgba(34,197,94,.22),transparent 70%);filter:blur(50px);pointer-events:none}
+.ld-cta-title{position:relative;font-size:clamp(30px,4vw,50px);font-weight:800;letter-spacing:-.035em;line-height:1.1;margin-bottom:16px}
+.ld-cta-sub{position:relative;font-size:15.5px;color:var(--text2);margin-bottom:36px}
+
+/* -- footer -- */
+.ld-footer{padding:36px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;border-top:1px solid var(--border)}
+.ld-footer-copy{font-size:12px;color:var(--text3)}
+.ld-footer-links{display:flex;gap:18px;flex-wrap:wrap}
+.ld-footer-links a{font-size:12px;color:var(--text3);cursor:pointer;text-decoration:none;transition:color .2s}
+.ld-footer-links a:hover{color:var(--text2)}
 
 /* AUTH */
 .auth-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
@@ -524,13 +612,14 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
    TABLET — hasta 1024px
 ══════════════════════════════════════════════ */
 @media (max-width: 1024px){
-  .home-hero{grid-template-columns:1fr}
-  .hero-right{min-height:320px;order:-1}
-  .hero-left{padding:48px 32px}
-  .home-philosophy{grid-template-columns:1fr}
-  .phil-left{border-right:none;border-bottom:1px solid var(--border);padding:40px 32px}
-  .phil-right{padding:40px 32px}
-  .home-features{grid-template-columns:repeat(2,1fr)}
+  .ld-hero{padding-top:56px}
+  .ld-phil{grid-template-columns:1fr}
+  .ld-phil-left{border-right:none;border-bottom:1px solid var(--border);padding:56px 32px}
+  .ld-phil-sticky{position:static}
+  .ld-phil-right{padding:56px 32px;gap:56px}
+  .ld-features{grid-template-columns:repeat(2,1fr)}
+  .ld-feat:nth-child(4n){border-right:1px solid var(--border)}
+  .ld-feat:nth-child(2n){border-right:none}
   .sidebar{width:188px;min-width:188px}
 }
 
@@ -584,24 +673,35 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
   }
 
   /* ── HOME ── */
-  .hero-left{padding:36px 20px}
-  .hero-title{font-size:clamp(38px,11vw,52px)}
-  .hero-subtitle{font-size:15px;max-width:100%}
-  .hero-stats{gap:22px;flex-wrap:wrap}
-  .hero-right{min-height:240px}
-  .hero-badge{padding:10px 14px;bottom:18px;right:18px}
-  .home-statsbar{grid-template-columns:1fr;}
-  .statsbar-cell{border-right:none;border-bottom:1px solid var(--border);padding:24px}
-  .statsbar-cell:last-child{border-bottom:none}
-  .phil-heading{font-size:30px}
-  .phil-block-desc{max-width:100%}
-  .home-features{grid-template-columns:1fr 1fr;gap:1px}
-  .feat-cell{padding:24px 18px}
-  .home-cta-section{padding:56px 20px}
-  .home-cta-title{font-size:28px}
-  .home-footer{padding:24px 18px;flex-direction:column;gap:12px;text-align:center}
-  .home-pricing{padding:56px 20px !important}
-  .home-pricing>div[style*="grid-template-columns:repeat(2,1fr)"]{grid-template-columns:1fr !important}
+  .ld-nav-wrap{padding:12px 12px}
+  .ld-nav{padding:8px 8px 8px 16px;border-radius:22px}
+  .ld-hero{padding:36px 16px 0}
+  .ld-badge{font-size:11px;padding:6px 13px 6px 10px;margin-bottom:22px}
+  .ld-h1{margin-bottom:18px}
+  .ld-sub{font-size:14.5px;margin-bottom:28px}
+  .ld-cta-row{width:100%}
+  .ld-cta-row .ld-btn{flex:1;justify-content:center}
+  .ld-trust{margin-bottom:40px}
+  .ld-mock-wrap{padding:0 10px 28px}
+  .ld-mock-body{padding:16px;gap:14px}
+  .ld-mock-metrics{grid-template-columns:1fr;gap:8px}
+  .ld-mock-grid{grid-template-columns:repeat(10,1fr)}
+  .ld-stats{grid-template-columns:1fr}
+  .ld-stat{border-right:none;border-bottom:1px solid var(--border);padding:24px}
+  .ld-stat:last-child{border-bottom:none}
+  .ld-section{padding:64px 18px}
+  .ld-section-head{margin-bottom:36px}
+  .ld-phil-heading{font-size:30px}
+  .ld-phil-left,.ld-phil-right{padding:44px 20px}
+  .ld-phil-right{gap:44px}
+  .ld-phil-text{max-width:100%}
+  .ld-features{grid-template-columns:1fr}
+  .ld-feat{padding:24px 18px;border-right:none !important}
+  .ld-pricing{padding:64px 18px}
+  .ld-pricing-grid{grid-template-columns:1fr}
+  .ld-cta{padding:70px 18px}
+  .ld-cta-title{font-size:28px}
+  .ld-footer{padding:24px 18px;flex-direction:column;gap:12px;text-align:center}
 
   /* ── AUTH ── */
   .auth-card{padding:24px;max-width:100%}
@@ -689,8 +789,8 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 ══════════════════════════════════════════════ */
 @media (max-width: 380px){
   .metric-grid{grid-template-columns:1fr}
-  .hero-stats{gap:14px}
-  .home-features{grid-template-columns:1fr}
+  .ld-mock-grid{grid-template-columns:repeat(7,1fr)}
+  .ld-features{grid-template-columns:1fr}
   .bottom-nav-item span{font-size:9px}
   .bigcal-day{min-height:48px}
 }
@@ -710,7 +810,34 @@ document.addEventListener('DOMContentLoaded', function(){
     hcapSignupId = hcaptcha.render('hcap-signup', {sitekey:HCAPTCHA_SITEKEY, size:'invisible'});
     hcapForgotId = hcaptcha.render('hcap-forgot', {sitekey:HCAPTCHA_SITEKEY, size:'invisible'});
   }
+  initLandingFX();
 });
+
+/* ── Landing page: aparición progresiva al hacer scroll + nav flotante ──
+   Usa IntersectionObserver (ligero, sin librerías) para revelar el contenido
+   de la home según entra en el viewport, y añade sombra al nav al hacer scroll. */
+function initLandingFX(){
+  const nav = document.querySelector('#screen-home .ld-nav');
+  if(nav){
+    window.addEventListener('scroll', function(){
+      nav.classList.toggle('scrolled', window.scrollY > 8);
+    }, {passive:true});
+  }
+  const revealEls = document.querySelectorAll('#screen-home .ld-reveal');
+  if('IntersectionObserver' in window && revealEls.length){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold:.15, rootMargin:'0px 0px -40px 0px'});
+    revealEls.forEach(el=>io.observe(el));
+  } else {
+    revealEls.forEach(el=>el.classList.add('in'));
+  }
+}
 </script>
 
 <div class="loading-screen" id="loading">
@@ -735,125 +862,162 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <!-- ══ HOME ══ -->
 <div class="screen" id="screen-home">
-  <nav>
-    <div class="nav-logo"><div class="logo-mark">TD</div>TradeDay</div>
-    <div class="nav-actions">
-      <div class="lang-btn" onclick="cycleLang()"><span id="lf-home">🇪🇸</span> <span id="ll-home">ES</span></div>
-      <button class="btn btn-ghost btn-sm" onclick="showScreen('login')">Iniciar sesión</button>
-      <button class="btn btn-primary btn-sm" onclick="showScreen('signup')">Empezar gratis</button>
-    </div>
-  </nav>
+  <div class="ld-nav-wrap">
+    <nav class="ld-nav">
+      <div class="nav-logo"><div class="logo-mark">TD</div>TradeDay</div>
+      <div class="nav-actions">
+        <div class="lang-btn" onclick="cycleLang()"><span id="lf-home">🇪🇸</span> <span id="ll-home">ES</span></div>
+        <button class="ld-btn ld-btn-ghost ld-btn-sm" onclick="showScreen('login')">Iniciar sesión</button>
+        <button class="ld-btn ld-btn-primary ld-btn-sm" onclick="showScreen('signup')">Empezar gratis</button>
+      </div>
+    </nav>
+  </div>
 
   <!-- HERO -->
-  <div class="home-hero">
-    <div class="hero-left">
-      <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div><span class="hero-eyebrow-text">Est. 2026 — Trading Journal</span></div>
-      <h1 class="hero-title">Trade<span>Day</span><br><span style="font-size:.6em;color:var(--text2);font-weight:300;letter-spacing:-.02em">Entiende cómo operas.</span></h1>
-      <p class="hero-subtitle">No se trata solo de registrar cuánto ganas o pierdes. TradeDay te ayuda a construir disciplina real, analizar tu comportamiento y mejorar con datos reales.</p>
-      <div class="hero-cta">
-        <button class="btn btn-primary btn-lg" onclick="showScreen('signup')"><i class="ti ti-arrow-right"></i>Empezar gratis</button>
-        <button class="btn btn-ghost btn-lg" onclick="showScreen('login')">Ya tengo cuenta</button>
-      </div>
-      <div class="hero-stats">
-        <div><div class="hero-stat-num">100%</div><div class="hero-stat-lbl">Privado y tuyo</div></div>
-        <div><div class="hero-stat-num">0€</div><div class="hero-stat-lbl">Para empezar</div></div>
-        <div><div class="hero-stat-num">∞</div><div class="hero-stat-lbl">Operaciones</div></div>
-      </div>
+  <div class="ld-hero">
+    <div class="ld-hero-glow"></div>
+    <div class="ld-badge ld-reveal"><span class="dot"></span>Análisis de comportamiento con IA</div>
+    <h1 class="ld-h1 ld-reveal ld-reveal-1">Entiende cómo operas.<br><span class="accent">Mejora cómo decides.</span></h1>
+    <p class="ld-sub ld-reveal ld-reveal-2">TradeDay convierte cada operación en aprendizaje real: registra, analiza tu comportamiento y construye la disciplina que de verdad cambia resultados.</p>
+    <div class="ld-cta-row ld-reveal ld-reveal-3">
+      <button class="ld-btn ld-btn-primary" onclick="showScreen('signup')"><i class="ti ti-arrow-right"></i>Empezar gratis</button>
+      <button class="ld-btn ld-btn-ghost" onclick="showScreen('login')">Ya tengo cuenta</button>
     </div>
-    <div class="hero-right">
-      <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1400&q=80" alt="Trading charts" class="hero-img" width="1400" height="900" loading="eager" decoding="async">
-      <div class="hero-img-overlay"></div>
-      <div class="hero-badge">
-        <div class="hero-badge-label">Win rate promedio</div>
-        <div class="hero-badge-val">+72%</div>
+    <div class="ld-trust ld-reveal ld-reveal-4">Gratis para siempre en el plan Free · Sin tarjeta de crédito · Listo en 2 minutos</div>
+
+    <!-- product mockup -->
+    <div class="ld-mock-wrap ld-reveal ld-reveal-4">
+      <div class="ld-mock">
+        <div class="ld-mock-bar">
+          <div class="ld-mock-dot"></div><div class="ld-mock-dot"></div><div class="ld-mock-dot"></div>
+          <div class="ld-mock-title"><i class="ti ti-lock" style="font-size:10px;margin-right:4px"></i>tradeday.me — Tu día de trading</div>
+        </div>
+        <div class="ld-mock-body">
+          <div class="ld-mock-metrics">
+            <div class="ld-mock-metric"><div class="ld-mock-metric-lbl">Win rate</div><div class="ld-mock-metric-val up">68%</div></div>
+            <div class="ld-mock-metric"><div class="ld-mock-metric-lbl">Resultado del mes</div><div class="ld-mock-metric-val up">+1.240€</div></div>
+            <div class="ld-mock-metric"><div class="ld-mock-metric-lbl">Racha actual</div><div class="ld-mock-metric-val">5 días</div></div>
+          </div>
+          <div class="ld-mock-grid" aria-hidden="true">
+            <div class="ld-mock-cell g2"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell r1"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell r1"></div><div class="ld-mock-cell g3"></div>
+            <div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell r1"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell g3"></div>
+          </div>
+          <div class="ld-mock-journal">
+            <div class="ld-mock-journal-icon"><i class="ti ti-notebook"></i></div>
+            <div>
+              <div class="ld-mock-journal-text">"Hoy no he operado. Esperé mi setup y no forcé nada."</div>
+              <span class="ld-mock-journal-tag">Disciplina +1</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- STATS BAR -->
-  <div class="home-statsbar">
-    <div class="statsbar-cell"><div class="statsbar-num">100%</div><div class="statsbar-lbl">Privado y seguro</div></div>
-    <div class="statsbar-cell"><div class="statsbar-num">0€</div><div class="statsbar-lbl">Para empezar</div></div>
-    <div class="statsbar-cell"><div class="statsbar-num">∞</div><div class="statsbar-lbl">Cuentas por usuario</div></div>
+  <!-- TRUST STATS -->
+  <div class="ld-stats">
+    <div class="ld-stat ld-reveal"><div class="ld-stat-num">100%</div><div class="ld-stat-lbl">Privado y tuyo</div></div>
+    <div class="ld-stat ld-reveal ld-reveal-1"><div class="ld-stat-num">0€</div><div class="ld-stat-lbl">Para empezar</div></div>
+    <div class="ld-stat ld-reveal ld-reveal-2"><div class="ld-stat-num">∞</div><div class="ld-stat-lbl">Operaciones registradas</div></div>
   </div>
 
   <!-- PHILOSOPHY -->
-  <div class="home-philosophy">
-    <div class="phil-left">
-      <div class="phil-sticky">
-        <h2 class="phil-heading">Disciplina.<br>Análisis.<br>Mejora.</h2>
-        <div class="phil-accent"></div>
-        <p class="phil-desc">La mayoría de traders fracasan no por falta de conocimiento técnico, sino por falta de disciplina y autoconocimiento. TradeDay cambia eso.</p>
+  <div class="ld-phil">
+    <div class="ld-phil-left">
+      <div class="ld-phil-sticky ld-reveal">
+        <h2 class="ld-phil-heading">Disciplina.<br>Análisis.<br>Mejora.</h2>
+        <div class="ld-phil-accent"></div>
+        <p class="ld-phil-desc">La mayoría de traders fracasan no por falta de conocimiento técnico, sino por falta de disciplina y autoconocimiento. TradeDay cambia eso.</p>
       </div>
     </div>
-    <div class="phil-right">
-      <div class="phil-block">
-        <img src="https://images.unsplash.com/photo-1642790551116-18e150f248e3?w=900&q=75" alt="Chart analysis" class="phil-img" width="900" height="506" loading="lazy" decoding="async">
-        <div style="display:flex;align-items:baseline"><span class="phil-num">01</span><div><div class="phil-block-title">Registra cada día, operes o no</div><p class="phil-block-desc">La disciplina no depende solo de abrir trades. Registrar los días que decides no operar es igual de importante para tu desarrollo como trader.</p></div></div>
+    <div class="ld-phil-right">
+      <div class="ld-reveal">
+        <div class="ld-phil-mock">
+          <div class="ld-phil-mock-row"><span class="ld-phil-mock-dot n"></span><span class="ld-phil-mock-txt">Lun 12 · Sin operar</span><span class="ld-phil-mock-val">Disciplina</span></div>
+          <div class="ld-phil-mock-row"><span class="ld-phil-mock-dot g"></span><span class="ld-phil-mock-txt">Mar 13 · EURUSD</span><span class="ld-phil-mock-val" style="color:var(--green)">+0,8R</span></div>
+          <div class="ld-phil-mock-row"><span class="ld-phil-mock-dot n"></span><span class="ld-phil-mock-txt">Mié 14 · Sin operar</span><span class="ld-phil-mock-val">Paciencia</span></div>
+        </div>
+        <span class="ld-phil-num">01</span>
+        <div class="ld-phil-title">Registra cada día, operes o no</div>
+        <p class="ld-phil-text">La disciplina no depende solo de abrir trades. Registrar los días que decides no operar es igual de importante para tu desarrollo como trader.</p>
       </div>
-      <div class="phil-block">
-        <img src="https://images.unsplash.com/photo-1535320903710-d993d3d77d29?w=900&q=75" alt="Data analysis" class="phil-img" width="900" height="506" loading="lazy" decoding="async">
-        <div style="display:flex;align-items:baseline"><span class="phil-num">02</span><div><div class="phil-block-title">Multi-cuenta desde el primer día</div><p class="phil-block-desc">Gestiona varias cuentas — reales y fondeadas — desde un único lugar. Cada cuenta con su propio journal, métricas y calendario independientes.</p></div></div>
+      <div class="ld-reveal">
+        <div class="ld-phil-mock">
+          <div class="ld-phil-mock-chip"><span class="ld-phil-mock-chip-name"><span class="sw" style="background:var(--green)"></span>Cuenta Real</span><span class="ld-phil-mock-chip-val">12.480€</span></div>
+          <div class="ld-phil-mock-chip"><span class="ld-phil-mock-chip-name"><span class="sw" style="background:var(--blue)"></span>Fondeada FTMO</span><span class="ld-phil-mock-chip-val">50.000€</span></div>
+          <div class="ld-phil-mock-chip"><span class="ld-phil-mock-chip-name"><span class="sw" style="background:var(--text3)"></span>Demo</span><span class="ld-phil-mock-chip-val">10.000€</span></div>
+        </div>
+        <span class="ld-phil-num">02</span>
+        <div class="ld-phil-title">Multi-cuenta desde el primer día</div>
+        <p class="ld-phil-text">Gestiona varias cuentas — reales y fondeadas — desde un único lugar. Cada cuenta con su propio journal, métricas y calendario independientes.</p>
       </div>
     </div>
   </div>
 
   <!-- FEATURES -->
-  <div class="home-features">
-    <div class="feat-cell"><div class="feat-icon"><i class="ti ti-book"></i></div><div class="feat-title">Journal completo</div><div class="feat-desc">Trades y días sin operar. Todo en un solo lugar con contexto y emociones.</div></div>
-    <div class="feat-cell"><div class="feat-icon"><i class="ti ti-chart-donut"></i></div><div class="feat-title">Métricas reales</div><div class="feat-desc">Win rate, sesiones más rentables y análisis de comportamiento automático.</div></div>
-    <div class="feat-cell"><div class="feat-icon"><i class="ti ti-calendar"></i></div><div class="feat-title">Calendario visual</div><div class="feat-desc">Ve tu consistencia de un vistazo. Verde, rojo y diario en colores distintos.</div></div>
-    <div class="feat-cell"><div class="feat-icon"><i class="ti ti-shield-lock"></i></div><div class="feat-title">Multi-cuenta</div><div class="feat-desc">Gestiona cuentas reales y fondeadas. Cada una con su propio diario y métricas.</div></div>
+  <div class="ld-section" style="padding-bottom:0">
+    <div class="ld-section-head ld-reveal">
+      <div class="ld-eyebrow">Producto</div>
+      <h2 class="ld-h2">Todo lo que necesitas.<br>Nada que no.</h2>
+    </div>
+  </div>
+  <div class="ld-features">
+    <div class="ld-feat ld-reveal"><div class="ld-feat-icon"><i class="ti ti-book"></i></div><div class="ld-feat-title">Journal completo</div><div class="ld-feat-desc">Trades y días sin operar. Todo en un solo lugar con contexto y emociones.</div></div>
+    <div class="ld-feat ld-reveal ld-reveal-1"><div class="ld-feat-icon"><i class="ti ti-chart-donut"></i></div><div class="ld-feat-title">Métricas reales</div><div class="ld-feat-desc">Win rate, sesiones más rentables y análisis de comportamiento automático.</div></div>
+    <div class="ld-feat ld-reveal ld-reveal-2"><div class="ld-feat-icon"><i class="ti ti-calendar"></i></div><div class="ld-feat-title">Calendario visual</div><div class="ld-feat-desc">Ve tu consistencia de un vistazo. Verde, rojo y diario en colores distintos.</div></div>
+    <div class="ld-feat ld-reveal ld-reveal-3"><div class="ld-feat-icon"><i class="ti ti-shield-lock"></i></div><div class="ld-feat-title">Multi-cuenta</div><div class="ld-feat-desc">Gestiona cuentas reales y fondeadas. Cada una con su propio diario y métricas.</div></div>
   </div>
 
   <!-- PRICING -->
-  <div class="home-pricing" id="pricing-section" style="padding:80px 56px;border-bottom:1px solid var(--border)">
-    <div style="text-align:center;max-width:560px;margin:0 auto 48px">
-      <h2 class="phil-heading" style="font-size:clamp(30px,3.2vw,42px)">Precio simple y honesto</h2>
-      <p class="phil-desc" style="margin-top:12px">Empieza gratis. Si TradeDay te ayuda a operar mejor, pásate a Pro cuando quieras. Sin permanencia, cancela cuando quieras.</p>
+  <div class="ld-pricing" id="pricing-section">
+    <div class="ld-section-head ld-reveal">
+      <div class="ld-eyebrow">Precios</div>
+      <h2 class="ld-h2" style="font-size:clamp(30px,3.2vw,44px)">Precio simple y honesto</h2>
+      <p class="ld-section-desc">Empieza gratis. Si TradeDay te ayuda a operar mejor, pásate a Pro cuando quieras. Sin permanencia, cancela cuando quieras.</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:760px;margin:0 auto">
-      <div style="border:1px solid var(--border2);border-radius:var(--radius-xl);padding:32px">
-        <div style="font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Free</div>
-        <div style="font-size:40px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px">0€<span style="font-size:14px;color:var(--text3);font-weight:500">/mes</span></div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:24px">Para empezar a construir el hábito.</p>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px;font-size:13px;color:var(--text2)">
-          <li>✓ 1 cuenta de trading</li>
-          <li>✓ Journal y calendario</li>
-          <li>✓ Métricas básicas</li>
+    <div class="ld-pricing-grid">
+      <div class="ld-price-card ld-reveal">
+        <div class="ld-price-tier">Free</div>
+        <div class="ld-price-amount">0€<span>/mes</span></div>
+        <p class="ld-price-desc">Para empezar a construir el hábito.</p>
+        <ul class="ld-price-list">
+          <li><i class="ti ti-check"></i>1 cuenta de trading</li>
+          <li><i class="ti ti-check"></i>Journal y calendario</li>
+          <li><i class="ti ti-check"></i>Métricas básicas</li>
         </ul>
-        <button class="btn btn-ghost btn-full" onclick="showScreen('signup')">Empezar gratis</button>
+        <button class="ld-btn ld-btn-ghost" style="width:100%;justify-content:center" onclick="showScreen('signup')">Empezar gratis</button>
       </div>
-      <div style="border:1px solid var(--accent);border-radius:var(--radius-xl);padding:32px;position:relative;background:var(--green-bg)">
-        <div style="position:absolute;top:-11px;right:24px;background:var(--accent);color:#000;font-size:10px;font-weight:800;letter-spacing:.06em;padding:3px 10px;border-radius:20px;text-transform:uppercase">Recomendado</div>
-        <div style="font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Pro</div>
-        <div style="font-size:40px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px">4,99€<span style="font-size:14px;color:var(--text3);font-weight:500">/mes</span></div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:24px">Todo lo que necesitas para tomártelo en serio.</p>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px;font-size:13px;color:var(--text2)">
-          <li>✓ Cuentas ilimitadas</li>
-          <li>✓ Métricas y análisis avanzado</li>
-          <li>✓ Plan de trading y rutina personalizados</li>
-          <li>✓ Exportación de datos</li>
+      <div class="ld-price-card pro ld-reveal ld-reveal-1">
+        <div class="ld-price-badge">Recomendado</div>
+        <div class="ld-price-tier">Pro</div>
+        <div class="ld-price-amount">4,99€<span>/mes</span></div>
+        <p class="ld-price-desc">Todo lo que necesitas para tomártelo en serio.</p>
+        <ul class="ld-price-list">
+          <li><i class="ti ti-check"></i>Cuentas ilimitadas</li>
+          <li><i class="ti ti-check"></i>Métricas y análisis avanzado</li>
+          <li><i class="ti ti-check"></i>Plan de trading y rutina personalizados</li>
+          <li><i class="ti ti-check"></i>Exportación de datos</li>
         </ul>
-        <button class="btn btn-primary btn-full" onclick="showScreen('signup')">Empezar prueba gratis</button>
+        <button class="ld-btn ld-btn-primary" style="width:100%;justify-content:center" onclick="showScreen('signup')">Empezar prueba gratis</button>
       </div>
     </div>
   </div>
 
   <!-- CTA -->
-  <div class="home-cta-section">
-    <h2 class="home-cta-title">Empieza a construir<br>disciplina real hoy</h2>
-    <p class="home-cta-sub">Gratis. Sin tarjeta de crédito. En 2 minutos.</p>
-    <button class="btn btn-primary btn-lg" onclick="showScreen('signup')"><i class="ti ti-arrow-right"></i>Crear cuenta gratis</button>
+  <div class="ld-cta">
+    <div class="ld-cta-glow"></div>
+    <h2 class="ld-cta-title ld-reveal">Empieza a construir<br>disciplina real hoy</h2>
+    <p class="ld-cta-sub ld-reveal ld-reveal-1">Gratis. Sin tarjeta de crédito. En 2 minutos.</p>
+    <button class="ld-btn ld-btn-primary ld-reveal ld-reveal-2" onclick="showScreen('signup')"><i class="ti ti-arrow-right"></i>Crear cuenta gratis</button>
   </div>
 
-  <div class="home-footer">
+  <div class="ld-footer">
     <div class="nav-logo"><div class="logo-mark">TD</div>TradeDay</div>
-    <div class="footer-copy">© 2026 TradeDay. Todos los derechos reservados.</div>
-    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-      <a onclick="showScreen('privacy')" style="font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline">Privacidad</a>
-      <a onclick="showScreen('terms')" style="font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline">Términos</a>
-      <a onclick="showScreen('cookies')" style="font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline">Cookies</a>
+    <div class="ld-footer-copy">© 2026 TradeDay. Todos los derechos reservados.</div>
+    <div class="ld-footer-links">
+      <a onclick="showScreen('privacy')">Privacidad</a>
+      <a onclick="showScreen('terms')">Términos</a>
+      <a onclick="showScreen('cookies')">Cookies</a>
     </div>
     <div class="lang-btn" onclick="cycleLang()" style="cursor:pointer"><span id="lf-foot">🇪🇸</span> <span id="ll-foot">ES</span></div>
   </div>
