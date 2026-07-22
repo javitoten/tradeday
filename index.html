@@ -824,7 +824,15 @@ function initLandingFX(){
     }, {passive:true});
   }
   const revealEls = document.querySelectorAll('#screen-home .ld-reveal');
-  if('IntersectionObserver' in window && revealEls.length){
+  if(!revealEls.length) return;
+  function forceRevealVisible(){
+    revealEls.forEach(el=>{
+      if(el.classList.contains('in')) return;
+      const r = el.getBoundingClientRect();
+      if(r.top < window.innerHeight && r.bottom > -100) el.classList.add('in');
+    });
+  }
+  if('IntersectionObserver' in window){
     const io = new IntersectionObserver((entries)=>{
       entries.forEach(entry=>{
         if(entry.isIntersecting){
@@ -834,9 +842,15 @@ function initLandingFX(){
       });
     }, {threshold:.15, rootMargin:'0px 0px -40px 0px'});
     revealEls.forEach(el=>io.observe(el));
+    // Red de seguridad: la home puede seguir con display:none (pantalla de login
+    // cargando la sesión) en el momento en que se crea el observer, así que algún
+    // navegador podría no recalcular la intersección a tiempo. Forzamos una
+    // comprobación manual poco después de que la home se muestre.
+    [300, 900, 1800].forEach(ms=>setTimeout(forceRevealVisible, ms));
   } else {
     revealEls.forEach(el=>el.classList.add('in'));
   }
+  window.addEventListener('scroll', forceRevealVisible, {passive:true});
 }
 </script>
 
@@ -886,7 +900,7 @@ function initLandingFX(){
     <div class="ld-trust ld-reveal ld-reveal-4">Gratis para siempre en el plan Free · Sin tarjeta de crédito · Listo en 2 minutos</div>
 
     <!-- product mockup -->
-    <div class="ld-mock-wrap ld-reveal ld-reveal-4">
+    <div class="ld-mock-wrap">
       <div class="ld-mock">
         <div class="ld-mock-bar">
           <div class="ld-mock-dot"></div><div class="ld-mock-dot"></div><div class="ld-mock-dot"></div>
