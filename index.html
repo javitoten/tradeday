@@ -2035,7 +2035,7 @@ function initLandingFX(){
 /* ── STATE ── */
 let currentUser=null, userProfile={username:'Trader'};
 let lang='es', currentView='dashboard';
-let miniYear=2026, miniMonth=5, fullYear=2026, fullMonth=5;
+let miniYear=new Date().getFullYear(), miniMonth=new Date().getMonth(), fullYear=new Date().getFullYear(), fullMonth=new Date().getMonth();
 let metricsOpen=false, abandonTarget=null, inactivityTimer=null;
 let dashMetricsOpen=false, annualYear=new Date().getFullYear();
 let allTrades=[], allJournals=[], allAccounts=[];
@@ -4730,9 +4730,10 @@ function gotoView(v){
   });
   closeMobileSidebar();
   const mc=document.getElementById('main-content');if(mc)mc.scrollTop=0;
+  if(v==='dashboard'){miniYear=new Date().getFullYear();miniMonth=new Date().getMonth();renderMiniCal();}
   if(v==='journal')renderJournalList();
   if(v==='ops'){renderOpsList();renderMetrics();}
-  if(v==='calendar')renderFullCal();
+  if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
   if(v==='plan')loadPlan();
   if(v==='routine')loadRoutine();
   if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';renderAccountsSidebar();}
@@ -4806,7 +4807,7 @@ function toggleDashMetrics(){
   dashMetricsOpen=!dashMetricsOpen;
   document.getElementById('dash-metrics-body').style.display=dashMetricsOpen?'flex':'none';
   document.getElementById('dm-chev').style.transform=dashMetricsOpen?'rotate(180deg)':'none';
-  if(dashMetricsOpen)renderDashMetricsFull();
+  if(dashMetricsOpen){annualYear=new Date().getFullYear();renderDashMetricsFull();}
 }
 
 function renderDashMetricsFull(){
