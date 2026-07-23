@@ -262,6 +262,14 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .account-type-card:hover{border-color:var(--border3)}
 .account-type-card.selected-real{border-color:var(--green);background:var(--green-bg)}
 .account-type-card.selected-funded{border-color:var(--purple);background:var(--purple-bg)}
+.pricing-card{position:relative;background:var(--bg3);border:2px solid var(--border2);border-radius:var(--radius-lg);padding:18px 16px;text-align:center;cursor:pointer;transition:all .2s}
+.pricing-card:hover{border-color:var(--border3)}
+.pricing-card.selected{border-color:var(--accent);background:var(--green-bg)}
+.pricing-card-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.pricing-card-price{font-size:22px;font-weight:800;color:var(--text)}
+.pricing-card-price span{font-size:12px;font-weight:600;color:var(--text3)}
+.pricing-card-sub{font-size:11px;color:var(--text3);margin-top:6px}
+.pricing-badge{position:absolute;top:-10px;right:12px;background:var(--accent);color:#052C14;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.03em}
 .account-type-icon{font-size:26px;margin-bottom:8px}
 .account-type-title{font-size:13px;font-weight:700;margin-bottom:2px}
 .account-type-sub{font-size:11px;color:var(--text3)}
@@ -1426,6 +1434,15 @@ function initLandingFX(){
               <div class="metric-card"><div class="metric-label">Mejor sesión</div><div class="metric-value" id="dm-best-session" style="color:var(--amber)">—</div></div>
             </div>
 
+            <!-- MÉTRICAS AVANZADAS (Premium) -->
+            <div id="dm-advanced-locked-panel" style="display:none;text-align:center;padding:20px 10px">
+              <div style="font-size:28px;margin-bottom:8px">👑</div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px">Métricas avanzadas — función Premium</div>
+              <div style="font-size:13px;color:var(--text2);max-width:420px;margin:0 auto 16px;line-height:1.6">El calendario anual de rendimiento, la distribución Buy/Sell y por sesión, el análisis de breakeven y el rendimiento por sesión están disponibles con TradeDay Premium.</div>
+              <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Las métricas avanzadas')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+            </div>
+
+            <div id="dm-advanced-block" style="display:flex;flex-direction:column;gap:22px">
             <!-- CALENDARIO ANUAL -->
             <div>
               <div class="section-header" style="margin-bottom:12px">
@@ -1470,6 +1487,7 @@ function initLandingFX(){
               <div class="section-sub" style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Rendimiento por sesión</div>
               <div id="session-analysis-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
             </div>
+            </div>
 
           </div>
         </div>
@@ -1513,7 +1531,7 @@ function initLandingFX(){
             <i class="ti ti-chevron-down" id="we-chev" style="color:var(--text3);transition:transform .2s;font-size:16px"></i>
           </div>
           <div id="weekly-emotional-body" style="display:none;padding:0 20px 22px;flex-direction:column;gap:16px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
+            <div id="we-nav-row" style="display:flex;align-items:center;justify-content:space-between">
               <div class="cal-nav-btn" onclick="weekEmoPrev()"><i class="ti ti-chevron-left"></i></div>
               <div style="font-size:13px;font-weight:700" id="we-week-label">Semana actual</div>
               <div class="cal-nav-btn" onclick="weekEmoNext()"><i class="ti ti-chevron-right"></i></div>
@@ -1915,6 +1933,17 @@ function initLandingFX(){
           <button class="btn btn-ghost btn-sm" onclick="openModal('modal-add-account')"><i class="ti ti-plus"></i>Añadir cuenta</button>
         </div>
         <div class="card">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Suscripción</div>
+          <div id="cfg-sub-free" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div><div style="font-size:13px;font-weight:600">Plan Gratuito</div><div style="font-size:12px;color:var(--text3)">Mejora a Premium para desbloquear todas las funciones</div></div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modal-pricing')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="cfg-sub-premium" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div><div style="font-size:13px;font-weight:600"><i class="ti ti-crown" style="color:var(--amber)"></i> Plan Premium</div><div style="font-size:12px;color:var(--text3)" id="cfg-sub-premium-detail">Acceso completo a TradeDay</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="openBillingPortal()" id="cfg-portal-btn"><i class="ti ti-settings"></i>Gestionar suscripción</button>
+          </div>
+        </div>
+        <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Sesión</div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div><div style="font-size:13px;font-weight:600">Cerrar sesión</div><div style="font-size:12px;color:var(--text3)">Cerrar en este dispositivo</div></div>
@@ -2062,9 +2091,44 @@ function initLandingFX(){
   </div>
 </div>
 
+<!-- PRICING / UPGRADE -->
+<div class="modal-overlay" id="modal-pricing" style="display:none" onclick="if(event.target===this)closeModal('modal-pricing')">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header"><div class="modal-title"><i class="ti ti-crown" style="color:var(--amber)"></i> Mejora a TradeDay Premium</div><button class="modal-close" onclick="closeModal('modal-pricing')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin:0 0 4px">Desbloquea el análisis completo del Journal, las métricas avanzadas, el Índice de Disciplina y la eliminación de operaciones y entradas.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px">
+        <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
+          <div class="pricing-card-title">Plan Mensual</div>
+          <div class="pricing-card-price">8,99€<span>/mes</span></div>
+          <div class="pricing-card-sub">Facturación mensual · cancela cuando quieras</div>
+        </div>
+        <div class="pricing-card selected" id="pp-card-annual" onclick="selectPricingPlan('annual')">
+          <div class="pricing-badge">Ahorra 34%</div>
+          <div class="pricing-card-title">Plan Anual</div>
+          <div class="pricing-card-price">69€<span>/año</span></div>
+          <div class="pricing-card-sub">Solo 5,75€/mes</div>
+        </div>
+      </div>
+      <ul style="margin:18px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Análisis completo del Journal y métricas avanzadas</li>
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Índice de Disciplina</li>
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Elimina operaciones y entradas del Journal</li>
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Acceso a todas las futuras funciones Premium</li>
+      </ul>
+      <div id="pp-error" style="display:none;font-size:12px;color:var(--red);margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pricing')">Ahora no</button>
+      <button class="btn btn-primary" id="pp-checkout-btn" onclick="startCheckout()"><i class="ti ti-crown"></i>Continuar con Premium</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ── STATE ── */
 let currentUser=null, userProfile={username:'Trader'};
+let currentSubscription=null; // fila de la tabla subscriptions del usuario actual (null = plan Free)
 let lang='es', currentView='dashboard';
 let miniYear=new Date().getFullYear(), miniMonth=new Date().getMonth(), fullYear=new Date().getFullYear(), fullMonth=new Date().getMonth();
 let metricsOpen=false, abandonTarget=null, inactivityTimer=null;
@@ -2189,7 +2253,7 @@ async function loginGoogle(){
 }
 async function doLogout(){
   await sb.auth.signOut();
-  currentUser=null;allTrades=[];allJournals=[];allAccounts=[];currentAccountId=null;
+  currentUser=null;allTrades=[];allJournals=[];allAccounts=[];currentAccountId=null;currentSubscription=null;
   showScreen('home');clearTimeout(inactivityTimer);
 }
 function showAuthError(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display='block';}}
@@ -2239,6 +2303,9 @@ sb.auth.onAuthStateChange(async(event,session)=>{
     }
     currentUser=session.user;
     await loadProfile();
+    await loadSubscription();
+    updateSubscriptionUI();
+    handleCheckoutRedirect();
     await loadAccounts();
     if(allAccounts.length===0){
       // Primera vez: mostrar onboarding
@@ -2490,6 +2557,106 @@ async function loadProfile(){
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=(userProfile.username||'T')[0].toUpperCase();
   const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${userProfile.username||'Trader'} 👋`;
 }
+
+/* ── SUSCRIPCIÓN (Stripe): Free vs Premium ── */
+async function loadSubscription(){
+  if(!currentUser){currentSubscription=null;return;}
+  const{data}=await sb.from('subscriptions').select('*').eq('user_id',currentUser.id).maybeSingle();
+  currentSubscription=data||null;
+}
+// El estado real de la suscripción solo lo escriben las Edge Functions (via service_role,
+// que salta RLS) tras confirmar el pago con Stripe. El cliente nunca puede escribir aquí,
+// así que un usuario no puede marcarse Premium a si mismo manipulando el navegador.
+function isPremiumUser(){
+  return !!(currentSubscription&&['active','trialing'].includes(currentSubscription.status));
+}
+// Gate reutilizable para cualquier función Premium: si el usuario no es Premium,
+// muestra el aviso de upgrade y devuelve false (sin ejecutar la acción).
+function requirePremium(featureLabel){
+  if(isPremiumUser())return true;
+  showUpgradePrompt(featureLabel);
+  return false;
+}
+function showUpgradePrompt(featureLabel){
+  toast(`${featureLabel||'Esta función'} es exclusiva de TradeDay Premium 👑`);
+  const m=document.getElementById('modal-pricing');
+  if(m)openModal('modal-pricing');
+}
+
+/* ── MODAL DE PRECIOS Y CHECKOUT ── */
+let selectedPricingPlan='annual';
+function selectPricingPlan(plan){
+  selectedPricingPlan=plan;
+  const mCard=document.getElementById('pp-card-monthly'), aCard=document.getElementById('pp-card-annual');
+  if(mCard)mCard.classList.toggle('selected',plan==='monthly');
+  if(aCard)aCard.classList.toggle('selected',plan==='annual');
+}
+async function startCheckout(){
+  const btn=document.getElementById('pp-checkout-btn');
+  const errEl=document.getElementById('pp-error');
+  if(errEl)errEl.style.display='none';
+  if(!currentUser){toast('Debes iniciar sesión');return;}
+  btn.disabled=true;
+  const originalHTML=btn.innerHTML;
+  btn.innerHTML='<i class="ti ti-loader-2"></i>Redirigiendo...';
+  try{
+    const{data,error}=await sb.functions.invoke('create-checkout-session',{body:{plan:selectedPricingPlan}});
+    if(error||!data||!data.url){
+      throw new Error((data&&data.error)||(error&&error.message)||'No se pudo iniciar el pago. Inténtalo de nuevo.');
+    }
+    window.location.href=data.url;
+  }catch(e){
+    if(errEl){errEl.textContent=e.message||'No se pudo iniciar el pago. Inténtalo de nuevo.';errEl.style.display='block';}
+    btn.disabled=false;
+    btn.innerHTML=originalHTML;
+  }
+}
+async function openBillingPortal(){
+  const btn=document.getElementById('cfg-portal-btn');
+  if(!currentUser)return;
+  const originalHTML=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>Abriendo...';}
+  try{
+    const{data,error}=await sb.functions.invoke('create-portal-session');
+    if(error||!data||!data.url){
+      throw new Error((data&&data.error)||(error&&error.message)||'No se pudo abrir el portal de facturación.');
+    }
+    window.location.href=data.url;
+  }catch(e){
+    toast(e.message||'No se pudo abrir el portal de facturación.');
+    if(btn){btn.disabled=false;btn.innerHTML=originalHTML;}
+  }
+}
+function handleCheckoutRedirect(){
+  const params=new URLSearchParams(window.location.search);
+  const checkout=params.get('checkout');
+  if(!checkout)return;
+  history.replaceState(null,'',window.location.pathname);
+  if(checkout==='success'){
+    toast('¡Pago completado! Activando tu Premium...');
+    // El webhook de Stripe puede tardar unos segundos en confirmar el pago; reintentamos un par de veces.
+    setTimeout(async()=>{await loadSubscription();updateSubscriptionUI();},2500);
+    setTimeout(async()=>{await loadSubscription();updateSubscriptionUI();if(isPremiumUser())toast('¡Bienvenido a TradeDay Premium! 👑');},6000);
+  } else if(checkout==='cancel'){
+    toast('Pago cancelado. Puedes intentarlo de nuevo cuando quieras.');
+  }
+}
+function updateSubscriptionUI(){
+  const freeEl=document.getElementById('cfg-sub-free'), premEl=document.getElementById('cfg-sub-premium');
+  if(!freeEl||!premEl)return;
+  const premium=isPremiumUser();
+  freeEl.style.display=premium?'none':'flex';
+  premEl.style.display=premium?'flex':'none';
+  if(premium&&currentSubscription){
+    const detailEl=document.getElementById('cfg-sub-premium-detail');
+    if(detailEl){
+      const planLabel=currentSubscription.plan==='annual'?'Plan Anual':'Plan Mensual';
+      const renews=currentSubscription.cancel_at_period_end?'Se cancelará al final del periodo actual':'Renovación automática activa';
+      detailEl.textContent=`${planLabel} · ${renews}`;
+    }
+  }
+}
+
 async function loadData(){
   if(!currentUser||!currentAccountId)return;
   const{data:trades}=await sb.from('trades').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
@@ -2782,8 +2949,8 @@ async function saveJournal(){
   });
 }
 
-async function deleteTrade(id){if(!confirm('¿Eliminar?'))return;await sb.from('trades').delete().eq('id',id);toast('Trade eliminado');await loadData();}
-async function deleteJournal(id){if(!confirm('¿Eliminar?'))return;await sb.from('journals').delete().eq('id',id);toast('Entrada eliminada');await loadData();}
+async function deleteTrade(id){if(!requirePremium('Eliminar operaciones'))return;if(!confirm('¿Eliminar?'))return;await sb.from('trades').delete().eq('id',id);toast('Trade eliminado');await loadData();}
+async function deleteJournal(id){if(!requirePremium('Eliminar entradas del Journal'))return;if(!confirm('¿Eliminar?'))return;await sb.from('journals').delete().eq('id',id);toast('Entrada eliminada');await loadData();}
 
 async function saveConfig(){
   if(!currentUser)return;
@@ -3482,11 +3649,17 @@ function analysisBlockHTML(analysis){
     sentiment.behaviors.negative.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--red)'}));
     sentiment.behaviors.positive.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--green)'}));
   }
+  const premium=isPremiumUser();
+  const suggestionRow=analysis.suggestion
+    ? (premium
+        ? `<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${analysis.suggestion}</div>`
+        : `<div class="journal-analysis-row" style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="showUpgradePrompt('El análisis avanzado del Journal')"><i class="ti ti-lock" style="color:var(--text3)"></i><strong>Posible mejora:</strong> <span style="color:var(--text3);filter:blur(3px);user-select:none">${analysis.suggestion}</span> <span style="color:var(--accent);font-weight:700;white-space:nowrap">👑 Premium</span></div>`)
+    : '';
   return `<div class="journal-analysis">
       <div class="journal-analysis-title"><i class="ti ti-sparkles"></i>Análisis del día</div>
       <div class="journal-analysis-row">${analysis.summary}</div>
       ${badges.length?`<div class="journal-analysis-row">${badges.map(b=>`<span class="sentiment-tag" style="background:${b.color}22;color:${b.color}">${b.label}</span>`).join('')}</div>`:''}
-      ${analysis.suggestion?`<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${analysis.suggestion}</div>`:''}
+      ${suggestionRow}
     </div>`;
 }
 
@@ -3593,6 +3766,19 @@ const WE_IMPROVEMENT_TEMPLATES={
 };
 
 function renderWeeklyEmotional(){
+  const content0=document.getElementById('weekly-emotional-content');
+  const navRow=document.getElementById('we-nav-row');
+  if(!isPremiumUser()){
+    if(navRow)navRow.style.display='none';
+    if(content0)content0.innerHTML=`<div style="text-align:center;padding:14px 10px 6px">
+      <div style="font-size:26px;margin-bottom:8px">👑</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px">Análisis emocional semanal — función Premium</div>
+      <div style="font-size:12px;color:var(--text2);max-width:380px;margin:0 auto 14px;line-height:1.6">Descubre tus patrones emocionales a lo largo de la semana, su evolución día a día y cómo se relacionan con tus resultados. Disponible con TradeDay Premium.</div>
+      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El análisis emocional semanal')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+    </div>`;
+    return;
+  }
+  if(navRow)navRow.style.display='flex';
   const{monday,sunday}=getWeekRange(weekEmoOffset);
   const M=gM();
   const label=weekEmoOffset===0?'Esta semana':weekEmoOffset===-1?'Semana pasada':`Semana del ${monday.getDate()} al ${sunday.getDate()} de ${M[monday.getMonth()]}`;
@@ -3758,7 +3944,19 @@ function initDisciplineScore(){
   const locked=document.getElementById('ds-locked');
   const unlocked=document.getElementById('ds-unlocked');
   const hasPlan=currentPlan&&currentPlan.completed;
+  if(!isPremiumUser()){
+    locked.innerHTML=`<div style="font-size:30px;margin-bottom:10px">👑</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px">Índice de Disciplina — función Premium</div>
+      <div style="font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6">Mide tu proceso comparando tus acciones con las reglas de tu propio Plan de Trading. Disponible en el plan Premium.</div>
+      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El Índice de Disciplina')"><i class="ti ti-crown"></i>Mejorar a Premium</button>`;
+    locked.style.display='block';unlocked.style.display='none';
+    return;
+  }
   if(!hasPlan){
+    locked.innerHTML=`<div style="font-size:30px;margin-bottom:10px">🔒</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px">Índice de Disciplina bloqueado</div>
+      <div style="font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6">Para activar tu Índice de Disciplina primero necesitas crear tu Plan de Trading. Tu disciplina se mide comparando tus acciones con las reglas que tú mismo has definido.</div>
+      <button class="btn btn-primary btn-sm" onclick="gotoView('plan')"><i class="ti ti-target"></i>Crear mi Plan</button>`;
     locked.style.display='block';unlocked.style.display='none';
     return;
   }
@@ -4892,7 +5090,7 @@ function gotoView(v){
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
   if(v==='plan')loadPlan();
   if(v==='routine')loadRoutine();
-  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';renderAccountsSidebar();}
+  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';renderAccountsSidebar();updateSubscriptionUI();}
 }
 
 function toggleMobileSidebar(){
@@ -5010,11 +5208,18 @@ function renderDashMetricsFull(){
   const beLossPctEl=document.getElementById('dm-be-loss-pct');
   if(beLossPctEl)beLossPctEl.textContent=bes?Math.round(beLossCount/bes*100)+'% del BE':'—';
 
-  renderAnnualCalendar();
-  renderBuySellDonut(trades);
-  renderSessionsDonut(trades);
-  renderResultsDonut(trades);
-  renderSessionAnalysis(trades);
+  const advBlock=document.getElementById('dm-advanced-block');
+  const advLocked=document.getElementById('dm-advanced-locked-panel');
+  const premium=isPremiumUser();
+  if(advBlock)advBlock.style.display=premium?'flex':'none';
+  if(advLocked)advLocked.style.display=premium?'none':'block';
+  if(premium){
+    renderAnnualCalendar();
+    renderBuySellDonut(trades);
+    renderSessionsDonut(trades);
+    renderResultsDonut(trades);
+    renderSessionAnalysis(trades);
+  }
 }
 
 function winRateFor(session){
