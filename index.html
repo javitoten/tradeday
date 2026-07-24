@@ -31,6 +31,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://js.hcaptcha.com/1/api.js?render=explicit" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -262,6 +263,70 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .account-type-card:hover{border-color:var(--border3)}
 .account-type-card.selected-real{border-color:var(--green);background:var(--green-bg)}
 .account-type-card.selected-funded{border-color:var(--purple);background:var(--purple-bg)}
+.pricing-card{position:relative;background:var(--bg3);border:2px solid var(--border2);border-radius:var(--radius-lg);padding:18px 16px;text-align:center;cursor:pointer;transition:all .2s}
+.pricing-card:hover{border-color:var(--border3)}
+.pricing-card.selected{border-color:var(--accent);background:var(--green-bg)}
+.pricing-card-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.pricing-card-price{font-size:22px;font-weight:800;color:var(--text)}
+.pricing-card-price span{font-size:12px;font-weight:600;color:var(--text3)}
+.pricing-card-sub{font-size:11px;color:var(--text3);margin-top:6px}
+.pricing-badge{position:absolute;top:-10px;right:12px;background:var(--accent);color:#052C14;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.03em}
+/* ── MÉTRICAS (apartado completo) ── */
+.mx-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;-ms-overflow-style:none;scrollbar-width:none}
+.mx-tabs::-webkit-scrollbar{display:none}
+.mx-tab{display:flex;align-items:center;gap:6px;padding:8px 15px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.mx-tab:hover{border-color:var(--border3);color:var(--text)}
+.mx-tab.active{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.mx-tab .ti-lock-sm{font-size:10px;margin-left:1px;color:var(--text3)}
+.mx-section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px}
+.mx-locked-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);text-align:center;padding:34px 20px}
+.mx-locked-icon{font-size:30px;margin-bottom:10px}
+.mx-locked-title{font-size:14px;font-weight:700;margin-bottom:8px}
+.mx-locked-desc{font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6}
+.mx-empty-hint{font-size:12px;color:var(--text3);background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px}
+.mx-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.mx-row:last-child{border-bottom:none}
+.mx-row-name{font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-row-mid{color:var(--text3);font-size:11px;white-space:nowrap}
+.mx-row-wr{font-size:12px;font-weight:700;white-space:nowrap;min-width:42px;text-align:right}
+.mx-row-pnl{font-size:13px;font-weight:700;white-space:nowrap;min-width:76px;text-align:right}
+.mx-row-empty{font-size:12px;color:var(--text3);text-align:center;padding:10px 0}
+.mx-toggle-group{display:flex;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px;flex-shrink:0}
+.mx-toggle{padding:6px 14px;border-radius:16px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit;white-space:nowrap}
+.mx-toggle:hover{color:var(--text)}
+.mx-toggle.active{background:var(--green);color:#04120a}
+.mx-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.mx-card-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text)}
+.mx-card-title i{color:var(--accent);font-size:16px}
+.mx-card-sub{font-size:11px;color:var(--text3);margin-top:4px;font-weight:500;max-width:480px;line-height:1.5}
+.mx-chart-wrap{position:relative;width:100%}
+.mx-two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
+@media (max-width:760px){.mx-two-col{grid-template-columns:1fr}}
+.mx-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.mx-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap}
+.mx-chip strong{color:var(--text);font-weight:800}
+.mx-chip.pos strong{color:var(--green)}
+.mx-chip.neg strong{color:var(--red)}
+.mx-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.mx-kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;transition:all .2s}
+.mx-kpi-card:hover{border-color:var(--border3);transform:translateY(-2px)}
+.mx-kpi-icon{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;margin-bottom:10px;background:var(--green-bg);color:var(--green)}
+.mx-section-block{animation:mxFadeIn .35s ease}
+@keyframes mxFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.mx-locked-panel.mx-locked-inline{padding:26px 18px}
+.mx-cal-nav{display:flex;align-items:center;gap:10px}
+.mx-cal-nav-btn{width:26px;height:26px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .15s}
+.mx-cal-nav-btn:hover{border-color:var(--border3);color:var(--text)}
+.mx-cal-title{font-size:13px;font-weight:700;min-width:110px;text-align:center}
+.mx-minical-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.mx-minical-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.mx-minical-daylabel{text-align:center;font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.bigcal-day.mx-mini{min-height:52px;padding:4px 5px;cursor:default}
+.bigcal-day.mx-mini:hover{transform:none;box-shadow:none}
+.bigcal-day.mx-mini .bigcal-day-num{font-size:9px;margin-bottom:1px}
+.bigcal-day.mx-mini .bigcal-amount{font-size:9px}
+.bigcal-day.mx-mini .bigcal-pct{font-size:8px}
+.bigcal-day.mx-mini .bigcal-trades{font-size:7px}
 .account-type-icon{font-size:26px;margin-bottom:8px}
 .account-type-title{font-size:13px;font-weight:700;margin-bottom:2px}
 .account-type-sub{font-size:11px;color:var(--text3)}
@@ -1294,6 +1359,7 @@ function initLandingFX(){
       <div class="nav-link" onclick="gotoView('journal')">Journal</div>
       <div class="nav-link" onclick="gotoView('calendar')">Calendario</div>
       <div class="nav-link" onclick="gotoView('ops')">Mis operaciones</div>
+      <div class="nav-link" onclick="gotoView('metrics')">Métricas</div>
       <div class="nav-link" onclick="gotoView('plan')">Mi plan</div>
       <div class="nav-link" onclick="gotoView('routine')">Mi rutina</div>
     </div>
@@ -1313,6 +1379,7 @@ function initLandingFX(){
         <div class="sidebar-item" onclick="gotoView('journal')" id="si-journal"><i class="ti ti-book"></i>Journal</div>
         <div class="sidebar-item" onclick="gotoView('calendar')" id="si-calendar"><i class="ti ti-calendar"></i>Calendario</div>
         <div class="sidebar-item" onclick="gotoView('ops')" id="si-ops"><i class="ti ti-list"></i>Mis operaciones</div>
+        <div class="sidebar-item" onclick="gotoView('metrics')" id="si-metrics"><i class="ti ti-chart-bar"></i>Métricas</div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-item" onclick="gotoView('plan')" id="si-plan"><i class="ti ti-target"></i>Mi plan</div>
         <div class="sidebar-item" onclick="gotoView('routine')" id="si-routine"><i class="ti ti-sun"></i>Mi rutina</div>
@@ -1426,6 +1493,15 @@ function initLandingFX(){
               <div class="metric-card"><div class="metric-label">Mejor sesión</div><div class="metric-value" id="dm-best-session" style="color:var(--amber)">—</div></div>
             </div>
 
+            <!-- MÉTRICAS AVANZADAS (Premium) -->
+            <div id="dm-advanced-locked-panel" style="display:none;text-align:center;padding:20px 10px">
+              <div style="font-size:28px;margin-bottom:8px">👑</div>
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px">Métricas avanzadas — función Premium</div>
+              <div style="font-size:13px;color:var(--text2);max-width:420px;margin:0 auto 16px;line-height:1.6">El calendario anual de rendimiento, la distribución Buy/Sell y por sesión, el análisis de breakeven y el rendimiento por sesión están disponibles con TradeDay Premium.</div>
+              <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Las métricas avanzadas')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+            </div>
+
+            <div id="dm-advanced-block" style="display:flex;flex-direction:column;gap:22px">
             <!-- CALENDARIO ANUAL -->
             <div>
               <div class="section-header" style="margin-bottom:12px">
@@ -1470,7 +1546,9 @@ function initLandingFX(){
               <div class="section-sub" style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Rendimiento por sesión</div>
               <div id="session-analysis-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
             </div>
+            </div>
 
+            <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="gotoView('metrics')"><i class="ti ti-chart-bar"></i>Ver todas las métricas</button>
           </div>
         </div>
 
@@ -1513,7 +1591,7 @@ function initLandingFX(){
             <i class="ti ti-chevron-down" id="we-chev" style="color:var(--text3);transition:transform .2s;font-size:16px"></i>
           </div>
           <div id="weekly-emotional-body" style="display:none;padding:0 20px 22px;flex-direction:column;gap:16px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
+            <div id="we-nav-row" style="display:flex;align-items:center;justify-content:space-between">
               <div class="cal-nav-btn" onclick="weekEmoPrev()"><i class="ti ti-chevron-left"></i></div>
               <div style="font-size:13px;font-weight:700" id="we-week-label">Semana actual</div>
               <div class="cal-nav-btn" onclick="weekEmoNext()"><i class="ti ti-chevron-right"></i></div>
@@ -1598,6 +1676,170 @@ function initLandingFX(){
         <div class="ops-grid" id="ops-grid"></div>
       </div>
 
+      <!-- MÉTRICAS -->
+      <div id="view-metrics" style="display:none;flex-direction:column;gap:18px">
+        <div class="welcome-bar">
+          <div><div class="section-title" style="font-size:17px">Métricas</div><div class="section-sub">Estadísticas completas de tu trading — <span id="metrics-account-sub">—</span></div></div>
+        </div>
+
+        <!-- 1. EVOLUCIÓN DEL CAPITAL (Free) -->
+        <div class="card mx-section-block">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-chart-line"></i>Evolución del capital</div>
+              <div class="mx-card-sub">Capital de la cuenta a lo largo del tiempo</div>
+            </div>
+            <div class="mx-toggle-group" id="mx-equity-toggle">
+              <button class="mx-toggle" data-p="week" onclick="mxSetEquityPeriod('week')">Semana</button>
+              <button class="mx-toggle" data-p="month" onclick="mxSetEquityPeriod('month')">Mes</button>
+              <button class="mx-toggle" data-p="year" onclick="mxSetEquityPeriod('year')">Año</button>
+              <button class="mx-toggle active" data-p="all" onclick="mxSetEquityPeriod('all')">Todo</button>
+            </div>
+          </div>
+          <div class="mx-chart-wrap" style="height:260px"><canvas id="mx-chart-equity"></canvas></div>
+          <div class="mx-chip-row" id="mx-equity-chips"></div>
+        </div>
+
+        <!-- 2. DISTRIBUCIÓN DE OPERACIONES + BUY VS SELL -->
+        <div class="mx-two-col">
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-chart-donut-2"></i>Distribución de operaciones</div>
+            <div class="mx-chart-wrap" style="height:190px"><canvas id="mx-chart-results"></canvas></div>
+            <div class="mx-chip-row" id="mx-results-chips"></div>
+          </div>
+          <div class="card mx-section-block">
+            <div class="mx-locked-panel mx-locked-inline" id="mx-buysell-locked">
+              <div class="mx-locked-icon">👑</div>
+              <div class="mx-locked-title">Buy vs Sell — función Premium</div>
+              <div class="mx-locked-desc">Compara tu rendimiento comprando frente a vendiendo, con TradeDay Premium.</div>
+              <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Buy vs Sell')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+            </div>
+            <div id="mx-buysell-content" style="display:none">
+              <div class="mx-card-title"><i class="ti ti-arrows-up-down"></i>Buy vs Sell</div>
+              <div class="mx-chart-wrap" style="height:190px"><canvas id="mx-chart-buysell"></canvas></div>
+              <div class="mx-chip-row" id="mx-buysell-chips"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. RENDIMIENTO POR SESIÓN (aprox. horaria) (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="mx-session-locked">
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Rendimiento por sesión — función Premium</div>
+            <div class="mx-locked-desc">Beneficio y win rate por sesión de trading (Londres, New York, Asia), disponible con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por sesión')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="mx-session-content" style="display:none">
+            <div class="mx-card-head">
+              <div>
+                <div class="mx-card-title"><i class="ti ti-clock"></i>Rendimiento por sesión</div>
+                <div class="mx-card-sub">Usamos la sesión (Londres / New York / Asia) como aproximación de la franja horaria en la que operas</div>
+              </div>
+              <div class="mx-toggle-group" id="mx-session-toggle">
+                <button class="mx-toggle active" data-m="pnl" onclick="mxSetSessionMode('pnl')">Beneficio</button>
+                <button class="mx-toggle" data-m="wr" onclick="mxSetSessionMode('wr')">Win Rate</button>
+              </div>
+            </div>
+            <div class="mx-chart-wrap" style="height:240px"><canvas id="mx-chart-session"></canvas></div>
+            <div class="mx-chip-row" id="mx-session-chips"></div>
+          </div>
+        </div>
+
+        <!-- 4. RENDIMIENTO POR ACTIVO (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="mx-asset-locked">
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Rendimiento por activo — función Premium</div>
+            <div class="mx-locked-desc">Beneficio y número de operaciones por cada par que operas, disponible con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por activo')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="mx-asset-content" style="display:none">
+            <div class="mx-card-title"><i class="ti ti-coin"></i>Rendimiento por activo</div>
+            <div class="mx-card-sub" style="margin-bottom:14px">Beneficio total por par — el grosor de cada barra indica el nº de operaciones</div>
+            <div class="mx-chart-wrap" style="height:240px"><canvas id="mx-chart-asset"></canvas></div>
+            <div class="mx-chip-row" id="mx-asset-chips"></div>
+          </div>
+        </div>
+
+        <!-- 5. RENDIMIENTO POR DÍA DE LA SEMANA (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="mx-weekday-locked">
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Rendimiento por día de la semana — función Premium</div>
+            <div class="mx-locked-desc">Identifica tus mejores y peores días de la semana para operar, con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por día de la semana')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="mx-weekday-content" style="display:none">
+            <div class="mx-card-head">
+              <div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Rendimiento por día de la semana</div>
+              <div class="mx-toggle-group" id="mx-weekday-toggle">
+                <button class="mx-toggle active" data-m="pnl" onclick="mxSetWeekdayMode('pnl')">Beneficio</button>
+                <button class="mx-toggle" data-m="wr" onclick="mxSetWeekdayMode('wr')">Win Rate</button>
+              </div>
+            </div>
+            <div class="mx-chart-wrap" style="height:230px"><canvas id="mx-chart-weekday"></canvas></div>
+          </div>
+        </div>
+
+        <!-- 6. EVOLUCIÓN MENSUAL (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="mx-monthly-locked">
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Evolución mensual — función Premium</div>
+            <div class="mx-locked-desc">Beneficio o pérdida de cada mes de tu historial, con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La evolución mensual')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="mx-monthly-content" style="display:none">
+            <div class="mx-card-title"><i class="ti ti-calendar-event"></i>Evolución mensual</div>
+            <div class="mx-chart-wrap" style="height:230px;margin-top:14px"><canvas id="mx-chart-monthly"></canvas></div>
+            <div class="mx-chip-row" id="mx-monthly-chips"></div>
+          </div>
+        </div>
+
+        <!-- 7. CALENDARIO -->
+        <div class="card mx-section-block">
+          <div class="mx-card-head">
+            <div class="mx-card-title"><i class="ti ti-calendar"></i>Calendario</div>
+            <div class="mx-cal-nav">
+              <div class="mx-cal-nav-btn" onclick="mxCalPrev()"><i class="ti ti-chevron-left"></i></div>
+              <div class="mx-cal-title" id="mx-cal-title">—</div>
+              <div class="mx-cal-nav-btn" onclick="mxCalNext()"><i class="ti ti-chevron-right"></i></div>
+            </div>
+          </div>
+          <div class="mx-minical-labels" id="mx-minical-labels"></div>
+          <div class="mx-minical-grid" id="mx-minical-grid"></div>
+          <div class="mx-chip-row"><span onclick="gotoView('calendar')" style="cursor:pointer;font-size:12px;font-weight:700;color:var(--accent)">Ver calendario completo <i class="ti ti-arrow-right"></i></span></div>
+        </div>
+
+        <!-- 8. INFORMACIÓN RESUMIDA -->
+        <div class="card mx-section-block">
+          <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-list-details"></i>Información resumida</div>
+          <div class="mx-kpi-grid">
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-scale"></i></div><div class="metric-label">Profit Factor</div><div class="metric-value" id="mx-pf">—</div><div class="metric-delta neutral">Ganancia bruta ÷ Pérdida bruta</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-target-arrow"></i></div><div class="metric-label">Expectancy</div><div class="metric-value" id="mx-exp">—</div><div class="metric-delta neutral">Beneficio neto ÷ Nº operaciones</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-ratio"></i></div><div class="metric-label">R:R medio</div><div class="metric-value" id="mx-rr">—</div><div class="metric-delta neutral">Ganancia media ÷ Pérdida media</div></div>
+          </div>
+          <div id="mx-summary-locked" class="mx-locked-panel mx-locked-inline" style="margin-top:14px">
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Drawdown, Recovery Factor y Riesgo — función Premium</div>
+            <div class="mx-locked-desc">Desbloquea el resto de información resumida con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La información resumida avanzada')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="mx-summary-content" style="display:none;margin-top:14px">
+            <div class="mx-kpi-grid">
+              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-trending-down"></i></div><div class="metric-label">Drawdown máximo</div><div class="metric-value neg" id="mx-dd-max">—</div><div class="metric-delta neg" id="mx-dd-max-pct">—</div></div>
+              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-activity"></i></div><div class="metric-label">Drawdown actual</div><div class="metric-value" id="mx-dd-current">—</div><div class="metric-delta" id="mx-dd-current-pct">—</div></div>
+              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-rotate-clockwise"></i></div><div class="metric-label">Recovery Factor</div><div class="metric-value" id="mx-recovery">—</div><div class="metric-delta neutral">Beneficio neto ÷ Drawdown máximo</div></div>
+              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-half-filled"></i></div><div class="metric-label">Riesgo medio</div><div class="metric-value" id="mx-risk-avg">—</div></div>
+              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-x"></i></div><div class="metric-label">Riesgo máximo</div><div class="metric-value" id="mx-risk-max">—</div></div>
+            </div>
+            <div id="mx-risk-hint" class="mx-empty-hint" style="display:none;margin-top:12px">Añade el % de riesgo al crear o editar tus operaciones para ver Riesgo medio/máximo.</div>
+            <div class="mx-chip-row" id="mx-activity-chips"></div>
+          </div>
+        </div>
+
+      </div>
 
       <!-- PLAN -->
       <div id="view-plan" style="display:none;flex-direction:column;gap:20px">
@@ -1915,6 +2157,17 @@ function initLandingFX(){
           <button class="btn btn-ghost btn-sm" onclick="openModal('modal-add-account')"><i class="ti ti-plus"></i>Añadir cuenta</button>
         </div>
         <div class="card">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Suscripción</div>
+          <div id="cfg-sub-free" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div><div style="font-size:13px;font-weight:600">Plan Gratuito</div><div style="font-size:12px;color:var(--text3)">Mejora a Premium para desbloquear todas las funciones</div></div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Premium')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="cfg-sub-premium" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div><div style="font-size:13px;font-weight:600"><i class="ti ti-crown" style="color:var(--amber)"></i> Plan Premium</div><div style="font-size:12px;color:var(--text3)" id="cfg-sub-premium-detail">Acceso completo a TradeDay</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="openBillingPortal()" id="cfg-portal-btn"><i class="ti ti-settings"></i>Gestionar suscripción</button>
+          </div>
+        </div>
+        <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Sesión</div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div><div style="font-size:13px;font-weight:600">Cerrar sesión</div><div style="font-size:12px;color:var(--text3)">Cerrar en este dispositivo</div></div>
@@ -1979,6 +2232,9 @@ function initLandingFX(){
       <div class="form-row">
         <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()">✅ Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()">❌ Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()">➖ BE</div></div></div>
         <div class="form-group"><label class="form-label">P&L ($ o %)</label><input class="form-input" type="text" placeholder="300 o 3%" id="t-amount"><div class="form-hint">No hace falta poner +/−, se aplica según el resultado. Si pones %, se calcula el $ según el capital actual de la cuenta (y viceversa)</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Riesgo asumido (%) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 1 (= 1% del capital)" id="t-risk"><div class="form-hint">% del capital que arriesgabas en esta operación (según tu stop loss). Rellénalo para desbloquear las métricas de Riesgo.</div></div>
       </div>
       <div class="form-group" id="t-be-type-group" style="display:none">
         <label class="form-label">¿Cómo terminó el Breakeven?</label>
@@ -2062,11 +2318,47 @@ function initLandingFX(){
   </div>
 </div>
 
+<!-- PRICING / UPGRADE -->
+<div class="modal-overlay" id="modal-pricing" style="display:none" onclick="if(event.target===this)closeModal('modal-pricing')">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header"><div class="modal-title"><i class="ti ti-crown" style="color:var(--amber)"></i> Mejora a TradeDay Premium</div><button class="modal-close" onclick="closeModal('modal-pricing')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin:0 0 4px">Desbloquea el análisis completo del Journal, las métricas avanzadas, el Índice de Disciplina y la eliminación de operaciones y entradas.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px">
+        <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
+          <div class="pricing-card-title">Plan Mensual</div>
+          <div class="pricing-card-price">8,99€<span>/mes</span></div>
+          <div class="pricing-card-sub">Facturación mensual · cancela cuando quieras</div>
+        </div>
+        <div class="pricing-card selected" id="pp-card-annual" onclick="selectPricingPlan('annual')">
+          <div class="pricing-badge">Ahorra 34%</div>
+          <div class="pricing-card-title">Plan Anual</div>
+          <div class="pricing-card-price">69€<span>/año</span></div>
+          <div class="pricing-card-sub">Solo 5,75€/mes</div>
+        </div>
+      </div>
+      <ul style="margin:18px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Análisis completo del Journal y métricas avanzadas</li>
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Índice de Disciplina</li>
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Elimina operaciones y entradas del Journal</li>
+        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Acceso a todas las futuras funciones Premium</li>
+      </ul>
+      <div id="pp-error" style="display:none;font-size:12px;color:var(--red);margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pricing')">Ahora no</button>
+      <button class="btn btn-primary" id="pp-checkout-btn" onclick="startCheckout()"><i class="ti ti-crown"></i>Continuar con Premium</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ── STATE ── */
 let currentUser=null, userProfile={username:'Trader'};
+let currentSubscription=null; // fila de la tabla subscriptions del usuario actual (null = plan Free)
 let lang='es', currentView='dashboard';
 let miniYear=new Date().getFullYear(), miniMonth=new Date().getMonth(), fullYear=new Date().getFullYear(), fullMonth=new Date().getMonth();
+let mxCalYear=new Date().getFullYear(), mxCalMonth=new Date().getMonth();
 let metricsOpen=false, abandonTarget=null, inactivityTimer=null;
 let dashMetricsOpen=false, annualYear=new Date().getFullYear();
 let allTrades=[], allJournals=[], allAccounts=[];
@@ -2189,7 +2481,7 @@ async function loginGoogle(){
 }
 async function doLogout(){
   await sb.auth.signOut();
-  currentUser=null;allTrades=[];allJournals=[];allAccounts=[];currentAccountId=null;
+  currentUser=null;allTrades=[];allJournals=[];allAccounts=[];currentAccountId=null;currentSubscription=null;
   showScreen('home');clearTimeout(inactivityTimer);
 }
 function showAuthError(id,msg){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.display='block';}}
@@ -2239,6 +2531,9 @@ sb.auth.onAuthStateChange(async(event,session)=>{
     }
     currentUser=session.user;
     await loadProfile();
+    await loadSubscription();
+    updateSubscriptionUI();
+    handleCheckoutRedirect();
     await loadAccounts();
     if(allAccounts.length===0){
       // Primera vez: mostrar onboarding
@@ -2490,6 +2785,104 @@ async function loadProfile(){
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=(userProfile.username||'T')[0].toUpperCase();
   const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${userProfile.username||'Trader'} 👋`;
 }
+
+/* ── SUSCRIPCIÓN (Stripe): Free vs Premium ── */
+async function loadSubscription(){
+  if(!currentUser){currentSubscription=null;return;}
+  const{data}=await sb.from('subscriptions').select('*').eq('user_id',currentUser.id).maybeSingle();
+  currentSubscription=data||null;
+}
+// El estado real de la suscripción solo lo escriben las Edge Functions (via service_role,
+// que salta RLS) tras confirmar el pago con Stripe. El cliente nunca puede escribir aquí,
+// así que un usuario no puede marcarse Premium a si mismo manipulando el navegador.
+function isPremiumUser(){
+  return !!(currentSubscription&&['active','trialing'].includes(currentSubscription.status));
+}
+// Gate reutilizable para cualquier función Premium: si el usuario no es Premium,
+// muestra el aviso de upgrade y devuelve false (sin ejecutar la acción).
+function requirePremium(featureLabel){
+  if(isPremiumUser())return true;
+  showUpgradePrompt(featureLabel);
+  return false;
+}
+function showUpgradePrompt(featureLabel){
+  toast(`${featureLabel||'Esta función'} estará disponible muy pronto 👑`);
+}
+
+/* ── MODAL DE PRECIOS Y CHECKOUT ── */
+let selectedPricingPlan='annual';
+function selectPricingPlan(plan){
+  selectedPricingPlan=plan;
+  const mCard=document.getElementById('pp-card-monthly'), aCard=document.getElementById('pp-card-annual');
+  if(mCard)mCard.classList.toggle('selected',plan==='monthly');
+  if(aCard)aCard.classList.toggle('selected',plan==='annual');
+}
+async function startCheckout(){
+  const btn=document.getElementById('pp-checkout-btn');
+  const errEl=document.getElementById('pp-error');
+  if(errEl)errEl.style.display='none';
+  if(!currentUser){toast('Debes iniciar sesión');return;}
+  btn.disabled=true;
+  const originalHTML=btn.innerHTML;
+  btn.innerHTML='<i class="ti ti-loader-2"></i>Redirigiendo...';
+  try{
+    const{data,error}=await sb.functions.invoke('create-checkout-session',{body:{plan:selectedPricingPlan}});
+    if(error||!data||!data.url){
+      throw new Error((data&&data.error)||(error&&error.message)||'No se pudo iniciar el pago. Inténtalo de nuevo.');
+    }
+    window.location.href=data.url;
+  }catch(e){
+    if(errEl){errEl.textContent=e.message||'No se pudo iniciar el pago. Inténtalo de nuevo.';errEl.style.display='block';}
+    btn.disabled=false;
+    btn.innerHTML=originalHTML;
+  }
+}
+async function openBillingPortal(){
+  const btn=document.getElementById('cfg-portal-btn');
+  if(!currentUser)return;
+  const originalHTML=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>Abriendo...';}
+  try{
+    const{data,error}=await sb.functions.invoke('create-portal-session');
+    if(error||!data||!data.url){
+      throw new Error((data&&data.error)||(error&&error.message)||'No se pudo abrir el portal de facturación.');
+    }
+    window.location.href=data.url;
+  }catch(e){
+    toast(e.message||'No se pudo abrir el portal de facturación.');
+    if(btn){btn.disabled=false;btn.innerHTML=originalHTML;}
+  }
+}
+function handleCheckoutRedirect(){
+  const params=new URLSearchParams(window.location.search);
+  const checkout=params.get('checkout');
+  if(!checkout)return;
+  history.replaceState(null,'',window.location.pathname);
+  if(checkout==='success'){
+    toast('¡Pago completado! Activando tu Premium...');
+    // El webhook de Stripe puede tardar unos segundos en confirmar el pago; reintentamos un par de veces.
+    setTimeout(async()=>{await loadSubscription();updateSubscriptionUI();},2500);
+    setTimeout(async()=>{await loadSubscription();updateSubscriptionUI();if(isPremiumUser())toast('¡Bienvenido a TradeDay Premium! 👑');},6000);
+  } else if(checkout==='cancel'){
+    toast('Pago cancelado. Puedes intentarlo de nuevo cuando quieras.');
+  }
+}
+function updateSubscriptionUI(){
+  const freeEl=document.getElementById('cfg-sub-free'), premEl=document.getElementById('cfg-sub-premium');
+  if(!freeEl||!premEl)return;
+  const premium=isPremiumUser();
+  freeEl.style.display=premium?'none':'flex';
+  premEl.style.display=premium?'flex':'none';
+  if(premium&&currentSubscription){
+    const detailEl=document.getElementById('cfg-sub-premium-detail');
+    if(detailEl){
+      const planLabel=currentSubscription.plan==='annual'?'Plan Anual':'Plan Mensual';
+      const renews=currentSubscription.cancel_at_period_end?'Se cancelará al final del periodo actual':'Renovación automática activa';
+      detailEl.textContent=`${planLabel} · ${renews}`;
+    }
+  }
+}
+
 async function loadData(){
   if(!currentUser||!currentAccountId)return;
   const{data:trades}=await sb.from('trades').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
@@ -2506,6 +2899,7 @@ async function saveTrade(){
   const pair=document.getElementById('t-pair').value.trim().slice(0,40);
   const date=document.getElementById('t-date').value;
   let amount=document.getElementById('t-amount').value.trim().slice(0,20);
+  const riskRaw=document.getElementById('t-risk').value.trim().slice(0,10);
   const notes=document.getElementById('t-notes').value.trim().slice(0,2000);
   const dirEl=document.querySelector('#t-dir .chip[class*="sel-"]');
   const sessEl=document.querySelector('#t-sess .chip[class*="sel-"]');
@@ -2600,7 +2994,17 @@ async function saveTrade(){
   const coverEntry=finalImages.find(i=>i.isCover)||finalImages[0];
   const coverUrl=coverEntry?coverEntry.url:null;
 
-  const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,
+  // Riesgo asumido (%): campo opcional que el usuario introduce manualmente (basado en su
+  // stop loss), independiente del P&L resultante. Se guarda tal cual como número; si no se
+  // rellena o no es un número válido, se guarda null y ese trade queda fuera de las métricas
+  // de Riesgo (nunca se aproxima ni se inventa un valor).
+  let riskPct=null;
+  if(riskRaw){
+    const rNum=parseFloat(riskRaw.replace(',','.').replace('%',''));
+    if(!isNaN(rNum)&&rNum>=0)riskPct=rNum;
+  }
+
+  const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,
     followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
     emotions,notes,image_url:coverUrl,images:finalImages};
 
@@ -2802,6 +3206,7 @@ function renderAll(){
   renderDashMetrics();renderMiniCal();renderRecent();renderDaySummary();
   if(currentView==='journal'){renderJournalList();if(weeklyEmotionalOpen)renderWeeklyEmotional();}
   if(currentView==='ops'){renderOpsList();renderMetrics();}
+  if(currentView==='metrics')renderMetricsPage();
   if(currentView==='calendar')renderFullCal();
   if(dashMetricsOpen)renderDashMetricsFull();
   renderAccountsSidebar();
@@ -3759,6 +4164,10 @@ function initDisciplineScore(){
   const unlocked=document.getElementById('ds-unlocked');
   const hasPlan=currentPlan&&currentPlan.completed;
   if(!hasPlan){
+    locked.innerHTML=`<div style="font-size:30px;margin-bottom:10px">🔒</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px">Índice de Disciplina bloqueado</div>
+      <div style="font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6">Para activar tu Índice de Disciplina primero necesitas crear tu Plan de Trading. Tu disciplina se mide comparando tus acciones con las reglas que tú mismo has definido.</div>
+      <button class="btn btn-primary btn-sm" onclick="gotoView('plan')"><i class="ti ti-target"></i>Crear mi Plan</button>`;
     locked.style.display='block';unlocked.style.display='none';
     return;
   }
@@ -4066,6 +4475,7 @@ function editTradeEntry(id){
   document.getElementById('t-date').value=t.date;
   document.getElementById('t-pair').value=t.pair||'';
   document.getElementById('t-amount').value=(t.amount||'').replace(/[+\-]/,'').trim();
+  document.getElementById('t-risk').value=(t.risk_pct!==null&&t.risk_pct!==undefined)?String(t.risk_pct):'';
   document.getElementById('t-notes').value=t.notes||'';
   ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
   if(t.direction==='Buy')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(1)'),'sel-buy');
@@ -4877,7 +5287,7 @@ async function getRoutineComplianceForWeek(offset){
 
 function gotoView(v){
   currentView=v;
-  ['dashboard','journal','calendar','ops','plan','routine','config'].forEach(view=>{
+  ['dashboard','journal','calendar','ops','metrics','plan','routine','config'].forEach(view=>{
     const el=document.getElementById('view-'+view);if(el)el.style.display=view===v?'flex':'none';
     const si=document.getElementById('si-'+view);if(si)si.classList.toggle('active',view===v);
   });
@@ -4889,10 +5299,11 @@ function gotoView(v){
   if(v==='dashboard'){miniYear=new Date().getFullYear();miniMonth=new Date().getMonth();renderMiniCal();}
   if(v==='journal')renderJournalList();
   if(v==='ops'){renderOpsList();renderMetrics();}
+  if(v==='metrics'){const ms=document.getElementById('metrics-account-sub');const accM=currentAccount();if(ms&&accM)ms.textContent=accM.name;renderMetricsPage();}
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
   if(v==='plan')loadPlan();
   if(v==='routine')loadRoutine();
-  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';renderAccountsSidebar();}
+  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';renderAccountsSidebar();updateSubscriptionUI();}
 }
 
 function toggleMobileSidebar(){
@@ -4912,7 +5323,7 @@ function openTradeForm(){
   editingTradeId=null;
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-notes').value='';
+  document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-notes').value='';
   ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
   updateBeTypeVisibility();
   const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
@@ -5010,6 +5421,10 @@ function renderDashMetricsFull(){
   const beLossPctEl=document.getElementById('dm-be-loss-pct');
   if(beLossPctEl)beLossPctEl.textContent=bes?Math.round(beLossCount/bes*100)+'% del BE':'—';
 
+  const advBlock=document.getElementById('dm-advanced-block');
+  const advLocked=document.getElementById('dm-advanced-locked-panel');
+  if(advBlock)advBlock.style.display='flex';
+  if(advLocked)advLocked.style.display='none';
   renderAnnualCalendar();
   renderBuySellDonut(trades);
   renderSessionsDonut(trades);
@@ -5155,6 +5570,624 @@ function renderSessionAnalysis(trades){
     </div>`;
   }).join('');
 }
+/* ══════════════════════════════════════════════════════════════════════
+   MÉTRICAS COMPLETAS — motor central de cálculo (single source of truth)
+   ══════════════════════════════════════════════════════════════════════
+   Todo se calcula SIEMPRE a partir de allTrades/allJournals (los mismos
+   arrays que usan Dashboard, Calendario, Mis Operaciones y Journal), con
+   los mismos parsers que ya usa el resto de la app (currentCapitalBeforeTrade,
+   normalizeTradeAmounts, etc.), así que nunca puede haber una cifra distinta
+   entre secciones. No se aproxima ningún valor: cada fórmula usa los datos
+   reales tal y como los introdujo el usuario.
+   Pensado para ser escalable: añadir una métrica nueva es añadir una
+   propiedad más al objeto que devuelve computeFullMetrics(), sin tocar el
+   resto de la arquitectura. ── */
+
+// $ y % de un trade, con el mismo parseo exacto que usa el resto de la app
+// (currentCapitalBeforeTrade, normalizeTradeAmounts) para garantizar que la
+// suma total SIEMPRE coincide con "Capital actual"/"G/P Neto" del Dashboard.
+function mxAmt(t){
+  if(!t||!t.amount||t.amount==='BE')return 0;
+  const n=parseFloat(String(t.amount).replace(/[^0-9.\-]/g,''));
+  return isNaN(n)?0:n;
+}
+function mxAmtPct(t){
+  if(!t||!t.amount_pct||t.amount_pct==='0%')return 0;
+  const n=parseFloat(String(t.amount_pct).replace(/[^0-9.\-]/g,''));
+  return isNaN(n)?0:n;
+}
+function mxDate(ds){return new Date(ds+'T12:00:00');}
+// Semana ISO (lunes-domingo) usada solo como clave interna de agrupación/orden;
+// la etiqueta visible reutiliza getWeekKey() para que "semana" signifique
+// exactamente lo mismo en toda la app.
+function mxWeekISOKey(ds){
+  const d=mxDate(ds);
+  const day=(d.getDay()+6)%7; // 0=lunes
+  d.setDate(d.getDate()-day+3);
+  const firstThursday=new Date(d.getFullYear(),0,4);
+  const week=1+Math.round(((d-firstThursday)/86400000-3+((firstThursday.getDay()+6)%7))/7);
+  return d.getFullYear()+'-W'+String(week).padStart(2,'0');
+}
+
+function computeFullMetrics(){
+  const trades=[...allTrades].filter(t=>t.date).sort((a,b)=>{
+    if(a.date!==b.date)return a.date<b.date?-1:1;
+    return String(a.id).localeCompare(String(b.id));
+  });
+  const journals=allJournals||[];
+  const acc=currentAccount();
+  const capitalInicial=acc?(acc.capital||0):0;
+
+  const wins=trades.filter(t=>t.result==='win');
+  const losses=trades.filter(t=>t.result==='loss');
+  const bes=trades.filter(t=>t.result==='be');
+  const total=trades.length;
+
+  const grossProfit=wins.reduce((s,t)=>s+mxAmt(t),0);
+  const grossLoss=losses.reduce((s,t)=>s+Math.abs(mxAmt(t)),0);
+  const netProfit=grossProfit-grossLoss;
+  const netProfitPct=capitalInicial>0?(netProfit/capitalInicial*100):0;
+
+  const decided=wins.length+losses.length;
+  const winRate=decided>0?(wins.length/decided*100):0;
+  const lossRate=decided>0?(losses.length/decided*100):0;
+  const beRate=total>0?(bes.length/total*100):0;
+
+  const avgWin=wins.length?grossProfit/wins.length:0;
+  const avgLoss=losses.length?grossLoss/losses.length:0;
+  const profitFactor=grossLoss>0?grossProfit/grossLoss:(grossProfit>0?Infinity:null);
+  // Expectancy = beneficio neto medio por operación, contando TODAS las operaciones
+  // (los BE suman 0, así que diluyen la media exactamente como debe ser: una
+  // operación en BE también "gastó" una oportunidad de trading).
+  const expectancy=total>0?netProfit/total:0;
+  // R:R medio = ratio entre lo que se gana de media y lo que se pierde de media,
+  // calculado sobre resultados reales (no sobre el riesgo planeado).
+  const avgRR=avgLoss>0?avgWin/avgLoss:(avgWin>0?Infinity:null);
+
+  let curWinStreak=0,maxWinStreak=0,curLossStreak=0,maxLossStreak=0;
+  let bestTrade=null,worstTrade=null;
+  trades.forEach(t=>{
+    if(t.result==='win'){curWinStreak++;curLossStreak=0;if(curWinStreak>maxWinStreak)maxWinStreak=curWinStreak;}
+    else if(t.result==='loss'){curLossStreak++;curWinStreak=0;if(curLossStreak>maxLossStreak)maxLossStreak=curLossStreak;}
+    else{curWinStreak=0;curLossStreak=0;}
+    if(t.result!=='be'){
+      const amt=mxAmt(t);
+      if(!bestTrade||amt>mxAmt(bestTrade))bestTrade=t;
+      if(!worstTrade||amt<mxAmt(worstTrade))worstTrade=t;
+    }
+  });
+
+  // Racha actual: recorre desde el trade más reciente hacia atrás mientras el
+  // resultado se mantenga igual; se corta en el primer BE o cambio de signo.
+  let currentStreakType=null,currentStreakLen=0;
+  for(let i=trades.length-1;i>=0;i--){
+    const r=trades[i].result;
+    if(currentStreakType===null){
+      if(r==='be')break;
+      currentStreakType=r;currentStreakLen=1;
+    } else if(r===currentStreakType){currentStreakLen++;}
+    else break;
+  }
+
+  // Equity curve + Drawdown (capital inicial de la cuenta + P&L acumulado, trade a trade)
+  let equity=capitalInicial,peak=capitalInicial,maxDD=0,maxDDPct=0;
+  const equityCurve=[{date:trades.length?trades[0].date:null,equity:capitalInicial,anchor:true}];
+  trades.forEach(t=>{
+    equity+=mxAmt(t);
+    if(equity>peak)peak=equity;
+    const dd=peak-equity;
+    const ddPct=peak>0?(dd/peak*100):0;
+    if(dd>maxDD)maxDD=dd;
+    if(ddPct>maxDDPct)maxDDPct=ddPct;
+    equityCurve.push({date:t.date,equity});
+  });
+  const currentDD=peak-equity;
+  const currentDDPct=peak>0?(currentDD/peak*100):0;
+  const recoveryFactor=maxDD>0?netProfit/maxDD:(netProfit>0?Infinity:null);
+
+  // Riesgo: solo cuenta con trades donde el usuario introdujo risk_pct explícitamente.
+  const riskTrades=trades.filter(t=>t.risk_pct!==null&&t.risk_pct!==undefined&&!isNaN(Number(t.risk_pct)));
+  const riskVals=riskTrades.map(t=>Number(t.risk_pct));
+  const riskAvg=riskVals.length?riskVals.reduce((a,b)=>a+b,0)/riskVals.length:null;
+  const riskMax=riskVals.length?Math.max(...riskVals):null;
+  const riskMin=riskVals.length?Math.min(...riskVals):null;
+  const avgWinPct=wins.length?wins.reduce((s,t)=>s+mxAmtPct(t),0)/wins.length:0;
+  const avgLossPct=losses.length?Math.abs(losses.reduce((s,t)=>s+mxAmtPct(t),0)/losses.length):0;
+
+  // ── Análisis temporal ──
+  const weekdayNames=gD();
+  const weekdayStats=weekdayNames.map((name,idx)=>{
+    const dt=trades.filter(t=>mxDate(t.date).getDay()===idx);
+    const w=dt.filter(t=>t.result==='win').length,l=dt.filter(t=>t.result==='loss').length;
+    return{name,count:dt.length,wr:(w+l)>0?Math.round(w/(w+l)*100):null,pnl:dt.reduce((s,t)=>s+mxAmt(t),0)};
+  });
+  const monthNames=gM();
+  const monthStats=monthNames.map((name,idx)=>{
+    const dt=trades.filter(t=>mxDate(t.date).getMonth()===idx);
+    const w=dt.filter(t=>t.result==='win').length,l=dt.filter(t=>t.result==='loss').length;
+    return{name,count:dt.length,wr:(w+l)>0?Math.round(w/(w+l)*100):null,pnl:dt.reduce((s,t)=>s+mxAmt(t),0)};
+  });
+
+  const weekMap=new Map();
+  trades.forEach(t=>{
+    const iso=mxWeekISOKey(t.date);
+    if(!weekMap.has(iso))weekMap.set(iso,{label:getWeekKey(t.date),pnl:0,count:0});
+    const w=weekMap.get(iso);w.pnl+=mxAmt(t);w.count++;
+  });
+  const weeks=[...weekMap.entries()].sort((a,b)=>a[0]<b[0]?-1:1).map(([,v])=>v);
+  const greenWeeksCount=weeks.filter(w=>w.pnl>0).length;
+  const consistenciaSemanal=weeks.length?Math.round(greenWeeksCount/weeks.length*100):null;
+
+  const monthYearMap=new Map();
+  trades.forEach(t=>{
+    const d=mxDate(t.date);
+    const key=d.getFullYear()+'-'+String(d.getMonth()).padStart(2,'0');
+    if(!monthYearMap.has(key))monthYearMap.set(key,{pnl:0,count:0,year:d.getFullYear(),month:d.getMonth()});
+    const mm=monthYearMap.get(key);mm.pnl+=mxAmt(t);mm.count++;
+  });
+  const monthYears=[...monthYearMap.values()];
+  const greenMonthsCount=monthYears.filter(m=>m.pnl>0).length;
+  const consistenciaMensual=monthYears.length?Math.round(greenMonthsCount/monthYears.length*100):null;
+  // Evolución mensual cronológica (mes+año real, no agregado por nombre de mes)
+  const monthlyEvolution=[...monthYearMap.entries()].sort((a,b)=>a[0]<b[0]?-1:1).map(([key,v])=>({
+    key,label:gM()[v.month].slice(0,3)+' '+v.year,pnl:v.pnl,count:v.count
+  }));
+
+  const dayMap=new Map();
+  trades.forEach(t=>{dayMap.set(t.date,(dayMap.get(t.date)||0)+mxAmt(t));});
+  let greenDays=0,redDays=0,beDays=0;
+  dayMap.forEach(pnl=>{if(pnl>0)greenDays++;else if(pnl<0)redDays++;else beDays++;});
+  const tradeDatesSet=new Set(trades.map(t=>t.date));
+  const journalOnlyDays=new Set(journals.map(j=>j.date).filter(d=>d&&!tradeDatesSet.has(d))).size;
+
+  // ── Sesiones ──
+  const sessionNames=['Londres','New York','Asia'];
+  const sessionStats=sessionNames.map(name=>{
+    const st=trades.filter(t=>t.session===name);
+    const w=st.filter(t=>t.result==='win').length,l=st.filter(t=>t.result==='loss').length;
+    return{name,count:st.length,wr:(w+l)>0?Math.round(w/(w+l)*100):null,pnl:st.reduce((s,t)=>s+mxAmt(t),0)};
+  });
+  const sessionsWithData=sessionStats.filter(s=>s.count>0);
+  const bestSessionByPnl=sessionsWithData.length?sessionsWithData.reduce((a,b)=>b.pnl>a.pnl?b:a):null;
+  const worstSessionByPnl=sessionsWithData.length?sessionsWithData.reduce((a,b)=>b.pnl<a.pnl?b:a):null;
+
+  // ── Activos ──
+  const assetNames=[...new Set(trades.map(t=>t.pair).filter(Boolean))];
+  const assetStats=assetNames.map(name=>{
+    const st=trades.filter(t=>t.pair===name);
+    const w=st.filter(t=>t.result==='win').length,l=st.filter(t=>t.result==='loss').length;
+    return{name,count:st.length,wr:(w+l)>0?Math.round(w/(w+l)*100):null,pnl:st.reduce((s,t)=>s+mxAmt(t),0)};
+  }).sort((a,b)=>b.pnl-a.pnl);
+  const bestAsset=assetStats.length?assetStats[0]:null;
+  const worstAsset=assetStats.length?assetStats[assetStats.length-1]:null;
+
+  // ── Tipos de operación ──
+  const directionStats=['Buy','Sell'].map(name=>{
+    const st=trades.filter(t=>t.direction===name);
+    const w=st.filter(t=>t.result==='win').length,l=st.filter(t=>t.result==='loss').length;
+    return{name,count:st.length,wr:(w+l)>0?Math.round(w/(w+l)*100):null,pnl:st.reduce((s,t)=>s+mxAmt(t),0)};
+  });
+
+  // ── Estadísticas generales ──
+  const distinctDays=dayMap.size;
+  const distinctWeeks=weeks.length;
+  const distinctMonths=monthYears.length;
+  const opsPerDay=distinctDays?total/distinctDays:0;
+  const opsPerWeek=distinctWeeks?total/distinctWeeks:0;
+  const opsPerMonth=distinctMonths?total/distinctMonths:0;
+  const distinctSessionsUsed=sessionsWithData.length;
+  const opsPerSession=distinctSessionsUsed?total/distinctSessionsUsed:0;
+
+  let avgDaysBetween=null;
+  if(trades.length>1){
+    let sumDiffs=0,pairs=0;
+    for(let i=1;i<trades.length;i++){
+      const diffDays=(mxDate(trades[i].date)-mxDate(trades[i-1].date))/86400000;
+      if(diffDays>=0){sumDiffs+=diffDays;pairs++;}
+    }
+    avgDaysBetween=pairs?sumDiffs/pairs:null;
+  }
+
+  const pctMaxWinStreak=total?Math.round(maxWinStreak/total*100):0;
+  const pctMaxLossStreak=total?Math.round(maxLossStreak/total*100):0;
+
+  return{
+    meta:{total,capitalInicial},
+    rendimiento:{profitFactor,expectancy,avgRR,avgWin,avgLoss,grossProfit,grossLoss,netProfit,netProfitPct},
+    operaciones:{total,wins:wins.length,losses:losses.length,bes:bes.length,
+      beWin:bes.filter(t=>t.be_type==='be_win').length,beLoss:bes.filter(t=>t.be_type==='be_loss').length,
+      winRate,lossRate,beRate,maxWinStreak,maxLossStreak,currentStreakType,currentStreakLen,bestTrade,worstTrade},
+    riesgo:{riskAvg,riskMax,riskMin,riskTradesCount:riskTrades.length,avgWinPct,avgLossPct,
+      maxDD,maxDDPct,currentDD,currentDDPct,recoveryFactor},
+    temporal:{weekdayStats,monthStats,weeks,consistenciaSemanal,consistenciaMensual,greenDays,redDays,beDays,journalOnlyDays,monthlyEvolution},
+    equityCurve,
+    sesiones:{sessionStats,bestSessionByPnl,worstSessionByPnl},
+    activos:{assetStats,bestAsset,worstAsset},
+    tipos:{directionStats},
+    generales:{opsPerDay,opsPerWeek,opsPerMonth,avgDaysBetween,opsPerSession,pctMaxWinStreak,pctMaxLossStreak}
+  };
+}
+
+/* ── Helpers de formato específicos de Métricas ── */
+function mxFmtMoney(n){return(n>=0?'+':'')+fmtMoney(n);}
+function mxFmtPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';return(n>=0?'+':'')+n.toFixed(dec===undefined?1:dec)+'%';}
+function mxFmtPlainPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';return n.toFixed(dec===undefined?1:dec)+'%';}
+function mxFmtRatio(n){if(n===null||n===undefined||isNaN(n))return'—';if(n===Infinity)return'∞';return n.toFixed(2);}
+function mxFmtDays(n){if(n===null||n===undefined||isNaN(n))return'—';return n<1?(Math.round(n*24)+' h'):(n.toFixed(1)+' días');}
+function mxFmtCount(n){if(n===null||n===undefined||isNaN(n))return'—';return n.toFixed(1);}
+function mxSetClass(id,cls){const e=document.getElementById(id);if(e)e.className=cls;}
+
+function mxRowsHTML(items,opts){
+  opts=opts||{};
+  const withData=items.filter(i=>i.count>0);
+  if(!withData.length)return'<div class="mx-row-empty">Sin operaciones todavía</div>';
+  const sorted=opts.sortByPnl?[...withData].sort((a,b)=>b.pnl-a.pnl):withData;
+  return sorted.map(i=>`<div class="mx-row">
+    <span class="mx-row-name">${esc(i.name)}</span>
+    <span class="mx-row-mid">${i.count} op.</span>
+    <span class="mx-row-wr" style="color:${i.wr===null?'var(--text3)':i.wr>=50?'var(--green)':'var(--red)'}">${i.wr===null?'—':i.wr+'%'}</span>
+    <span class="mx-row-pnl ${i.pnl>0?'pos':i.pnl<0?'neg':'neutral'}">${mxFmtMoney(i.pnl)}</span>
+  </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÉTRICAS — página visual continua (Chart.js)
+   80% visual / 20% números: cada sección es primero un gráfico y, debajo,
+   una fila compacta de chips con el resto de cifras exactas (para no
+   eliminar ningún dato ya calculado por computeFullMetrics()).
+   ══════════════════════════════════════════════════════════════════════ */
+let mxLastMetrics=null;
+let mxCharts={};
+let mxEquityPeriod='all', mxSessionMode='pnl', mxWeekdayMode='pnl';
+
+function mxCssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim();}
+function mxHexAlpha(hex,alpha){
+  hex=(hex||'#22C55E').trim();
+  if(!hex.startsWith('#'))return hex;
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function mxFmtShortDate(ds){const d=mxDate(ds);return d.getDate()+' '+gM()[d.getMonth()].slice(0,3);}
+function mxTooltipBase(){
+  return{backgroundColor:mxCssVar('--bg4')||'#1a1a1a',titleColor:mxCssVar('--text')||'#fff',bodyColor:mxCssVar('--text2')||'#ccc',borderColor:mxCssVar('--border2')||'#333',borderWidth:1,padding:10,cornerRadius:8,displayColors:false};
+}
+function mxDestroyChart(id){if(mxCharts[id]){mxCharts[id].destroy();delete mxCharts[id];}}
+function mxMakeChart(id,config){
+  mxDestroyChart(id);
+  const el=document.getElementById(id);
+  if(!el||typeof Chart==='undefined')return null;
+  mxCharts[id]=new Chart(el.getContext('2d'),config);
+  return mxCharts[id];
+}
+
+/* — 1. Evolución del capital — */
+function mxEquityFilteredPoints(m){
+  const pts=m.equityCurve;
+  if(mxEquityPeriod==='all'||pts.length<2)return pts;
+  const now=new Date();now.setHours(12,0,0,0);
+  let cutoff;
+  if(mxEquityPeriod==='week'){const day=(now.getDay()+6)%7;cutoff=new Date(now.getFullYear(),now.getMonth(),now.getDate()-day,12,0,0);}
+  else if(mxEquityPeriod==='month'){cutoff=new Date(now.getFullYear(),now.getMonth(),1,12,0,0);}
+  else{cutoff=new Date(now.getFullYear(),0,1,12,0,0);}
+  let startEquity=pts[0].equity;
+  for(const p of pts){if(p.date&&mxDate(p.date)<cutoff)startEquity=p.equity;else break;}
+  const inPeriod=pts.filter(p=>p.date&&mxDate(p.date)>=cutoff);
+  const cutoffKey=cutoff.getFullYear()+'-'+String(cutoff.getMonth()+1).padStart(2,'0')+'-'+String(cutoff.getDate()).padStart(2,'0');
+  return[{date:cutoffKey,equity:startEquity,anchor:true},...inPeriod];
+}
+function mxSetEquityPeriod(p){
+  mxEquityPeriod=p;
+  document.querySelectorAll('#mx-equity-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+  if(mxLastMetrics)mxRenderEquityChart(mxLastMetrics);
+}
+function mxRenderEquityChart(m){
+  const capitalActual=m.meta.capitalInicial+m.rendimiento.netProfit;
+  const chipsEl=document.getElementById('mx-equity-chips');
+  if(chipsEl)chipsEl.innerHTML=`
+    <div class="mx-chip">Capital inicial <strong>${fmtMoney(m.meta.capitalInicial)}</strong></div>
+    <div class="mx-chip ${capitalActual>=m.meta.capitalInicial?'pos':'neg'}">Capital actual <strong>${fmtMoney(capitalActual)}</strong></div>
+    <div class="mx-chip ${m.rendimiento.netProfit>=0?'pos':'neg'}">Beneficio neto <strong>${mxFmtMoney(m.rendimiento.netProfit)}</strong> (${mxFmtPct(m.rendimiento.netProfitPct)})</div>
+    <div class="mx-chip pos">Ganancia bruta <strong>+${fmtMoney(m.rendimiento.grossProfit)}</strong></div>
+    <div class="mx-chip neg">Pérdida bruta <strong>-${fmtMoney(m.rendimiento.grossLoss)}</strong></div>
+    <div class="mx-chip pos">Ganancia media/op. <strong>${mxFmtMoney(m.rendimiento.avgWin)}</strong></div>
+    <div class="mx-chip neg">Pérdida media/op. <strong>${mxFmtMoney(-m.rendimiento.avgLoss)}</strong></div>`;
+  const pts=mxEquityFilteredPoints(m);
+  const labels=pts.map(p=>p.date?mxFmtShortDate(p.date):'');
+  const data=pts.map(p=>p.equity);
+  const lineColor=m.rendimiento.netProfit>=0?mxCssVar('--green'):mxCssVar('--red');
+  mxMakeChart('mx-chart-equity',{
+    type:'line',
+    data:{labels,datasets:[{data,borderColor:lineColor,backgroundColor:mxHexAlpha(lineColor,.12),borderWidth:2,fill:true,tension:.3,pointRadius:0,pointHoverRadius:4,pointBackgroundColor:lineColor}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>fmtMoney(c.parsed.y)}},mxTooltipBase())},
+      scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:8}},
+        y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}
+    }
+  });
+}
+
+/* — 2. Distribución de operaciones + Buy vs Sell — */
+function mxRenderResultsChart(m){
+  const o=m.operaciones;
+  const cats=[
+    {label:'Ganadoras',count:o.wins,color:mxCssVar('--green')},
+    {label:'Perdedoras',count:o.losses,color:mxCssVar('--red')},
+    {label:'Break Even',count:o.bes,color:mxCssVar('--text3')}
+  ].filter(c=>c.count>0);
+  const total=cats.reduce((s,c)=>s+c.count,0);
+  mxMakeChart('mx-chart-results',{
+    type:'doughnut',
+    data:{labels:cats.map(c=>c.label),datasets:[{data:cats.map(c=>c.count),backgroundColor:cats.map(c=>c.color),borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const pct=total?Math.round(c.parsed/total*100):0;return `${c.label}: ${c.parsed} (${pct}%)`;}},displayColors:true},mxTooltipBase())}}
+  });
+  const chipsEl=document.getElementById('mx-results-chips');
+  if(!chipsEl)return;
+  if(!total){chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
+  let html=cats.map(c=>`<div class="mx-chip"><span style="width:8px;height:8px;border-radius:50%;background:${c.color};display:inline-block"></span>${c.label} <strong>${c.count}</strong> (${Math.round(c.count/total*100)}%)</div>`).join('');
+  html+=`<div class="mx-chip">Win Rate <strong>${Math.round(o.winRate)}%</strong></div>`;
+  html+=`<div class="mx-chip">Loss Rate <strong>${Math.round(o.lossRate)}%</strong></div>`;
+  html+=`<div class="mx-chip">BE Rate <strong>${Math.round(o.beRate)}%</strong> (${o.beWin} BE Win · ${o.beLoss} BE Loss)</div>`;
+  html+=`<div class="mx-chip">Racha actual <strong>${o.currentStreakType?o.currentStreakLen+' '+(o.currentStreakType==='win'?'ganadoras':'perdedoras'):'—'}</strong></div>`;
+  html+=`<div class="mx-chip pos">Racha máx. ganadora <strong>${o.maxWinStreak}</strong></div>`;
+  html+=`<div class="mx-chip neg">Racha máx. perdedora <strong>${o.maxLossStreak}</strong></div>`;
+  if(o.bestTrade)html+=`<div class="mx-chip pos">Mejor operación <strong>${esc(o.bestTrade.pair||'')} ${mxFmtMoney(mxAmt(o.bestTrade))}</strong></div>`;
+  if(o.worstTrade)html+=`<div class="mx-chip neg">Peor operación <strong>${esc(o.worstTrade.pair||'')} ${mxFmtMoney(mxAmt(o.worstTrade))}</strong></div>`;
+  chipsEl.innerHTML=html;
+}
+function mxRenderBuySellChart(m){
+  const premium=isPremiumUser();
+  const locked=document.getElementById('mx-buysell-locked'),content=document.getElementById('mx-buysell-content');
+  if(locked)locked.style.display=premium?'none':'block';
+  if(content)content.style.display=premium?'block':'none';
+  if(!premium)return;
+  const[buy,sell]=m.tipos.directionStats;
+  const total=buy.count+sell.count;
+  mxMakeChart('mx-chart-buysell',{
+    type:'doughnut',
+    data:{labels:['Buy','Sell'],datasets:[{data:[buy.count,sell.count],backgroundColor:[mxCssVar('--green'),mxCssVar('--red')],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const pct=total?Math.round(c.parsed/total*100):0;return `${c.label}: ${c.parsed} (${pct}%)`;}},displayColors:true},mxTooltipBase())}}
+  });
+  const chipsEl=document.getElementById('mx-buysell-chips');
+  if(!chipsEl)return;
+  if(!total){chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
+  chipsEl.innerHTML=`
+    <div class="mx-chip ${buy.pnl>=0?'pos':'neg'}">Buy <strong>${buy.count}</strong> · WR ${buy.wr===null?'—':buy.wr+'%'} · <strong>${mxFmtMoney(buy.pnl)}</strong></div>
+    <div class="mx-chip ${sell.pnl>=0?'pos':'neg'}">Sell <strong>${sell.count}</strong> · WR ${sell.wr===null?'—':sell.wr+'%'} · <strong>${mxFmtMoney(sell.pnl)}</strong></div>`;
+}
+
+/* — 3. Rendimiento por sesión (aprox. horaria) — */
+function mxSetSessionMode(mode){
+  mxSessionMode=mode;
+  document.querySelectorAll('#mx-session-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.m===mode));
+  if(mxLastMetrics)mxRenderSessionChart(mxLastMetrics);
+}
+function mxRenderSessionChart(m){
+  const premium=isPremiumUser();
+  const locked=document.getElementById('mx-session-locked'),content=document.getElementById('mx-session-content');
+  if(locked)locked.style.display=premium?'none':'block';
+  if(content)content.style.display=premium?'block':'none';
+  if(!premium)return;
+  const st=m.sesiones.sessionStats;
+  const colors={'Londres':mxCssVar('--amber'),'New York':mxCssVar('--blue'),'Asia':mxCssVar('--purple')};
+  const isWr=mxSessionMode==='wr';
+  const data=st.map(s=>isWr?(s.wr===null?0:s.wr):s.pnl);
+  mxMakeChart('mx-chart-session',{
+    type:'bar',
+    data:{labels:st.map(s=>s.name),datasets:[{data,backgroundColor:st.map(s=>isWr?colors[s.name]:(s.pnl>=0?mxCssVar('--green'):mxCssVar('--red'))),borderRadius:6,maxBarThickness:70}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return isWr?`Win rate: ${s.wr===null?'—':s.wr+'%'} (${s.count} op.)`:`${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},
+      scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},
+        y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>isWr?v+'%':fmtMoney(v)}}}
+    }
+  });
+  const chipsEl=document.getElementById('mx-session-chips');
+  if(!chipsEl)return;
+  const withData=st.filter(s=>s.count>0);
+  if(!withData.length){chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
+  let html=withData.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${s.name} <strong>${s.count} op.</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
+  if(m.sesiones.bestSessionByPnl)html+=`<div class="mx-chip pos">Mejor sesión <strong>${m.sesiones.bestSessionByPnl.name}</strong></div>`;
+  if(m.sesiones.worstSessionByPnl)html+=`<div class="mx-chip neg">Peor sesión <strong>${m.sesiones.worstSessionByPnl.name}</strong></div>`;
+  chipsEl.innerHTML=html;
+}
+
+/* — 4. Rendimiento por activo — */
+function mxRenderAssetChart(m){
+  const premium=isPremiumUser();
+  const locked=document.getElementById('mx-asset-locked'),content=document.getElementById('mx-asset-content');
+  if(locked)locked.style.display=premium?'none':'block';
+  if(content)content.style.display=premium?'block':'none';
+  if(!premium)return;
+  const st=[...m.activos.assetStats].sort((a,b)=>b.pnl-a.pnl);
+  mxMakeChart('mx-chart-asset',{
+    type:'bar',
+    data:{labels:st.map(s=>s.name),datasets:[{data:st.map(s=>s.pnl),backgroundColor:st.map(s=>s.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:6,maxBarThickness:56}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return[`${mxFmtMoney(s.pnl)}`,`${s.count} operaciones · WR ${s.wr===null?'—':s.wr+'%'}`];}}},mxTooltipBase())},
+      scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:11,weight:'600'}}},
+        y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}
+    }
+  });
+  const chipsEl=document.getElementById('mx-asset-chips');
+  if(!chipsEl)return;
+  if(!st.length){chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
+  chipsEl.innerHTML=`
+    ${m.activos.bestAsset?`<div class="mx-chip pos">Mejor activo <strong>${esc(m.activos.bestAsset.name)}</strong> ${mxFmtMoney(m.activos.bestAsset.pnl)}</div>`:''}
+    ${m.activos.worstAsset&&(!m.activos.bestAsset||m.activos.worstAsset.name!==m.activos.bestAsset.name)?`<div class="mx-chip neg">Peor activo <strong>${esc(m.activos.worstAsset.name)}</strong> ${mxFmtMoney(m.activos.worstAsset.pnl)}</div>`:''}`;
+}
+
+/* — 5. Rendimiento por día de la semana (Lunes-Viernes) — */
+function mxSetWeekdayMode(mode){
+  mxWeekdayMode=mode;
+  document.querySelectorAll('#mx-weekday-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.m===mode));
+  if(mxLastMetrics)mxRenderWeekdayChart(mxLastMetrics);
+}
+function mxRenderWeekdayChart(m){
+  const premium=isPremiumUser();
+  const locked=document.getElementById('mx-weekday-locked'),content=document.getElementById('mx-weekday-content');
+  if(locked)locked.style.display=premium?'none':'block';
+  if(content)content.style.display=premium?'block':'none';
+  if(!premium)return;
+  const order=[1,2,3,4,5];
+  const st=order.map(idx=>m.temporal.weekdayStats[idx]);
+  const isWr=mxWeekdayMode==='wr';
+  const data=st.map(s=>isWr?(s.wr===null?0:s.wr):s.pnl);
+  mxMakeChart('mx-chart-weekday',{
+    type:'bar',
+    data:{labels:st.map(s=>s.name.slice(0,3)),datasets:[{data,backgroundColor:st.map(s=>isWr?mxCssVar('--blue'):(s.pnl>=0?mxCssVar('--green'):mxCssVar('--red'))),borderRadius:6,maxBarThickness:56}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return isWr?`Win rate: ${s.wr===null?'—':s.wr+'%'} (${s.count} op.)`:`${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},
+      scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},
+        y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>isWr?v+'%':fmtMoney(v)}}}
+    }
+  });
+}
+
+/* — 6. Evolución mensual — */
+function mxRenderMonthlyChart(m){
+  const premium=isPremiumUser();
+  const locked=document.getElementById('mx-monthly-locked'),content=document.getElementById('mx-monthly-content');
+  if(locked)locked.style.display=premium?'none':'block';
+  if(content)content.style.display=premium?'block':'none';
+  if(!premium)return;
+  const evo=m.temporal.monthlyEvolution;
+  mxMakeChart('mx-chart-monthly',{
+    type:'bar',
+    data:{labels:evo.map(e=>e.label),datasets:[{data:evo.map(e=>e.pnl),backgroundColor:evo.map(e=>e.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:5,maxBarThickness:40}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const e=evo[c.dataIndex];return[`${mxFmtMoney(e.pnl)}`,`${e.count} operaciones`];}}},mxTooltipBase())},
+      scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:12}},
+        y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}
+    }
+  });
+  const chipsEl=document.getElementById('mx-monthly-chips');
+  if(chipsEl)chipsEl.innerHTML=`
+    <div class="mx-chip">Consistencia mensual <strong>${m.temporal.consistenciaMensual===null?'—':m.temporal.consistenciaMensual+'%'}</strong></div>
+    <div class="mx-chip">Consistencia semanal <strong>${m.temporal.consistenciaSemanal===null?'—':m.temporal.consistenciaSemanal+'%'}</strong></div>
+    <div class="mx-chip pos">Días verdes <strong>${m.temporal.greenDays}</strong></div>
+    <div class="mx-chip neg">Días rojos <strong>${m.temporal.redDays}</strong></div>
+    <div class="mx-chip">Días BE <strong>${m.temporal.beDays}</strong></div>`;
+}
+
+/* — 7. Calendario (mini, reutiliza exactamente los mismos datos que view-calendar) — */
+function mxCalPrev(){mxCalMonth--;if(mxCalMonth<0){mxCalMonth=11;mxCalYear--;}mxRenderMiniCal();}
+function mxCalNext(){mxCalMonth++;if(mxCalMonth>11){mxCalMonth=0;mxCalYear++;}mxRenderMiniCal();}
+function mxRenderMiniCal(){
+  const M=gM();const D=gD();
+  const titleEl=document.getElementById('mx-cal-title');
+  if(titleEl)titleEl.textContent=M[mxCalMonth].slice(0,3)+' '+mxCalYear;
+  const labelsEl=document.getElementById('mx-minical-labels');
+  if(labelsEl){labelsEl.innerHTML='';D.forEach(d=>{const e=document.createElement('div');e.className='mx-minical-daylabel';e.textContent=d.slice(0,1);labelsEl.appendChild(e);});}
+  const calData=getCalData();
+  const dayPnL={},dayTrades={};
+  allTrades.forEach(t=>{
+    if(!t.date)return;
+    if(!dayTrades[t.date])dayTrades[t.date]=[];
+    dayTrades[t.date].push(t);
+    dayPnL[t.date]=(dayPnL[t.date]||0)+mxAmt(t);
+  });
+  const acc=currentAccount();
+  const capitalBase=acc?acc.capital:1;
+  const grid=document.getElementById('mx-minical-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  const first=new Date(mxCalYear,mxCalMonth,1).getDay();
+  const total=new Date(mxCalYear,mxCalMonth+1,0).getDate();
+  const today=new Date();
+  for(let i=0;i<first;i++){const e=document.createElement('div');e.className='bigcal-day mx-mini empty';grid.appendChild(e);}
+  for(let d=1;d<=total;d++){
+    const key=`${mxCalYear}-${String(mxCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const state=calData[key]||null;
+    const el=document.createElement('div');
+    el.className='bigcal-day mx-mini'+(state?' '+state:'');
+    if(today.getFullYear()===mxCalYear&&today.getMonth()===mxCalMonth&&today.getDate()===d)el.classList.add('today');
+    const numEl=document.createElement('div');numEl.className='bigcal-day-num';numEl.textContent=d;el.appendChild(numEl);
+    const contentEl=document.createElement('div');contentEl.className='bigcal-day-content';
+    if(state==='win'||state==='loss'){
+      const pnl=dayPnL[key]||0;
+      const pct=capitalBase>0?(pnl/capitalBase*100):0;
+      const trades=dayTrades[key]||[];
+      const amtEl=document.createElement('div');amtEl.className='bigcal-amount';
+      amtEl.textContent=(pnl>=0?'+':'')+Math.round(Math.abs(pnl)).toLocaleString('es-ES')+'$';
+      const pctEl=document.createElement('div');pctEl.className='bigcal-pct';
+      pctEl.textContent=(pct>=0?'+':'')+Math.abs(pct).toFixed(1)+'%';
+      const trEl=document.createElement('div');trEl.className='bigcal-trades';
+      trEl.textContent=trades.length+' op.';
+      contentEl.appendChild(amtEl);contentEl.appendChild(pctEl);contentEl.appendChild(trEl);
+    } else if(state==='be'){
+      const trades=dayTrades[key]||[];
+      const beEl=document.createElement('div');beEl.className='bigcal-be-label';beEl.textContent='BE';
+      contentEl.appendChild(beEl);
+      if(trades.length){const trEl=document.createElement('div');trEl.className='bigcal-trades';trEl.textContent=trades.length+' op.';contentEl.appendChild(trEl);}
+    } else if(state==='journal'){
+      const jEl=document.createElement('div');jEl.className='bigcal-journal-label';jEl.style.fontSize='8px';jEl.textContent='Diario';
+      contentEl.appendChild(jEl);
+    }
+    el.appendChild(contentEl);
+    grid.appendChild(el);
+  }
+}
+
+/* — 8. Información resumida — */
+function mxRenderSummary(m){
+  setText('mx-pf',mxFmtRatio(m.rendimiento.profitFactor));
+  mxSetClass('mx-pf','metric-value '+(m.rendimiento.profitFactor===null?'':m.rendimiento.profitFactor>=1?'pos':'neg'));
+  setText('mx-exp',mxFmtMoney(m.rendimiento.expectancy));
+  mxSetClass('mx-exp','metric-value '+(m.rendimiento.expectancy>=0?'pos':'neg'));
+  setText('mx-rr',mxFmtRatio(m.rendimiento.avgRR));
+
+  const premium=isPremiumUser();
+  const locked=document.getElementById('mx-summary-locked'),content=document.getElementById('mx-summary-content');
+  if(locked)locked.style.display=premium?'none':'block';
+  if(content)content.style.display=premium?'block':'none';
+  if(!premium)return;
+
+  setText('mx-dd-max','-'+fmtMoney(m.riesgo.maxDD));
+  setText('mx-dd-max-pct','-'+m.riesgo.maxDDPct.toFixed(1)+'%');
+  setText('mx-dd-current',m.riesgo.currentDD>0?('-'+fmtMoney(m.riesgo.currentDD)):'0$');
+  mxSetClass('mx-dd-current','metric-value '+(m.riesgo.currentDD>0?'neg':'neutral'));
+  const ddCurPctEl=document.getElementById('mx-dd-current-pct');
+  if(ddCurPctEl){ddCurPctEl.textContent=(m.riesgo.currentDD>0?'-':'')+m.riesgo.currentDDPct.toFixed(1)+'% desde el máximo';ddCurPctEl.className='metric-delta '+(m.riesgo.currentDD>0?'neg':'neutral');}
+  setText('mx-recovery',mxFmtRatio(m.riesgo.recoveryFactor));
+
+  const hasRisk=m.riesgo.riskTradesCount>0;
+  const riskHint=document.getElementById('mx-risk-hint');
+  if(riskHint)riskHint.style.display=hasRisk?'none':'block';
+  setText('mx-risk-avg',hasRisk?mxFmtPlainPct(m.riesgo.riskAvg):'—');
+  setText('mx-risk-max',hasRisk?mxFmtPlainPct(m.riesgo.riskMax):'—');
+
+  const actEl=document.getElementById('mx-activity-chips');
+  if(actEl)actEl.innerHTML=`
+    <div class="mx-chip">Riesgo mínimo <strong>${hasRisk?mxFmtPlainPct(m.riesgo.riskMin):'—'}</strong></div>
+    <div class="mx-chip pos">Ganancia media (%) <strong>${mxFmtPlainPct(m.riesgo.avgWinPct)}</strong></div>
+    <div class="mx-chip neg">Pérdida media (%) <strong>${mxFmtPlainPct(m.riesgo.avgLossPct)}</strong></div>
+    <div class="mx-chip">Ops/día <strong>${mxFmtCount(m.generales.opsPerDay)}</strong></div>
+    <div class="mx-chip">Ops/semana <strong>${mxFmtCount(m.generales.opsPerWeek)}</strong></div>
+    <div class="mx-chip">Ops/mes <strong>${mxFmtCount(m.generales.opsPerMonth)}</strong></div>
+    <div class="mx-chip">Duración media entre ops. <strong>${mxFmtDays(m.generales.avgDaysBetween)}</strong></div>
+    <div class="mx-chip">Ops/sesión <strong>${mxFmtCount(m.generales.opsPerSession)}</strong></div>
+    <div class="mx-chip pos">% en racha ganadora máx. <strong>${m.meta.total?m.generales.pctMaxWinStreak+'%':'—'}</strong></div>
+    <div class="mx-chip neg">% en racha perdedora máx. <strong>${m.meta.total?m.generales.pctMaxLossStreak+'%':'—'}</strong></div>
+    <div class="mx-chip">Días con Journal sin operar <strong>${m.temporal.journalOnlyDays}</strong></div>`;
+}
+
+function renderMetricsPage(){
+  const panel=document.getElementById('view-metrics');
+  if(!panel)return;
+  const m=computeFullMetrics();
+  mxLastMetrics=m;
+  mxRenderSummary(m);
+  mxRenderEquityChart(m);
+  mxRenderResultsChart(m);
+  mxRenderBuySellChart(m);
+  mxRenderSessionChart(m);
+  mxRenderAssetChart(m);
+  mxRenderWeekdayChart(m);
+  mxRenderMonthlyChart(m);
+  mxRenderMiniCal();
+}
+
 /* ── MI PLAN: WIZARD ── */
 let currentPlan=null, planStep=0, planDirty=false, planExitIntent=false;
 const PLAN_TOTAL_STEPS=7;
