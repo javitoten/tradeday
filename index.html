@@ -5839,6 +5839,11 @@ function mxRowsHTML(items,opts){
 let mxLastMetrics=null;
 let mxCharts={};
 let mxEquityPeriod='all', mxSessionMode='pnl', mxWeekdayMode='pnl';
+// TEMPORAL: mientras Stripe/Premium no esté activo en producción, todas las secciones
+// de Métricas se muestran desbloqueadas para los usuarios ya existentes. Cuando se
+// active el checkout real, basta con poner esto en false para volver al reparto
+// Free/Premium diseñado (isPremiumUser() ya sigue funcionando igual por debajo).
+const MX_SHOW_ALL=true;
 
 function mxCssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim();}
 function mxHexAlpha(hex,alpha){
@@ -5936,7 +5941,7 @@ function mxRenderResultsChart(m){
   chipsEl.innerHTML=html;
 }
 function mxRenderBuySellChart(m){
-  const premium=isPremiumUser();
+  const premium=MX_SHOW_ALL||isPremiumUser();
   const locked=document.getElementById('mx-buysell-locked'),content=document.getElementById('mx-buysell-content');
   if(locked)locked.style.display=premium?'none':'block';
   if(content)content.style.display=premium?'block':'none';
@@ -5964,7 +5969,7 @@ function mxSetSessionMode(mode){
   if(mxLastMetrics)mxRenderSessionChart(mxLastMetrics);
 }
 function mxRenderSessionChart(m){
-  const premium=isPremiumUser();
+  const premium=MX_SHOW_ALL||isPremiumUser();
   const locked=document.getElementById('mx-session-locked'),content=document.getElementById('mx-session-content');
   if(locked)locked.style.display=premium?'none':'block';
   if(content)content.style.display=premium?'block':'none';
@@ -5994,7 +5999,7 @@ function mxRenderSessionChart(m){
 
 /* — 4. Rendimiento por activo — */
 function mxRenderAssetChart(m){
-  const premium=isPremiumUser();
+  const premium=MX_SHOW_ALL||isPremiumUser();
   const locked=document.getElementById('mx-asset-locked'),content=document.getElementById('mx-asset-content');
   if(locked)locked.style.display=premium?'none':'block';
   if(content)content.style.display=premium?'block':'none';
@@ -6024,7 +6029,7 @@ function mxSetWeekdayMode(mode){
   if(mxLastMetrics)mxRenderWeekdayChart(mxLastMetrics);
 }
 function mxRenderWeekdayChart(m){
-  const premium=isPremiumUser();
+  const premium=MX_SHOW_ALL||isPremiumUser();
   const locked=document.getElementById('mx-weekday-locked'),content=document.getElementById('mx-weekday-content');
   if(locked)locked.style.display=premium?'none':'block';
   if(content)content.style.display=premium?'block':'none';
@@ -6046,7 +6051,7 @@ function mxRenderWeekdayChart(m){
 
 /* — 6. Evolución mensual — */
 function mxRenderMonthlyChart(m){
-  const premium=isPremiumUser();
+  const premium=MX_SHOW_ALL||isPremiumUser();
   const locked=document.getElementById('mx-monthly-locked'),content=document.getElementById('mx-monthly-content');
   if(locked)locked.style.display=premium?'none':'block';
   if(content)content.style.display=premium?'block':'none';
@@ -6137,7 +6142,7 @@ function mxRenderSummary(m){
   mxSetClass('mx-exp','metric-value '+(m.rendimiento.expectancy>=0?'pos':'neg'));
   setText('mx-rr',mxFmtRatio(m.rendimiento.avgRR));
 
-  const premium=isPremiumUser();
+  const premium=MX_SHOW_ALL||isPremiumUser();
   const locked=document.getElementById('mx-summary-locked'),content=document.getElementById('mx-summary-content');
   if(locked)locked.style.display=premium?'none':'block';
   if(content)content.style.display=premium?'block':'none';
