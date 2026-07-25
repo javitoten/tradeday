@@ -234,6 +234,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .form-hint{font-size:11px;color:var(--text3);margin-top:3px}
+.tech-tag-cat-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
 .auth-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--text3);font-size:11px}
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border2)}
 .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;margin-bottom:4px}
@@ -541,6 +542,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .chip.sel-loss{border-color:var(--red-border);background:var(--red-bg);color:var(--red)}
 .chip.sel-be{border-color:var(--border3);background:var(--bg4);color:var(--text)}
 .chip.sel-emotion{border-color:#1A1A3A;background:var(--purple-bg);color:var(--purple)}
+.chip.sel-tech{border-color:var(--blue-border);background:var(--blue-bg);color:var(--blue)}
 
 /* MODALS */
 .modal-overlay{position:fixed;inset:0;background:#00000095;display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
@@ -597,6 +599,9 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .journal-analysis-row:last-child{margin-bottom:0}
 .journal-analysis-row strong{color:var(--text)}
 .sentiment-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;margin-right:5px}
+.journal-analysis-subsection{padding-top:10px;margin-top:10px;border-top:1px solid #2A1A4A}
+.journal-analysis-subsection:first-of-type{padding-top:0;margin-top:0;border-top:none}
+.journal-analysis-subtitle{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px}
 
 /* MI RUTINA */
 .rt-block{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;transition:all .15s}
@@ -2303,6 +2308,30 @@ function initLandingFX(){
         <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')">✅ BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')">❌ BE Loss</div></div>
         <div class="form-hint">BE Win: llegó a ir a favor y se protegió en breakeven. BE Loss: nunca se desarrolló a favor y se cerró en breakeven.</div>
       </div>
+      <div class="form-section">Lectura del gráfico / Setup técnico</div>
+      <div class="form-group" id="t-tech-tags">
+        <label class="form-label">¿Qué viste en el gráfico? <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label>
+        <div class="form-hint" style="margin:-2px 0 8px">Selecciona los conceptos técnicos que identificaste antes de entrar.</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div class="tech-tag-cat-label">Estructura</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Ruptura de estructura (BOS)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Cambio de carácter (CHoCH)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Continuación de tendencia</div></div>
+          </div>
+          <div>
+            <div class="tech-tag-cat-label">Liquidez y zonas</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Captura de liquidez</div><div class="chip" onclick="toggleChip(this,'sel-tech')">FVG</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Order Block</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Zona de decisión</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Mitigación</div></div>
+          </div>
+          <div>
+            <div class="tech-tag-cat-label">Confirmación</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Retest</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Rechazo de nivel</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Falso rompimiento</div></div>
+          </div>
+          <div>
+            <div class="tech-tag-cat-label">Tipo de entrada</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por confirmación</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por impulso</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada anticipada</div></div>
+          </div>
+        </div>
+        <textarea class="form-input" id="t-tech-notes" rows="2" placeholder="Describe tu lectura técnica: qué estructura viste, qué confirmaciones tenías, qué zona observabas..." maxlength="1000" style="margin-top:10px"></textarea>
+      </div>
       <div class="form-section">Análisis</div>
       <div class="form-group"><label class="form-label">¿Cómo te sentiste?</label><div class="chip-group" id="t-emo"><div class="chip" onclick="toggleChip(this,'sel-emotion')">😌 Tranquilo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😤 Impaciente</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😨 Con miedo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">🤑 Eufórico</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😡 Frustrado</div></div></div>
       <div class="form-group"><label class="form-label">Notas</label><textarea class="form-input" id="t-notes" rows="3" placeholder="¿Qué salió bien? ¿Qué mejorar?" maxlength="2000"></textarea></div>
@@ -2341,6 +2370,29 @@ function initLandingFX(){
         </div>
       </div>
       <div class="form-group"><label class="form-label">¿Algo que recordar para mañana?</label><input class="form-input" id="j-tomorrow" placeholder="Ej: Revisar el setup de XAUUSD..." maxlength="300"></div>
+      <div class="form-group" id="j-tech-tags">
+        <label class="form-label">Lectura del gráfico / Setup técnico <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label>
+        <div class="form-hint" style="margin:-2px 0 8px">¿Qué viste en el gráfico hoy? Selecciona los conceptos técnicos que identificaste.</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div class="tech-tag-cat-label">Estructura</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Ruptura de estructura (BOS)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Cambio de carácter (CHoCH)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Continuación de tendencia</div></div>
+          </div>
+          <div>
+            <div class="tech-tag-cat-label">Liquidez y zonas</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Captura de liquidez</div><div class="chip" onclick="toggleChip(this,'sel-tech')">FVG</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Order Block</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Zona de decisión</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Mitigación</div></div>
+          </div>
+          <div>
+            <div class="tech-tag-cat-label">Confirmación</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Retest</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Rechazo de nivel</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Falso rompimiento</div></div>
+          </div>
+          <div>
+            <div class="tech-tag-cat-label">Tipo de entrada</div>
+            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por confirmación</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por impulso</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada anticipada</div></div>
+          </div>
+        </div>
+        <textarea class="form-input" id="j-tech-notes" rows="2" placeholder="Describe tu lectura técnica del día: qué estructura viste, qué confirmaciones tenías, qué zona observabas..." maxlength="1000" style="margin-top:10px"></textarea>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="confirmCloseJournal()">Cancelar</button>
@@ -2966,6 +3018,8 @@ async function saveTrade(){
   const riskRaw=document.getElementById('t-risk').value.trim().slice(0,10);
   const durationRaw=document.getElementById('t-duration').value.trim().slice(0,10);
   const notes=document.getElementById('t-notes').value.trim().slice(0,2000);
+  const techTags=Array.from(document.querySelectorAll('#t-tech-tags .chip.sel-tech')).map(e=>e.textContent.trim());
+  const techNotes=document.getElementById('t-tech-notes').value.trim().slice(0,1000);
   const dirEl=document.querySelector('#t-dir .chip[class*="sel-"]');
   const sessEl=document.querySelector('#t-sess .chip[class*="sel-"]');
   const resEl=document.querySelector('#t-res .chip[class*="sel-"]');
@@ -3080,7 +3134,7 @@ async function saveTrade(){
 
   const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
     followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
-    emotions,notes,image_url:coverUrl,images:finalImages};
+    emotions,notes,technical_tags:techTags,technical_notes:techNotes,image_url:coverUrl,images:finalImages};
 
   const{error}=editingTradeId
     ? await sb.from('trades').update(payload).eq('id',editingTradeId)
@@ -3231,6 +3285,8 @@ async function saveJournal(){
   const tomorrow=document.getElementById('j-tomorrow').value.trim().slice(0,300);
   const moodEl=document.querySelector('#j-mood .chip[class*="sel-"]');
   const mood=moodEl?moodEl.textContent.replace(/[^\w\sáéíóú]/g,'').trim():'';
+  const techTags=Array.from(document.querySelectorAll('#j-tech-tags .chip.sel-tech')).map(e=>e.textContent.trim());
+  const techNotes=document.getElementById('j-tech-notes').value.trim().slice(0,1000);
   if(!date){toast('Selecciona una fecha');return;}
   // Evita entradas "fantasma" sin valor analítico: se exige al menos el motivo
   // de no operar o una reflexión escrita.
@@ -3244,8 +3300,8 @@ async function saveJournal(){
   document.getElementById('j-content').classList.remove('field-invalid');
   const btn=document.getElementById('j-save-btn');btn.disabled=true;
   const{error}=editingJournalId
-    ? await sb.from('journals').update({date,reason,mood,content,tomorrow}).eq('id',editingJournalId)
-    : await sb.from('journals').insert({user_id:currentUser.id,account_id:currentAccountId,date,reason,mood,content,tomorrow});
+    ? await sb.from('journals').update({date,reason,mood,content,tomorrow,technical_tags:techTags,technical_notes:techNotes}).eq('id',editingJournalId)
+    : await sb.from('journals').insert({user_id:currentUser.id,account_id:currentAccountId,date,reason,mood,content,tomorrow,technical_tags:techTags,technical_notes:techNotes});
   btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar diario';
   if(error){toast(friendlyDbError(error));return;}
   closeModal('modal-journal');
@@ -3531,21 +3587,21 @@ const BEHAVIOR_LEXICON={
   'Indecisión / cambios de opinión':{polarity:'negative',triggers:['cambie de opinion varias veces','cambie de opinion muchas veces','no dejaba de cambiar de opinion','cambiaba de idea constantemente','cambie de idea varias veces']},
   'Falta de control emocional':{polarity:'negative',triggers:['no he controlado mis emociones','no controle mis emociones','no supe controlar mis emociones','no logre controlar mis emociones','perdi el control emocional','me deje llevar por las emociones','me deje llevar por el miedo','me deje llevar por la euforia','me deje llevar por la ansiedad','me deje llevar por la frustracion','no controle mis nervios','deje que las emociones me dominaran','no logre controlar la impulsividad']},
   'Sobreoperar':{polarity:'negative',triggers:['sobreopera','demasiadas operaciones','muchas operaciones seguidas','exceso de operaciones','no pare de operar']},
-  'Entrar demasiado pronto':{polarity:'negative',triggers:['entre demasiado pronto','entre antes de tiempo','entre sin confirmacion','me adelante a la señal','me adelante a la senal','entre demasiado rapido']},
+  'Entrar demasiado pronto':{polarity:'negative',triggers:['entre demasiado pronto','entre antes de tiempo','entre sin confirmacion','me adelante a la señal','me adelante a la senal','entre demasiado rapido','entre antes de confirmacion','entre antes de la confirmacion','entre antes de que confirmara','entrada anticipada','me anticipe a la entrada','me anticipe demasiado']},
   'Entrar demasiado tarde':{polarity:'negative',triggers:['entre tarde','entre demasiado tarde','perdi la entrada','llegue tarde a la operacion','el precio ya se habia movido']},
-  'No esperar confirmación':{polarity:'negative',triggers:['sin esperar confirmacion','no espere confirmacion','no espere la confirmacion','no confirme la señal','no confirme la senal','entre sin señal clara','entre sin senal clara','no esperaba esa entrada','no me esperaba esa entrada','no esperaba entrar ahi']},
+  'No esperar confirmación':{polarity:'negative',triggers:['sin esperar confirmacion','no espere confirmacion','no espere la confirmacion','no confirme la señal','no confirme la senal','entre sin señal clara','entre sin senal clara','no esperaba esa entrada','no me esperaba esa entrada','no esperaba entrar ahi','no espere el cierre','no espere cierre','no espere que cerrara la vela','sin esperar el cierre','no espere a que cerrara la vela','no espere el retest','no confirme el retest']},
   'Mover el stop':{polarity:'negative',triggers:['mover el stop','movi el stop','amplie el stop','quite el stop','elimine el stop loss','cambie el stop de sitio']},
   'No respetar el riesgo':{polarity:'negative',triggers:['no respete el riesgo','arriesgue mas de lo normal','me sali del riesgo','supere mi riesgo maximo','arriesgue de mas']},
   'Aumentar el lotaje':{polarity:'negative',triggers:['aumente el lotaje','subi el tamaño de posicion','subi el tamano de posicion','duplique el lote','entre con mas tamaño del habitual','meti mas volumen del normal']},
   'Operar fuera de horario':{polarity:'negative',triggers:['fuera de mi horario','fuera de horario habitual','opere fuera de mi sesion','opere a una hora que no toca']},
-  'Forzar operaciones':{polarity:'negative',triggers:['forc','busque una excusa para entrar','me invente una señal','me invente una senal','quise operar si o si']},
+  'Forzar operaciones':{polarity:'negative',triggers:['forc','busque una excusa para entrar','me invente una señal','me invente una senal','quise operar si o si','entrada por impulso','entre por impulso']},
   'Cerrar antes de tiempo':{polarity:'negative',triggers:['cerre antes de tiempo','cerre demasiado pronto','sali antes de lo previsto','cerre por miedo','no deje correr la ganancia']},
   'Dejar correr una pérdida':{polarity:'negative',triggers:['deje correr la perdida','no corte a tiempo','aguante demasiado la perdida','no acepte la perdida a tiempo','espere a que se diera la vuelta']},
   'Falta de disciplina':{polarity:'negative',triggers:['no fui disciplinado','no fui disciplinada','no he sido disciplinado','no he sido disciplinada','no tuve un dia disciplinado','no fue un dia disciplinado','poco disciplinado','poco disciplinada','me falto disciplina','no fui muy disciplinado','no fui nada disciplinado']},
   'Setup poco claro':{polarity:'negative',triggers:['setup no era claro','el setup no fue claro','setup poco claro','señal poco clara','senal poco clara','no tenia una señal clara','no tenia una senal clara','sin una señal clara','sin una senal clara','no era el setup ideal','setup dudoso','entrada poco clara']},
   'Resultado no refleja ejecución':{polarity:'negative',triggers:['aunque gane','aunque haya ganado','aunque salio bien','aunque haya salido bien','aunque me haya ido bien','aunque me fue bien','a pesar de ganar','a pesar del resultado','a pesar de que gane','tuve suerte','fue pura suerte','fue solo suerte','gane de suerte','no fue merito mio','no repetiria esta operacion','no volveria a repetir esta entrada','no lo volveria a hacer','no volveria a hacer esto','no volveria a hacerlo']},
   'Seguir el plan':{polarity:'positive',triggers:['segui el plan','respete mi plan','respete el plan','plan ejecutado correctamente','cumpli con mi estrategia','me ceni a mis reglas','todo segun el plan','cerre siguiendo mi plan','cerre segun mi plan']},
-  'Esperar con paciencia':{polarity:'positive',triggers:['espere pacientemente','espere la confirmacion','espere confirmacion','espere mi setup','espere a mi setup','no me precipite','deje que el mercado viniera a mi','espere el momento correcto']},
+  'Esperar con paciencia':{polarity:'positive',triggers:['espere pacientemente','espere la confirmacion','espere confirmacion','espere mi setup','espere a mi setup','no me precipite','deje que el mercado viniera a mi','espere el momento correcto','espere el cierre','espere a que cerrara la vela','espere el cierre de la vela','espere que cerrara la vela','confirme el retest','espere el retest','espere retest','entrada por confirmacion','entre por confirmacion']},
   'Aceptar la pérdida sin frustración':{polarity:'positive',triggers:['acepte la perdida','perdida bien gestionada','lo tome con calma','no me afecto la perdida','segui adelante sin problema']},
   'Buena gestión del riesgo':{polarity:'positive',triggers:['buena gestion del riesgo','respete mi riesgo','arriesgue lo justo','tamaño de posicion correcto','tamano de posicion correcto','gestion de riesgo correcta','gestione correctamente el riesgo','gestione bien el riesgo']},
   'Buena preparación':{polarity:'positive',triggers:['buena preparacion','prepare bien la sesion','hice los deberes','estudie el mercado antes','llegue preparado','llegue preparada']},
@@ -3555,6 +3611,29 @@ const BEHAVIOR_LEXICON={
   'Aceptar los errores':{polarity:'positive',triggers:['acepto el error','reconozco el error','aprendi del error','fue un fallo mio y lo asumo']},
   'Control de impulsos':{polarity:'positive',triggers:['controle el impulso','resisti las ganas de entrar','no me deje llevar por el impulso','me contuve','no forc']},
   'Evitar operar por autocontrol':{polarity:'positive',triggers:['me he mantenido fuera del mercado','me mantuve fuera del mercado','me manteni fuera del mercado','me quede fuera del mercado','decidi quedarme fuera del mercado','preferi quedarme fuera del mercado','opte por quedarme fuera del mercado','decidi no operar','preferi no operar','opte por no operar','evite operar','evite entrar al mercado','hoy no he operado','hoy no opere','no opere hoy','pause por hoy','deje de operar por hoy','no opere por disciplina','no opere hoy por disciplina','decidi no operar por disciplina','evite operar por emociones','evite operar por las emociones','evite entrar por emociones']},
+};
+
+/* ── BANCO DE CONCEPTOS TÉCNICOS ──
+   Describe QUÉ vio el trader en el gráfico (estructura, liquidez, confirmación, tipo de entrada),
+   totalmente independiente del léxico emocional/de comportamiento de arriba. Se usa tanto para
+   detectar estos conceptos dentro del texto libre (notas y "lectura del gráfico") como para
+   generar las etiquetas mostradas en el bloque de Análisis técnico. La detección es puramente
+   descriptiva: no lleva juicio de calidad de ejecución (eso lo aporta el léxico de comportamiento). */
+const TECHNICAL_LEXICON={
+  'Ruptura de estructura (BOS)':['ruptura de estructura','rompio estructura','rompe estructura','rompio la estructura','break of structure',' bos ','estructura rota','rotura de estructura'],
+  'Cambio de carácter (CHoCH)':['cambio de caracter','choch','cambio de tendencia estructural','cambio de caracter del mercado'],
+  'Captura de liquidez':['captura de liquidez','saco liquidez','tomo liquidez','tomó liquidez','barrido de liquidez','liquidity grab','caza de stops','barrio los stops','barrida de stops','recogida de liquidez'],
+  'FVG':['fvg','fair value gap','gap de valor','vacio de precio','vacio de valor'],
+  'Order Block':['order block','bloque de ordenes','bloque de órdenes',' ob '],
+  'Retest':['retest','reteste','reteo','retesteo','confirmo el retest','confirmó el retest'],
+  'Mitigación':['mitigacion','mitigó la zona','mitigo la zona','zona mitigada','mitigacion de la zona'],
+  'Rechazo de nivel':['rechazo en zona','rechazo de nivel','rechazo del nivel','rechazo en el nivel','mecha de rechazo','rechazo en la zona'],
+  'Falso rompimiento':['falso rompimiento','falsa ruptura','fakeout','ruptura falsa','rompimiento falso'],
+  'Continuación de tendencia':['continuacion de tendencia','continuidad de tendencia','siguiendo la tendencia','a favor de la tendencia'],
+  'Zona de decisión':['zona de decision','zona clave','zona importante','zona de interes','zona de interés'],
+  'Entrada por confirmación':['entrada por confirmacion','entre por confirmacion'],
+  'Entrada por impulso':['entrada por impulso','entre por impulso'],
+  'Entrada anticipada':['entrada anticipada','entre de forma anticipada','me anticipe a la entrada'],
 };
 
 /* Palabras positivas que, cuando aparecen NEGADAS en el texto (aunque no coincidan con ninguna frase
@@ -3922,55 +4001,172 @@ function buildAnalysisParts(analysis,seedKey,opts){
   return parts;
 }
 
+/* Convierte los tags técnicos de tipo "entrada" (seleccionados como chips) en frases sintéticas
+   que alimentan el MISMO motor de detección de emoción/comportamiento ya existente arriba: así una
+   "entrada por confirmación" cuenta como señal de paciencia/confirmación, y una "entrada por
+   impulso" o "anticipada" cuenta como comportamiento a vigilar, sin duplicar lógica de puntuación. */
+function synthesizeTechTagPhrases(tags){
+  if(!tags||!tags.length)return '';
+  const map={
+    'Entrada por confirmación':'entrada por confirmación. Esperé confirmación antes de entrar.',
+    'Entrada por impulso':'entrada por impulso. Entré por impulso.',
+    'Entrada anticipada':'entrada anticipada. Me anticipé a la entrada.',
+  };
+  return tags.map(t=>map[t]||'').filter(Boolean).join(' ');
+}
+
+/* Conceptos técnicos presentes: unión de los tags elegidos como chips + los detectados dentro del
+   texto libre de "lectura del gráfico". Puramente descriptivo — no lleva juicio de calidad. */
+function buildTechnicalConcepts(tags,notes){
+  const set=new Set((tags||[]).filter(Boolean));
+  const norm=normText(notes||'');
+  if(norm.trim()){
+    Object.keys(TECHNICAL_LEXICON).forEach(concept=>{
+      if(findHits(norm,TECHNICAL_LEXICON[concept]).some(h=>!h.negated))set.add(concept);
+    });
+  }
+  return [...set];
+}
+
+/* Texto que describe SOLO la emoción dominante detectada, sin mezclar con comportamiento/ejecución */
+function buildEmotionText(analysis,seedKey,opts){
+  if(!analysis||!analysis.emotions.length)return '';
+  const emo=analysis.tags.join(' y ').toLowerCase();
+  if(opts.isTrade)return fillTemplate(pick(TRADE_OPENING_TEMPLATES,seedKey,'opening'),{result:opts.resultWord,pair:opts.pairSafe,emo});
+  return fillTemplate(pick(JOURNAL_OPENING_TEMPLATES,seedKey,'opening'),{emo});
+}
+
+/* Texto que describe la calidad de la EJECUCIÓN: combos emoción+comportamiento (la lectura más
+   específica disponible), comportamientos negativos autoreportados, o un comportamiento positivo
+   aislado. Nunca incluye la apertura puramente emocional — esa vive en buildEmotionText. */
+function buildExecutionText(analysis,seedKey,opts){
+  if(!analysis)return '';
+  const parts=[];
+  if(analysis.combos.length){
+    analysis.combos.forEach(c=>parts.push(c.text));
+    return parts.join(' ');
+  }
+  if(analysis.behaviors.negative.length){
+    const issue=analysis.behaviors.negative[0].tag.toLowerCase();
+    if(opts.isTrade){
+      const bank=opts.resultWin?EXECUTION_VS_RESULT_WIN_TEMPLATES:EXECUTION_ISSUE_TEMPLATES;
+      parts.push(fillTemplate(pick(bank,seedKey,'execution'),{result:opts.resultWord,pair:opts.pairSafe,issue}));
+    } else {
+      parts.push(fillTemplate(pick(JOURNAL_EXECUTION_TEMPLATES,seedKey,'execution'),{issue}));
+    }
+    if(analysis.behaviors.negative.length>1){
+      const extra=analysis.behaviors.negative.slice(1,3).map(b=>b.tag.toLowerCase()).join(', ');
+      parts.push(`También se detecta: ${extra}.`);
+    }
+    parts.push(pick(AUTOCRITICA_PRAISE_TEMPLATES,seedKey,'autocritica'));
+    return parts.join(' ');
+  }
+  const topPos=analysis.behaviors.positive[0];
+  if(topPos){
+    const salt=analysis.emotions.length?'posbeh':'posbeh-only';
+    parts.push(fillTemplate(pick(POS_BEHAVIOR_TEMPLATES,seedKey,salt),{beh:topPos.tag.toLowerCase()}));
+    return parts.join(' ');
+  }
+  return '';
+}
+
 function generateJournalSummary(j){
   const seedKey='j:'+(j.id||j.date||Math.random());
-  const analysis=analyzeJournalText(j.content,seedKey);
+  const techPhrases=synthesizeTechTagPhrases(j.technical_tags);
+  const combinedText=[j.content||'',j.technical_notes||'',techPhrases].filter(Boolean).join('. ');
+  const analysis=analyzeJournalText(combinedText,seedKey);
   const hasContent=j.content&&j.content.trim().length>0;
-  const parts=[];
-  if(!hasContent){
-    parts.push('Entrada de diario sin contenido escrito.');
-  } else {
-    if(j.reason)parts.push(`Día sin operar (${esc(j.reason.toLowerCase())}).`);
-    parts.push(...buildAnalysisParts(analysis,seedKey,{isTrade:false}));
-  }
-  return{summary:parts.join(' '),sentiment:analysis,suggestion:buildSuggestion(analysis,false,seedKey)};
+  const openingParts=[];
+  if(!hasContent)openingParts.push('Entrada de diario sin contenido escrito.');
+  else if(j.reason)openingParts.push(`Día sin operar (${esc(j.reason.toLowerCase())}).`);
+  const emotionText=buildEmotionText(analysis,seedKey,{isTrade:false});
+  const executionText=buildExecutionText(analysis,seedKey,{isTrade:false});
+  const technicalSourceText=[j.content||'',j.technical_notes||''].filter(Boolean).join('. ');
+  const technical=buildTechnicalConcepts(j.technical_tags,technicalSourceText);
+  const noSignal=(hasContent&&!emotionText&&!executionText)?pick(JOURNAL_NO_SIGNAL_TEMPLATES,seedKey,'nosignal'):'';
+  return{
+    opening:openingParts.join(' '),emotionText,executionText,noSignal,
+    technical,technicalNotes:j.technical_notes||'',
+    sentiment:analysis,
+    suggestion:buildSuggestion(analysis,false,seedKey)
+  };
 }
 
 function generateTradeSummary(t){
   const seedKey='t:'+(t.id||t.date||Math.random());
-  const analysis=analyzeJournalText(t.notes,seedKey);
+  const techPhrases=synthesizeTechTagPhrases(t.technical_tags);
+  const combinedText=[t.notes||'',t.technical_notes||'',techPhrases].filter(Boolean).join('. ');
+  const analysis=analyzeJournalText(combinedText,seedKey);
   const hasNotes=t.notes&&t.notes.trim().length>0;
   const resultWord=t.result==='win'?'ganadora':t.result==='loss'?'perdedora':'en breakeven';
   const pairSafe=esc(t.pair||'mercado');
-  let parts;
-  if(!hasNotes){
-    parts=[`Operación ${resultWord} en ${pairSafe} sin notas adicionales registradas.`];
-  } else {
-    parts=buildAnalysisParts(analysis,seedKey,{isTrade:true,resultWord,pairSafe,resultWin:t.result==='win'});
-  }
-  return{summary:parts.join(' '),sentiment:analysis,suggestion:buildSuggestion(analysis,true,seedKey)};
+  const opts={isTrade:true,resultWord,pairSafe,resultWin:t.result==='win'};
+  const emotionText=buildEmotionText(analysis,seedKey,opts);
+  const executionText=buildExecutionText(analysis,seedKey,opts);
+  const technicalSourceText=[t.notes||'',t.technical_notes||''].filter(Boolean).join('. ');
+  const technical=buildTechnicalConcepts(t.technical_tags,technicalSourceText);
+  const opening=(!hasNotes&&!emotionText&&!executionText)?`Operación ${resultWord} en ${pairSafe} sin notas adicionales registradas.`:'';
+  const noSignal=(hasNotes&&!emotionText&&!executionText)?`Hay una reflexión registrada en esta operación, aunque no se detecta un patrón emocional o de comportamiento claro. Resultado (solo como contexto): ${resultWord} en ${pairSafe}.`:'';
+  return{
+    opening,emotionText,executionText,noSignal,
+    technical,technicalNotes:t.technical_notes||'',
+    sentiment:analysis,
+    suggestion:buildSuggestion(analysis,true,seedKey)
+  };
 }
 
 const SENTIMENT_COLORS={'Confianza':'var(--green)','Duda':'var(--text2)','Miedo':'var(--red)','Frustración':'var(--red)','Ansiedad':'var(--amber)','Paciencia':'var(--blue)','Impulsividad':'var(--purple)','Disciplina':'var(--accent)','Motivación':'var(--green)','Desmotivación':'var(--text3)','Euforia':'var(--purple)','Culpa':'var(--amber)'};
 
-function analysisBlockHTML(analysis){
-  const sentiment=analysis.sentiment;
+function technicalBlockHTML(concepts,notes){
+  if(!concepts.length&&!(notes&&notes.trim()))return '';
+  return `<div class="journal-analysis-subsection">
+      <div class="journal-analysis-subtitle"><i class="ti ti-chart-candle"></i>Análisis técnico</div>
+      ${concepts.length?`<div class="journal-analysis-row">${concepts.map(c=>`<span class="sentiment-tag" style="background:var(--blue-bg);color:var(--blue)">${esc(c)}</span>`).join('')}</div>`:''}
+      ${notes&&notes.trim()?`<div class="journal-analysis-row">${esc(notes)}</div>`:''}
+    </div>`;
+}
+function emotionBlockHTML(analysis,emotionText){
+  if(!analysis||!analysis.emotions.length)return '';
+  const badges=analysis.tags.map(t=>({label:t,color:SENTIMENT_COLORS[t]||'var(--text2)'}));
+  return `<div class="journal-analysis-subsection">
+      <div class="journal-analysis-subtitle"><i class="ti ti-mood-smile"></i>Análisis emocional</div>
+      ${emotionText?`<div class="journal-analysis-row">${emotionText}</div>`:''}
+      <div class="journal-analysis-row">${badges.map(b=>`<span class="sentiment-tag" style="background:${b.color}22;color:${b.color}">${b.label}</span>`).join('')}</div>
+    </div>`;
+}
+function executionBlockHTML(analysis,executionText){
+  if(!analysis)return '';
+  const hasBadges=analysis.behaviors.negative.length||analysis.behaviors.positive.length;
+  if(!executionText&&!hasBadges)return '';
   const badges=[];
-  if(sentiment){
-    sentiment.tags.forEach(t=>badges.push({label:t,color:SENTIMENT_COLORS[t]||'var(--text2)'}));
-    sentiment.behaviors.negative.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--red)'}));
-    sentiment.behaviors.positive.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--green)'}));
-  }
+  analysis.behaviors.negative.slice(0,3).forEach(b=>badges.push({label:b.tag,color:'var(--red)'}));
+  analysis.behaviors.positive.slice(0,3).forEach(b=>badges.push({label:b.tag,color:'var(--green)'}));
+  return `<div class="journal-analysis-subsection">
+      <div class="journal-analysis-subtitle"><i class="ti ti-target-arrow"></i>Análisis de ejecución</div>
+      ${executionText?`<div class="journal-analysis-row">${executionText}</div>`:''}
+      ${badges.length?`<div class="journal-analysis-row">${badges.map(b=>`<span class="sentiment-tag" style="background:${b.color}22;color:${b.color}">${b.label}</span>`).join('')}</div>`:''}
+    </div>`;
+}
+
+function analysisBlockHTML(g){
   const premium=isPremiumUser();
-  const suggestionRow=analysis.suggestion
+  const suggestionRow=g.suggestion
     ? (premium
-        ? `<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${analysis.suggestion}</div>`
-        : `<div class="journal-analysis-row" style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="showUpgradePrompt('El análisis avanzado del Journal')"><i class="ti ti-lock" style="color:var(--text3)"></i><strong>Posible mejora:</strong> <span style="color:var(--text3);filter:blur(3px);user-select:none">${analysis.suggestion}</span> <span style="color:var(--accent);font-weight:700;white-space:nowrap">👑 Premium</span></div>`)
+        ? `<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${g.suggestion}</div>`
+        : `<div class="journal-analysis-row" style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="showUpgradePrompt('El análisis avanzado del Journal')"><i class="ti ti-lock" style="color:var(--text3)"></i><strong>Posible mejora:</strong> <span style="color:var(--text3);filter:blur(3px);user-select:none">${g.suggestion}</span> <span style="color:var(--accent);font-weight:700;white-space:nowrap">👑 Premium</span></div>`)
     : '';
+  const openingRow=g.opening?`<div class="journal-analysis-row">${g.opening}</div>`:'';
+  const noSignalRow=g.noSignal?`<div class="journal-analysis-row">${g.noSignal}</div>`:'';
+  const techBlock=technicalBlockHTML(g.technical,g.technicalNotes);
+  const emoBlock=emotionBlockHTML(g.sentiment,g.emotionText);
+  const execBlock=executionBlockHTML(g.sentiment,g.executionText);
   return `<div class="journal-analysis">
       <div class="journal-analysis-title"><i class="ti ti-sparkles"></i>Análisis del día</div>
-      <div class="journal-analysis-row">${analysis.summary}</div>
-      ${badges.length?`<div class="journal-analysis-row">${badges.map(b=>`<span class="sentiment-tag" style="background:${b.color}22;color:${b.color}">${b.label}</span>`).join('')}</div>`:''}
+      ${openingRow}
+      ${noSignalRow}
+      ${techBlock}
+      ${emoBlock}
+      ${execBlock}
       ${suggestionRow}
     </div>`;
 }
@@ -4579,7 +4775,13 @@ function editTradeEntry(id){
   document.getElementById('t-risk').value=(t.risk_pct!==null&&t.risk_pct!==undefined)?String(t.risk_pct):'';
   document.getElementById('t-duration').value=(t.duration_minutes!==null&&t.duration_minutes!==undefined)?String(t.duration_minutes):'';
   document.getElementById('t-notes').value=t.notes||'';
-  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  document.getElementById('t-tech-notes').value=t.technical_notes||'';
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo','t-tech-tags'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  if(Array.isArray(t.technical_tags)&&t.technical_tags.length){
+    document.querySelectorAll('#t-tech-tags .chip').forEach(c=>{
+      if(t.technical_tags.includes(c.textContent.trim()))c.classList.add('sel-tech');
+    });
+  }
   if(t.direction==='Buy')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(1)'),'sel-buy');
   if(t.direction==='Sell')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(2)'),'sel-sell');
   document.querySelectorAll('#t-sess .chip').forEach(c=>{
@@ -4627,10 +4829,17 @@ function editJournalEntry(id){
   document.getElementById('j-reason').value=j.reason||'';
   document.getElementById('j-content').value=j.content||'';
   document.getElementById('j-tomorrow').value=j.tomorrow||'';
+  document.getElementById('j-tech-notes').value=j.technical_notes||'';
   const jm=document.getElementById('j-mood');if(jm)jm.querySelectorAll('.chip').forEach(c=>c.className='chip');
   if(j.mood){
     document.querySelectorAll('#j-mood .chip').forEach(c=>{
       if(c.textContent.includes(j.mood))c.classList.add(c.textContent.includes('Positivo')?'sel-win':c.textContent.includes('Neutral')?'sel-be':'sel-loss');
+    });
+  }
+  const jt=document.getElementById('j-tech-tags');if(jt)jt.querySelectorAll('.chip').forEach(c=>c.className='chip');
+  if(Array.isArray(j.technical_tags)&&j.technical_tags.length){
+    document.querySelectorAll('#j-tech-tags .chip').forEach(c=>{
+      if(j.technical_tags.includes(c.textContent.trim()))c.classList.add('sel-tech');
     });
   }
   document.getElementById('j-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar cambios';
@@ -5426,7 +5635,8 @@ function openTradeForm(){
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
-  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  document.getElementById('t-tech-notes').value='';
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo','t-tech-tags'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
   updateBeTypeVisibility();
   const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
   tradeImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
@@ -5439,8 +5649,9 @@ function openJournalForm(){
   editingJournalId=null;
   document.getElementById('j-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar diario';
   document.getElementById('j-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('j-reason').value='';document.getElementById('j-content').value='';document.getElementById('j-tomorrow').value='';
+  document.getElementById('j-reason').value='';document.getElementById('j-content').value='';document.getElementById('j-tomorrow').value='';document.getElementById('j-tech-notes').value='';
   const jm=document.getElementById('j-mood');if(jm)jm.querySelectorAll('.chip').forEach(c=>c.className='chip');
+  const jt=document.getElementById('j-tech-tags');if(jt)jt.querySelectorAll('.chip').forEach(c=>c.className='chip');
   openModal('modal-journal');
 }
 function confirmCloseJournal(){
