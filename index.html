@@ -6266,7 +6266,7 @@ function mxRenderSummary(m){
   const premium=isPremiumUser();
   const locked=document.getElementById('mx-summary-locked'),content=document.getElementById('mx-summary-content');
   if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'block':'none';
+  if(content)content.style.display=premium?'flex':'none';
   if(!premium)return;
 
   setText('mx-dd-max',m.riesgo.maxDD>0?('-'+fmtMoney(m.riesgo.maxDD)):'0$');
