@@ -235,6 +235,22 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .form-hint{font-size:11px;color:var(--text3);margin-top:3px}
 .tech-tag-cat-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.tmsel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:520px){.tmsel-grid{grid-template-columns:1fr}}
+.tmsel{position:relative}
+.tmsel-btn{width:100%;display:flex;align-items:center;gap:6px;padding:9px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s}
+.tmsel-btn:hover{border-color:var(--border3)}
+.tmsel.open .tmsel-btn{border-color:var(--blue-border);color:var(--text)}
+.tmsel-btn-label{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmsel-badge{background:var(--blue-bg);color:var(--blue);border-radius:20px;font-size:10px;font-weight:700;padding:1px 7px;line-height:1.5}
+.tmsel-chevron{font-size:14px;color:var(--text3);transition:transform .15s;flex-shrink:0}
+.tmsel.open .tmsel-chevron{transform:rotate(180deg)}
+.tmsel-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:40;background:var(--bg4);border:1px solid var(--border3);border-radius:var(--radius);padding:6px;box-shadow:0 8px 24px #00000055;max-height:220px;overflow-y:auto}
+.tmsel.open .tmsel-panel{display:block}
+.tmsel-opt{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:background .1s}
+.tmsel-opt:hover{background:var(--bg5)}
+.tmsel-opt input[type="checkbox"]{accent-color:var(--blue);width:14px;height:14px;flex-shrink:0}
+.tmsel-opt input[type="checkbox"]:checked~span{color:var(--text);font-weight:600}
 .auth-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--text3);font-size:11px}
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border2)}
 .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;margin-bottom:4px}
@@ -913,6 +929,7 @@ document.addEventListener('DOMContentLoaded', function(){
     hcapForgotId = hcaptcha.render('hcap-forgot', {sitekey:HCAPTCHA_SITEKEY, size:'invisible'});
   }
   initLandingFX();
+  if(typeof initTechDropdowns==='function')initTechDropdowns();
 });
 
 /* ── Landing page: aparición progresiva al hacer scroll + nav flotante ──
@@ -2311,25 +2328,8 @@ function initLandingFX(){
       <div class="form-section">Lectura del gráfico / Setup técnico</div>
       <div class="form-group" id="t-tech-tags">
         <label class="form-label">¿Qué viste en el gráfico? <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label>
-        <div class="form-hint" style="margin:-2px 0 8px">Selecciona los conceptos técnicos que identificaste antes de entrar.</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div>
-            <div class="tech-tag-cat-label">Estructura</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Ruptura de estructura (BOS)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Cambio de carácter (CHoCH)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Continuación de tendencia</div></div>
-          </div>
-          <div>
-            <div class="tech-tag-cat-label">Liquidez y zonas</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Captura de liquidez</div><div class="chip" onclick="toggleChip(this,'sel-tech')">FVG</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Order Block</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Zona de decisión</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Mitigación</div></div>
-          </div>
-          <div>
-            <div class="tech-tag-cat-label">Confirmación</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Retest</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Rechazo de nivel</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Falso rompimiento</div></div>
-          </div>
-          <div>
-            <div class="tech-tag-cat-label">Tipo de entrada</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por confirmación</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por impulso</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada anticipada</div></div>
-          </div>
-        </div>
+        <div class="form-hint" style="margin:-2px 0 8px">Elige los conceptos en cada menú (puedes marcar varios por categoría).</div>
+        <div id="t-tech-dropdowns"></div>
         <textarea class="form-input" id="t-tech-notes" rows="2" placeholder="Describe tu lectura técnica: qué estructura viste, qué confirmaciones tenías, qué zona observabas..." maxlength="1000" style="margin-top:10px"></textarea>
       </div>
       <div class="form-section">Análisis</div>
@@ -2372,25 +2372,8 @@ function initLandingFX(){
       <div class="form-group"><label class="form-label">¿Algo que recordar para mañana?</label><input class="form-input" id="j-tomorrow" placeholder="Ej: Revisar el setup de XAUUSD..." maxlength="300"></div>
       <div class="form-group" id="j-tech-tags">
         <label class="form-label">Lectura del gráfico / Setup técnico <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label>
-        <div class="form-hint" style="margin:-2px 0 8px">¿Qué viste en el gráfico hoy? Selecciona los conceptos técnicos que identificaste.</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div>
-            <div class="tech-tag-cat-label">Estructura</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Ruptura de estructura (BOS)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Cambio de carácter (CHoCH)</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Continuación de tendencia</div></div>
-          </div>
-          <div>
-            <div class="tech-tag-cat-label">Liquidez y zonas</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Captura de liquidez</div><div class="chip" onclick="toggleChip(this,'sel-tech')">FVG</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Order Block</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Zona de decisión</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Mitigación</div></div>
-          </div>
-          <div>
-            <div class="tech-tag-cat-label">Confirmación</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Retest</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Rechazo de nivel</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Falso rompimiento</div></div>
-          </div>
-          <div>
-            <div class="tech-tag-cat-label">Tipo de entrada</div>
-            <div class="chip-group"><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por confirmación</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada por impulso</div><div class="chip" onclick="toggleChip(this,'sel-tech')">Entrada anticipada</div></div>
-          </div>
-        </div>
+        <div class="form-hint" style="margin:-2px 0 8px">Elige los conceptos en cada menú (puedes marcar varios por categoría).</div>
+        <div id="j-tech-dropdowns"></div>
         <textarea class="form-input" id="j-tech-notes" rows="2" placeholder="Describe tu lectura técnica del día: qué estructura viste, qué confirmaciones tenías, qué zona observabas..." maxlength="1000" style="margin-top:10px"></textarea>
       </div>
     </div>
@@ -3018,7 +3001,7 @@ async function saveTrade(){
   const riskRaw=document.getElementById('t-risk').value.trim().slice(0,10);
   const durationRaw=document.getElementById('t-duration').value.trim().slice(0,10);
   const notes=document.getElementById('t-notes').value.trim().slice(0,2000);
-  const techTags=Array.from(document.querySelectorAll('#t-tech-tags .chip.sel-tech')).map(e=>e.textContent.trim());
+  const techTags=getSelectedTechTags('t-tech-dropdowns');
   const techNotes=document.getElementById('t-tech-notes').value.trim().slice(0,1000);
   const dirEl=document.querySelector('#t-dir .chip[class*="sel-"]');
   const sessEl=document.querySelector('#t-sess .chip[class*="sel-"]');
@@ -3285,7 +3268,7 @@ async function saveJournal(){
   const tomorrow=document.getElementById('j-tomorrow').value.trim().slice(0,300);
   const moodEl=document.querySelector('#j-mood .chip[class*="sel-"]');
   const mood=moodEl?moodEl.textContent.replace(/[^\w\sáéíóú]/g,'').trim():'';
-  const techTags=Array.from(document.querySelectorAll('#j-tech-tags .chip.sel-tech')).map(e=>e.textContent.trim());
+  const techTags=getSelectedTechTags('j-tech-dropdowns');
   const techNotes=document.getElementById('j-tech-notes').value.trim().slice(0,1000);
   if(!date){toast('Selecciona una fecha');return;}
   // Evita entradas "fantasma" sin valor analítico: se exige al menos el motivo
@@ -3613,27 +3596,47 @@ const BEHAVIOR_LEXICON={
   'Evitar operar por autocontrol':{polarity:'positive',triggers:['me he mantenido fuera del mercado','me mantuve fuera del mercado','me manteni fuera del mercado','me quede fuera del mercado','decidi quedarme fuera del mercado','preferi quedarme fuera del mercado','opte por quedarme fuera del mercado','decidi no operar','preferi no operar','opte por no operar','evite operar','evite entrar al mercado','hoy no he operado','hoy no opere','no opere hoy','pause por hoy','deje de operar por hoy','no opere por disciplina','no opere hoy por disciplina','decidi no operar por disciplina','evite operar por emociones','evite operar por las emociones','evite entrar por emociones']},
 };
 
+/* ── CATÁLOGO DE SETUP TÉCNICO ──
+   4 categorías x 6 conceptos, pensado para rellenarse rápido en menús desplegables de selección
+   múltiple. Las 3 primeras categorías (Estructura, Liquidez y zonas, Confirmación) describen QUÉ vio
+   el trader en el gráfico → alimentan el bloque "Análisis técnico" (buildTechnicalConcepts).
+   La 4ª categoría (Gestión / ejecución) describe CÓMO ejecutó → nunca se muestra como concepto técnico,
+   solo alimenta el bloque de ejecución/disciplina vía síntesis de frases sobre el léxico de comportamiento. */
+const TECH_CATEGORIES=[
+  {name:'Estructura',items:['Rompe estructura','Cambio de carácter','Continuación','Reversión','Pullback','Retest']},
+  {name:'Liquidez y zonas',items:['Sacó liquidez','FVG','Order Block','Zona de demanda','Zona de oferta','Barrido de liquidez']},
+  {name:'Confirmación',items:['Esperé confirmación','Entrada anticipada','Entrada por impulso','Falsa ruptura','Cierre de vela','Rechazo en zona']},
+  {name:'Gestión / ejecución',items:['Forcé la entrada','Operé por FOMO','Sobreoperé','Moví el stop','Cerré antes de tiempo','Respeté el plan']},
+];
+/* Etiquetas de las 3 primeras categorías: son las únicas que cuentan como "concepto técnico" visible
+   en el bloque de Análisis técnico. Las de Gestión/ejecución quedan fuera a propósito. */
+const TECH_CONCEPT_LABELS=new Set(TECH_CATEGORIES.slice(0,3).flatMap(c=>c.items));
+
 /* ── BANCO DE CONCEPTOS TÉCNICOS ──
-   Describe QUÉ vio el trader en el gráfico (estructura, liquidez, confirmación, tipo de entrada),
-   totalmente independiente del léxico emocional/de comportamiento de arriba. Se usa tanto para
-   detectar estos conceptos dentro del texto libre (notas y "lectura del gráfico") como para
-   generar las etiquetas mostradas en el bloque de Análisis técnico. La detección es puramente
-   descriptiva: no lleva juicio de calidad de ejecución (eso lo aporta el léxico de comportamiento). */
+   Describe QUÉ vio el trader en el gráfico (estructura, liquidez, confirmación), totalmente
+   independiente del léxico emocional/de comportamiento de arriba. Se usa tanto para detectar estos
+   conceptos dentro del texto libre (notas y "lectura del gráfico") como para generar las etiquetas
+   mostradas en el bloque de Análisis técnico. La detección es puramente descriptiva: no lleva juicio
+   de calidad de ejecución (eso lo aporta el léxico de comportamiento, ver BEHAVIOR_LEXICON). */
 const TECHNICAL_LEXICON={
-  'Ruptura de estructura (BOS)':['ruptura de estructura','rompio estructura','rompe estructura','rompio la estructura','break of structure',' bos ','estructura rota','rotura de estructura'],
-  'Cambio de carácter (CHoCH)':['cambio de caracter','choch','cambio de tendencia estructural','cambio de caracter del mercado'],
-  'Captura de liquidez':['captura de liquidez','saco liquidez','tomo liquidez','tomó liquidez','barrido de liquidez','liquidity grab','caza de stops','barrio los stops','barrida de stops','recogida de liquidez'],
+  'Rompe estructura':['rompe estructura','rompio estructura','rompio la estructura','ruptura de estructura','rotura de estructura','estructura rota','break of structure',' bos '],
+  'Cambio de carácter':['cambio de caracter','choch','cambio de tendencia estructural','cambio de caracter del mercado'],
+  'Continuación':['continuacion de tendencia','continuidad de tendencia','siguiendo la tendencia','a favor de la tendencia','continuacion'],
+  'Reversión':['reversion','giro de mercado','giro del mercado','cambio de direccion','vuelta del mercado','reversion de tendencia'],
+  'Pullback':['pullback','retroceso del precio','retroceso antes de continuar','correccion antes de continuar'],
+  'Retest':['retest','reteste','reteo','retesteo','confirmo el retest','confirmó el retest'],
+  'Sacó liquidez':['saco liquidez','tomo liquidez','tomó liquidez','captura de liquidez','liquidity grab','caza de stops','recogida de liquidez'],
   'FVG':['fvg','fair value gap','gap de valor','vacio de precio','vacio de valor'],
   'Order Block':['order block','bloque de ordenes','bloque de órdenes',' ob '],
-  'Retest':['retest','reteste','reteo','retesteo','confirmo el retest','confirmó el retest'],
-  'Mitigación':['mitigacion','mitigó la zona','mitigo la zona','zona mitigada','mitigacion de la zona'],
-  'Rechazo de nivel':['rechazo en zona','rechazo de nivel','rechazo del nivel','rechazo en el nivel','mecha de rechazo','rechazo en la zona'],
-  'Falso rompimiento':['falso rompimiento','falsa ruptura','fakeout','ruptura falsa','rompimiento falso'],
-  'Continuación de tendencia':['continuacion de tendencia','continuidad de tendencia','siguiendo la tendencia','a favor de la tendencia'],
-  'Zona de decisión':['zona de decision','zona clave','zona importante','zona de interes','zona de interés'],
-  'Entrada por confirmación':['entrada por confirmacion','entre por confirmacion'],
-  'Entrada por impulso':['entrada por impulso','entre por impulso'],
-  'Entrada anticipada':['entrada anticipada','entre de forma anticipada','me anticipe a la entrada'],
+  'Zona de demanda':['zona de demanda','zona de compra','demand zone'],
+  'Zona de oferta':['zona de oferta','zona de venta','supply zone'],
+  'Barrido de liquidez':['barrido de liquidez','barrio los stops','barrida de stops','barrido de stops','sweep de liquidez'],
+  'Esperé confirmación':['espere confirmacion','espere la confirmacion','entrada por confirmacion','entre por confirmacion'],
+  'Entrada anticipada':['entrada anticipada','entre de forma anticipada','me anticipe a la entrada','me anticipe demasiado'],
+  'Entrada por impulso':['entrada por impulso','entre por impulso','entre impulsivamente'],
+  'Falsa ruptura':['falsa ruptura','falso rompimiento','fakeout','ruptura falsa','rompimiento falso'],
+  'Cierre de vela':['cierre de vela','espere el cierre de la vela','cierre de la vela'],
+  'Rechazo en zona':['rechazo en zona','rechazo de nivel','rechazo del nivel','rechazo en el nivel','mecha de rechazo','rechazo en la zona'],
 };
 
 /* Palabras positivas que, cuando aparecen NEGADAS en el texto (aunque no coincidan con ninguna frase
@@ -4008,17 +4011,27 @@ function buildAnalysisParts(analysis,seedKey,opts){
 function synthesizeTechTagPhrases(tags){
   if(!tags||!tags.length)return '';
   const map={
-    'Entrada por confirmación':'entrada por confirmación. Esperé confirmación antes de entrar.',
-    'Entrada por impulso':'entrada por impulso. Entré por impulso.',
-    'Entrada anticipada':'entrada anticipada. Me anticipé a la entrada.',
+    // Confirmación: implican calidad de ejecución además de ser lectura técnica.
+    'Esperé confirmación':'Esperé confirmación antes de entrar.',
+    'Entrada por impulso':'Entrada por impulso. Entré por impulso.',
+    'Entrada anticipada':'Entrada anticipada. Me anticipé a la entrada.',
+    'Cierre de vela':'Esperé el cierre de la vela antes de entrar.',
+    // Gestión / ejecución: mapeadas 1:1 a las etiquetas ya existentes de BEHAVIOR_LEXICON.
+    'Forcé la entrada':'Forcé la entrada.',
+    'Operé por FOMO':'Operé por FOMO.',
+    'Sobreoperé':'Sobreoperé, demasiadas operaciones.',
+    'Moví el stop':'Moví el stop.',
+    'Cerré antes de tiempo':'Cerré antes de tiempo.',
+    'Respeté el plan':'Respeté el plan.',
   };
   return tags.map(t=>map[t]||'').filter(Boolean).join(' ');
 }
 
-/* Conceptos técnicos presentes: unión de los tags elegidos como chips + los detectados dentro del
-   texto libre de "lectura del gráfico". Puramente descriptivo — no lleva juicio de calidad. */
+/* Conceptos técnicos presentes: unión de los tags elegidos en los menús (solo los de las categorías
+   Estructura / Liquidez y zonas / Confirmación — nunca los de Gestión/ejecución) + los detectados
+   dentro del texto libre de "lectura del gráfico". Puramente descriptivo — no lleva juicio de calidad. */
 function buildTechnicalConcepts(tags,notes){
-  const set=new Set((tags||[]).filter(Boolean));
+  const set=new Set((tags||[]).filter(t=>t&&TECH_CONCEPT_LABELS.has(t)));
   const norm=normText(notes||'');
   if(norm.trim()){
     Object.keys(TECHNICAL_LEXICON).forEach(concept=>{
@@ -4545,7 +4558,38 @@ async function computeDisciplineForWeek(offset){
   });
   if(totalHits>0)emotionalScore=Math.max(0,Math.round(100-(negativeHits/totalHits*100)));
 
-  const components={plan:planScore,risk:riskScore,journal:journalScore,emotional:emotionalScore,routine:routineScore};
+  // F) Coherencia técnica/ejecución: NO mira el resultado económico del trade en ningún momento.
+  // Compara lo que el usuario dice que hizo (Setup técnico seleccionado + texto libre de trades y
+  // journal) contra comportamientos de disciplina ya detectados por el motor de análisis (respetar
+  // el plan, esperar confirmación, gestión del riesgo vs. forzar la entrada, FOMO, sobreoperar, mover
+  // el stop, cerrar antes de tiempo...). Si además el usuario declaró en "Mi Plan" que su estrategia
+  // exige confirmación/retest/estructura antes de entrar, una entrada anticipada o forzada pesa el
+  // doble: es una desviación directa de una regla que el propio usuario se puso. Un trade ganador
+  // ejecutado con prisa puntúa mal aquí; un trade perdedor ejecutado según el plan puntúa bien.
+  let coherenceScore=null;
+  {
+    const planRulesText=normText([planData.entryConfirm,planData.entryPatterns,planData.entryInvalid,planData.setups].filter(Boolean).join(' . '));
+    const wantsConfirmation=/confirmac|retest|cierre de vela|estructura/.test(planRulesText);
+    let negWeighted=0,posWeighted=0;
+    const scanEntry=(mainText,techNotes,techTags)=>{
+      const synth=synthesizeTechTagPhrases(techTags||[]);
+      const combined=[mainText,techNotes,synth].filter(Boolean).join('. ');
+      if(!combined.trim())return;
+      const a=analyzeSentimentText(combined);
+      if(!a)return;
+      a.behaviors.negative.forEach(b=>{
+        const violatesOwnRule=wantsConfirmation&&['No esperar confirmación','Entrar demasiado pronto','Forzar operaciones'].includes(b.tag);
+        negWeighted+=violatesOwnRule?2:1;
+      });
+      a.behaviors.positive.forEach(()=>{posWeighted+=1;});
+    };
+    weekTrades.forEach(t=>scanEntry(t.notes,t.technical_notes,t.technical_tags));
+    weekJournals.forEach(j=>scanEntry(j.content,j.technical_notes,j.technical_tags));
+    const totalW=negWeighted+posWeighted;
+    if(totalW>0)coherenceScore=Math.max(0,Math.min(100,Math.round(posWeighted/totalW*100)));
+  }
+
+  const components={plan:planScore,risk:riskScore,journal:journalScore,emotional:emotionalScore,routine:routineScore,coherence:coherenceScore};
   const validComponents=Object.values(components).filter(v=>v!==null);
   const overall=validComponents.length?Math.round(validComponents.reduce((a,b)=>a+b,0)/validComponents.length):0;
 
@@ -4574,7 +4618,7 @@ function disciplineFeedback(result, previousOverall){
   if(validEntries.length){
     const best=validEntries.sort((a,b)=>b[1]-a[1])[0];
     const worst=validEntries.sort((a,b)=>a[1]-b[1])[0];
-    const LABELS={plan:'respetar la gestión de tu plan',risk:'tu gestión del riesgo',journal:'la constancia con el journal',emotional:'tu control emocional',routine:'tu rutina diaria'};
+    const LABELS={plan:'respetar la gestión de tu plan',risk:'tu gestión del riesgo',journal:'la constancia con el journal',emotional:'tu control emocional',routine:'tu rutina diaria',coherence:'la coherencia entre lo que planeaste y lo que ejecutaste'};
     lines.push(`<div class="ds-feedback-line"><i class="ti ti-star" style="color:var(--amber)"></i>Tu mayor fortaleza fue ${LABELS[best[0]]}.</div>`);
     if(worst[0]!==best[0])lines.push(`<div class="ds-feedback-line"><i class="ti ti-target-arrow" style="color:var(--blue)"></i>Tu principal área de mejora es ${LABELS[worst[0]]}.</div>`);
   }
@@ -4603,7 +4647,7 @@ async function computeAndRenderDisciplineScore(){
   if(fb)fb.innerHTML=disciplineFeedback(current,previous.weekTrades.length||previous.weekJournals.length?previous.overall:null);
 
   // Desglose
-  const LABELS_ICON={plan:['📋','Cumplimiento del plan'],risk:['⚖️','Gestión del riesgo'],journal:['📓','Journal'],emotional:['🧠','Control emocional'],routine:['🔥','Rutina']};
+  const LABELS_ICON={plan:['📋','Cumplimiento del plan'],risk:['⚖️','Gestión del riesgo'],journal:['📓','Journal'],emotional:['🧠','Control emocional'],routine:['🔥','Rutina'],coherence:['🎯','Coherencia plan ↔ ejecución']};
   const breakdown=document.getElementById('ds-breakdown-bars');
   if(breakdown){
     breakdown.innerHTML=Object.entries(current.components).map(([key,val])=>{
@@ -4776,12 +4820,8 @@ function editTradeEntry(id){
   document.getElementById('t-duration').value=(t.duration_minutes!==null&&t.duration_minutes!==undefined)?String(t.duration_minutes):'';
   document.getElementById('t-notes').value=t.notes||'';
   document.getElementById('t-tech-notes').value=t.technical_notes||'';
-  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo','t-tech-tags'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
-  if(Array.isArray(t.technical_tags)&&t.technical_tags.length){
-    document.querySelectorAll('#t-tech-tags .chip').forEach(c=>{
-      if(t.technical_tags.includes(c.textContent.trim()))c.classList.add('sel-tech');
-    });
-  }
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  setSelectedTechTags('t-tech-dropdowns',Array.isArray(t.technical_tags)?t.technical_tags:[]);
   if(t.direction==='Buy')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(1)'),'sel-buy');
   if(t.direction==='Sell')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(2)'),'sel-sell');
   document.querySelectorAll('#t-sess .chip').forEach(c=>{
@@ -4836,12 +4876,7 @@ function editJournalEntry(id){
       if(c.textContent.includes(j.mood))c.classList.add(c.textContent.includes('Positivo')?'sel-win':c.textContent.includes('Neutral')?'sel-be':'sel-loss');
     });
   }
-  const jt=document.getElementById('j-tech-tags');if(jt)jt.querySelectorAll('.chip').forEach(c=>c.className='chip');
-  if(Array.isArray(j.technical_tags)&&j.technical_tags.length){
-    document.querySelectorAll('#j-tech-tags .chip').forEach(c=>{
-      if(j.technical_tags.includes(c.textContent.trim()))c.classList.add('sel-tech');
-    });
-  }
+  setSelectedTechTags('j-tech-dropdowns',Array.isArray(j.technical_tags)?j.technical_tags:[]);
   document.getElementById('j-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar cambios';
   openModal('modal-journal');
 }
@@ -5636,7 +5671,8 @@ function openTradeForm(){
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
   document.getElementById('t-tech-notes').value='';
-  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo','t-tech-tags'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  resetTechDropdowns('t-tech-dropdowns');
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
   updateBeTypeVisibility();
   const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
   tradeImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
@@ -5651,7 +5687,7 @@ function openJournalForm(){
   document.getElementById('j-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('j-reason').value='';document.getElementById('j-content').value='';document.getElementById('j-tomorrow').value='';document.getElementById('j-tech-notes').value='';
   const jm=document.getElementById('j-mood');if(jm)jm.querySelectorAll('.chip').forEach(c=>c.className='chip');
-  const jt=document.getElementById('j-tech-tags');if(jt)jt.querySelectorAll('.chip').forEach(c=>c.className='chip');
+  resetTechDropdowns('j-tech-dropdowns');
   openModal('modal-journal');
 }
 function confirmCloseJournal(){
@@ -5670,6 +5706,72 @@ function abandonConfirm(){
 }
 function selectChip(gId,el,cls){const g=document.getElementById(gId);if(!g)return;g.querySelectorAll('.chip').forEach(c=>c.className='chip');el.classList.add(cls);}
 function toggleChip(el,cls){if(el.classList.contains(cls))el.className='chip';else el.classList.add(cls);}
+
+/* ── SETUP TÉCNICO: menús desplegables de selección múltiple ──
+   Genera 4 dropdowns (uno por categoría de TECH_CATEGORIES) dentro del contenedor indicado, cada uno
+   con checkboxes multi-select, badge con el nº de opciones marcadas, y abre/cierra al click. */
+function techDropdownsHTML(prefix){
+  return '<div class="tmsel-grid">'+TECH_CATEGORIES.map((cat,ci)=>`
+    <div class="tmsel" id="${prefix}-cat-${ci}">
+      <button type="button" class="tmsel-btn" onclick="toggleTmsel(this)">
+        <span class="tmsel-btn-label">${esc(cat.name)}</span>
+        <span class="tmsel-badge" style="display:none">0</span>
+        <i class="ti ti-chevron-down tmsel-chevron"></i>
+      </button>
+      <div class="tmsel-panel">
+        ${cat.items.map(it=>`<label class="tmsel-opt"><input type="checkbox" value="${esc(it)}" onchange="onTmselOptChange(this)"><span>${esc(it)}</span></label>`).join('')}
+      </div>
+    </div>`).join('')+'</div>';
+}
+function initTechDropdowns(){
+  const t=document.getElementById('t-tech-dropdowns');
+  if(t&&!t.dataset.built){t.innerHTML=techDropdownsHTML('t-tech');t.dataset.built='1';}
+  const j=document.getElementById('j-tech-dropdowns');
+  if(j&&!j.dataset.built){j.innerHTML=techDropdownsHTML('j-tech');j.dataset.built='1';}
+}
+function toggleTmsel(btn){
+  const wrap=btn.closest('.tmsel');
+  const wasOpen=wrap.classList.contains('open');
+  // Cierra cualquier otro dropdown de setup técnico abierto (en el mismo modal o en otro)
+  document.querySelectorAll('.tmsel.open').forEach(w=>{if(w!==wrap)w.classList.remove('open');});
+  wrap.classList.toggle('open',!wasOpen);
+}
+function onTmselOptChange(cb){
+  const wrap=cb.closest('.tmsel');
+  if(!wrap)return;
+  updateTmselBadge(wrap);
+}
+function updateTmselBadge(wrap){
+  const n=wrap.querySelectorAll('input[type="checkbox"]:checked').length;
+  const badge=wrap.querySelector('.tmsel-badge');
+  if(!badge)return;
+  badge.textContent=n;
+  badge.style.display=n>0?'inline-block':'none';
+}
+// Devuelve todos los conceptos marcados (de las 4 categorías) dentro de un contenedor t-tech-dropdowns/j-tech-dropdowns
+function getSelectedTechTags(containerId){
+  const c=document.getElementById(containerId);
+  if(!c)return[];
+  return Array.from(c.querySelectorAll('input[type="checkbox"]:checked')).map(cb=>cb.value);
+}
+// Marca las casillas correspondientes a `values` (usado al editar una entrada existente)
+function setSelectedTechTags(containerId,values){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  const vals=values||[];
+  c.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.checked=vals.includes(cb.value);});
+  c.querySelectorAll('.tmsel').forEach(updateTmselBadge);
+}
+function resetTechDropdowns(containerId){
+  const c=document.getElementById(containerId);
+  if(!c)return;
+  c.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.checked=false;});
+  c.querySelectorAll('.tmsel').forEach(w=>{w.classList.remove('open');updateTmselBadge(w);});
+}
+document.addEventListener('click',(e)=>{
+  if(e.target.closest('.tmsel'))return;
+  document.querySelectorAll('.tmsel.open').forEach(w=>w.classList.remove('open'));
+});
 function updateBeTypeVisibility(){
   const resEl=document.querySelector('#t-res .chip[class*="sel-"]');
   const isBE=!!(resEl&&resEl.classList.contains('sel-be'));
