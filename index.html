@@ -302,6 +302,8 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .mx-chart-wrap{position:relative;width:100%}
 .mx-two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
 @media (max-width:760px){.mx-two-col{grid-template-columns:1fr}}
+.mx-three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+@media (max-width:900px){.mx-three-col{grid-template-columns:1fr}}
 .mx-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
 .mx-chip{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap}
 .mx-chip strong{color:var(--text);font-weight:800}
@@ -1724,6 +1726,22 @@ function initLandingFX(){
               <div class="mx-chart-wrap" style="height:190px"><canvas id="mx-chart-buysell"></canvas></div>
               <div class="mx-chip-row" id="mx-buysell-chips"></div>
             </div>
+          </div>
+        </div>
+
+        <!-- 2B. DESGLOSE DE OPERACIONES: ratios, rachas, mejor/peor -->
+        <div class="mx-three-col">
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-percentage"></i>Ratios de acierto</div>
+            <div class="mx-chip-row" id="mx-results-rates-chips" style="border-top:none;margin-top:0;padding-top:0"></div>
+          </div>
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-flame"></i>Rachas</div>
+            <div class="mx-chip-row" id="mx-results-streaks-chips" style="border-top:none;margin-top:0;padding-top:0"></div>
+          </div>
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-trophy"></i>Mejor y peor operación</div>
+            <div class="mx-chip-row" id="mx-results-besttrade-chips" style="border-top:none;margin-top:0;padding-top:0"></div>
           </div>
         </div>
 
@@ -5991,18 +6009,32 @@ function mxRenderResultsChart(m){
       plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const pct=total?Math.round(c.parsed/total*100):0;return `${c.label}: ${c.parsed} (${pct}%)`;}},displayColors:true},mxTooltipBase())}}
   });
   const chipsEl=document.getElementById('mx-results-chips');
-  if(!chipsEl)return;
-  if(!total){chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
-  let html=cats.map(c=>`<div class="mx-chip"><span style="width:8px;height:8px;border-radius:50%;background:${c.color};display:inline-block"></span>${c.label} <strong>${c.count}</strong> (${Math.round(c.count/total*100)}%)</div>`).join('');
-  html+=`<div class="mx-chip">Win Rate <strong>${Math.round(o.winRate)}%</strong></div>`;
-  html+=`<div class="mx-chip">Loss Rate <strong>${Math.round(o.lossRate)}%</strong></div>`;
-  html+=`<div class="mx-chip">BE Rate <strong>${Math.round(o.beRate)}%</strong> (${o.beWin} BE Win · ${o.beLoss} BE Loss)</div>`;
-  html+=`<div class="mx-chip">Racha actual <strong>${o.currentStreakType?o.currentStreakLen+' '+(o.currentStreakType==='win'?'ganadoras':'perdedoras'):'—'}</strong></div>`;
-  html+=`<div class="mx-chip pos">Racha máx. ganadora <strong>${o.maxWinStreak}</strong></div>`;
-  html+=`<div class="mx-chip neg">Racha máx. perdedora <strong>${o.maxLossStreak}</strong></div>`;
-  if(o.bestTrade)html+=`<div class="mx-chip pos">Mejor operación <strong>${esc(o.bestTrade.pair||'')} ${mxFmtMoney(mxAmt(o.bestTrade))}</strong></div>`;
-  if(o.worstTrade)html+=`<div class="mx-chip neg">Peor operación <strong>${esc(o.worstTrade.pair||'')} ${mxFmtMoney(mxAmt(o.worstTrade))}</strong></div>`;
-  chipsEl.innerHTML=html;
+  const ratesEl=document.getElementById('mx-results-rates-chips');
+  const streaksEl=document.getElementById('mx-results-streaks-chips');
+  const bestEl=document.getElementById('mx-results-besttrade-chips');
+  if(!total){
+    if(chipsEl)chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';
+    if(ratesEl)ratesEl.innerHTML='<div class="mx-row-empty">Sin operaciones todavía</div>';
+    if(streaksEl)streaksEl.innerHTML='<div class="mx-row-empty">Sin operaciones todavía</div>';
+    if(bestEl)bestEl.innerHTML='<div class="mx-row-empty">Sin operaciones todavía</div>';
+    return;
+  }
+  // Solo lo que se ve en el donut: las 3 categorías con su cuenta y % del total.
+  if(chipsEl)chipsEl.innerHTML=cats.map(c=>`<div class="mx-chip"><span style="width:8px;height:8px;border-radius:50%;background:${c.color};display:inline-block"></span>${c.label} <strong>${c.count}</strong> (${Math.round(c.count/total*100)}%)</div>`).join('');
+  if(ratesEl)ratesEl.innerHTML=`
+    <div class="mx-chip">Win Rate <strong>${Math.round(o.winRate)}%</strong></div>
+    <div class="mx-chip">Loss Rate <strong>${Math.round(o.lossRate)}%</strong></div>
+    <div class="mx-chip">BE Rate <strong>${Math.round(o.beRate)}%</strong> (${o.beWin} BE Win · ${o.beLoss} BE Loss)</div>`;
+  if(streaksEl)streaksEl.innerHTML=`
+    <div class="mx-chip">Racha actual <strong>${o.currentStreakType?o.currentStreakLen+' '+(o.currentStreakType==='win'?'ganadoras':'perdedoras'):'—'}</strong></div>
+    <div class="mx-chip pos">Racha máx. ganadora <strong>${o.maxWinStreak}</strong></div>
+    <div class="mx-chip neg">Racha máx. perdedora <strong>${o.maxLossStreak}</strong></div>`;
+  if(bestEl){
+    let bhtml='';
+    if(o.bestTrade)bhtml+=`<div class="mx-chip pos">Mejor operación <strong>${esc(o.bestTrade.pair||'')} ${mxFmtMoney(mxAmt(o.bestTrade))}</strong></div>`;
+    if(o.worstTrade)bhtml+=`<div class="mx-chip neg">Peor operación <strong>${esc(o.worstTrade.pair||'')} ${mxFmtMoney(mxAmt(o.worstTrade))}</strong></div>`;
+    bestEl.innerHTML=bhtml||'<div class="mx-row-empty">Sin datos todavía</div>';
+  }
 }
 function mxRenderBuySellChart(m){
   const premium=isPremiumUser();
