@@ -311,6 +311,11 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .mx-kpi-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;transition:all .2s}
 .mx-kpi-card:hover{border-color:var(--border3);transform:translateY(-2px)}
 .mx-kpi-icon{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;margin-bottom:10px;background:var(--green-bg);color:var(--green)}
+.mx-duration-card{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.mx-duration-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--green-bg);color:var(--green);flex-shrink:0}
+.mx-duration-info{flex:1;min-width:180px}
+.mx-duration-value{font-size:32px;font-weight:800;color:var(--text);line-height:1.2;margin-top:4px}
+@media (max-width:520px){.mx-duration-value{font-size:26px}}
 .mx-section-block{animation:mxFadeIn .35s ease}
 @keyframes mxFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .mx-locked-panel.mx-locked-inline{padding:26px 18px}
@@ -1812,6 +1817,19 @@ function initLandingFX(){
           <div class="mx-chip-row"><span onclick="gotoView('calendar')" style="cursor:pointer;font-size:12px;font-weight:700;color:var(--accent)">Ver calendario completo <i class="ti ti-arrow-right"></i></span></div>
         </div>
 
+        <!-- 7B. DURACIÓN MEDIA DE LA OPERACIÓN -->
+        <div class="card mx-section-block">
+          <div class="mx-duration-card">
+            <div class="mx-duration-icon"><i class="ti ti-clock-hour-4"></i></div>
+            <div class="mx-duration-info">
+              <div class="metric-label">Duración media de la operación</div>
+              <div class="mx-duration-value" id="mx-duration-avg">—</div>
+              <div class="metric-delta neutral" id="mx-duration-sub">Tiempo medio que mantienes abierta una operación</div>
+            </div>
+          </div>
+          <div id="mx-duration-hint" class="mx-empty-hint" style="display:none;margin-top:14px">Añade la duración (en minutos) al crear o editar tus operaciones para ver esta métrica.</div>
+        </div>
+
         <!-- 8. INFORMACIÓN RESUMIDA -->
         <div class="card mx-section-block">
           <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-list-details"></i>Información resumida</div>
@@ -2235,6 +2253,7 @@ function initLandingFX(){
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Riesgo asumido (%) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 1 (= 1% del capital)" id="t-risk"><div class="form-hint">% del capital que arriesgabas en esta operación (según tu stop loss). Rellénalo para desbloquear las métricas de Riesgo.</div></div>
+        <div class="form-group"><label class="form-label">Duración de la operación (min) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 45 (= 45 min)" id="t-duration"><div class="form-hint">Cuánto tiempo estuvo abierta la operación, en minutos (ej: 150 = 2h 30min). Rellénalo para desbloquear la Duración media.</div></div>
       </div>
       <div class="form-group" id="t-be-type-group" style="display:none">
         <label class="form-label">¿Cómo terminó el Breakeven?</label>
@@ -2902,6 +2921,7 @@ async function saveTrade(){
   const date=document.getElementById('t-date').value;
   let amount=document.getElementById('t-amount').value.trim().slice(0,20);
   const riskRaw=document.getElementById('t-risk').value.trim().slice(0,10);
+  const durationRaw=document.getElementById('t-duration').value.trim().slice(0,10);
   const notes=document.getElementById('t-notes').value.trim().slice(0,2000);
   const dirEl=document.querySelector('#t-dir .chip[class*="sel-"]');
   const sessEl=document.querySelector('#t-sess .chip[class*="sel-"]');
@@ -3006,7 +3026,16 @@ async function saveTrade(){
     if(!isNaN(rNum)&&rNum>=0)riskPct=rNum;
   }
 
-  const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,
+  // Duración de la operación (minutos): campo opcional, igual de tratamiento que
+  // Riesgo asumido — si no se rellena o no es válido, se guarda null y ese trade
+  // queda fuera de la métrica de Duración media (nunca se aproxima).
+  let durationMinutes=null;
+  if(durationRaw){
+    const dNum=parseFloat(durationRaw.replace(',','.'));
+    if(!isNaN(dNum)&&dNum>=0)durationMinutes=dNum;
+  }
+
+  const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
     followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
     emotions,notes,image_url:coverUrl,images:finalImages};
 
@@ -4505,6 +4534,7 @@ function editTradeEntry(id){
   document.getElementById('t-pair').value=t.pair||'';
   document.getElementById('t-amount').value=(t.amount||'').replace(/[+\-]/,'').trim();
   document.getElementById('t-risk').value=(t.risk_pct!==null&&t.risk_pct!==undefined)?String(t.risk_pct):'';
+  document.getElementById('t-duration').value=(t.duration_minutes!==null&&t.duration_minutes!==undefined)?String(t.duration_minutes):'';
   document.getElementById('t-notes').value=t.notes||'';
   ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
   if(t.direction==='Buy')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(1)'),'sel-buy');
@@ -5352,7 +5382,7 @@ function openTradeForm(){
   editingTradeId=null;
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-notes').value='';
+  document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
   ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
   updateBeTypeVisibility();
   const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
@@ -5726,6 +5756,12 @@ function computeFullMetrics(){
   const avgWinPct=wins.length?wins.reduce((s,t)=>s+mxAmtPct(t),0)/wins.length:0;
   const avgLossPct=losses.length?Math.abs(losses.reduce((s,t)=>s+mxAmtPct(t),0)/losses.length):0;
 
+  // Duración de la operación: solo cuenta con trades donde el usuario introdujo duration_minutes explícitamente.
+  const durationTrades=trades.filter(t=>t.duration_minutes!==null&&t.duration_minutes!==undefined&&!isNaN(Number(t.duration_minutes)));
+  const durationVals=durationTrades.map(t=>Number(t.duration_minutes));
+  const avgDurationMinutes=durationVals.length?durationVals.reduce((a,b)=>a+b,0)/durationVals.length:null;
+  const durationTradesCount=durationTrades.length;
+
   // ── Análisis temporal ──
   const weekdayNames=gD();
   const weekdayStats=weekdayNames.map((name,idx)=>{
@@ -5836,7 +5872,7 @@ function computeFullMetrics(){
     sesiones:{sessionStats,bestSessionByPnl,worstSessionByPnl},
     activos:{assetStats,bestAsset,worstAsset},
     tipos:{directionStats},
-    generales:{opsPerDay,opsPerWeek,opsPerMonth,avgDaysBetween,opsPerSession,pctMaxWinStreak,pctMaxLossStreak}
+    generales:{opsPerDay,opsPerWeek,opsPerMonth,avgDaysBetween,opsPerSession,pctMaxWinStreak,pctMaxLossStreak,avgDurationMinutes,durationTradesCount}
   };
 }
 
@@ -5846,6 +5882,7 @@ function mxFmtPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';return
 function mxFmtPlainPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';return n.toFixed(dec===undefined?1:dec)+'%';}
 function mxFmtRatio(n){if(n===null||n===undefined||isNaN(n))return'—';if(n===Infinity)return'∞';return n.toFixed(2);}
 function mxFmtDays(n){if(n===null||n===undefined||isNaN(n))return'—';return n<1?(Math.round(n*24)+' h'):(n.toFixed(1)+' días');}
+function mxFmtDuration(n){if(n===null||n===undefined||isNaN(n))return'—';const total=Math.round(n);const h=Math.floor(total/60),m=total%60;if(h<=0)return m+' min';if(m===0)return h+'h';return h+'h '+m+'min';}
 function mxFmtCount(n){if(n===null||n===undefined||isNaN(n))return'—';return n.toFixed(1);}
 function mxSetClass(id,cls){const e=document.getElementById(id);if(e)e.className=cls;}
 
@@ -6204,12 +6241,22 @@ function mxRenderSummary(m){
     <div class="mx-chip">Días con Journal sin operar <strong>${m.temporal.journalOnlyDays}</strong></div>`;
 }
 
+function mxRenderDuration(m){
+  const hasData=m.generales.durationTradesCount>0;
+  const hint=document.getElementById('mx-duration-hint');
+  if(hint)hint.style.display=hasData?'none':'block';
+  setText('mx-duration-avg',hasData?mxFmtDuration(m.generales.avgDurationMinutes):'—');
+  const subEl=document.getElementById('mx-duration-sub');
+  if(subEl)subEl.textContent=hasData?`Basado en ${m.generales.durationTradesCount} operación${m.generales.durationTradesCount===1?'':'es'} con duración registrada`:'Tiempo medio que mantienes abierta una operación';
+}
+
 function renderMetricsPage(){
   const panel=document.getElementById('view-metrics');
   if(!panel)return;
   const m=computeFullMetrics();
   mxLastMetrics=m;
   mxRenderSummary(m);
+  mxRenderDuration(m);
   mxRenderEquityChart(m);
   mxRenderResultsChart(m);
   mxRenderBuySellChart(m);
