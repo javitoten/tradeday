@@ -1729,7 +1729,20 @@ function initLandingFX(){
           </div>
         </div>
 
-        <!-- 2B. DESGLOSE DE OPERACIONES: ratios, rachas, mejor/peor -->
+        <!-- 2B. DURACIÓN MEDIA DE LA OPERACIÓN -->
+        <div class="card mx-section-block">
+          <div class="mx-duration-card">
+            <div class="mx-duration-icon"><i class="ti ti-clock-hour-4"></i></div>
+            <div class="mx-duration-info">
+              <div class="metric-label">Duración media de la operación</div>
+              <div class="mx-duration-value" id="mx-duration-avg">—</div>
+              <div class="metric-delta neutral" id="mx-duration-sub">Tiempo medio que mantienes abierta una operación</div>
+            </div>
+          </div>
+          <div id="mx-duration-hint" class="mx-empty-hint" style="display:none;margin-top:14px">Añade la duración (en minutos) al crear o editar tus operaciones para ver esta métrica.</div>
+        </div>
+
+        <!-- 2C. DESGLOSE DE OPERACIONES: ratios, rachas, mejor/peor -->
         <div class="mx-three-col">
           <div class="card mx-section-block">
             <div class="mx-card-title"><i class="ti ti-percentage"></i>Ratios de acierto</div>
@@ -1835,19 +1848,6 @@ function initLandingFX(){
           <div class="mx-chip-row"><span onclick="gotoView('calendar')" style="cursor:pointer;font-size:12px;font-weight:700;color:var(--accent)">Ver calendario completo <i class="ti ti-arrow-right"></i></span></div>
         </div>
 
-        <!-- 7B. DURACIÓN MEDIA DE LA OPERACIÓN -->
-        <div class="card mx-section-block">
-          <div class="mx-duration-card">
-            <div class="mx-duration-icon"><i class="ti ti-clock-hour-4"></i></div>
-            <div class="mx-duration-info">
-              <div class="metric-label">Duración media de la operación</div>
-              <div class="mx-duration-value" id="mx-duration-avg">—</div>
-              <div class="metric-delta neutral" id="mx-duration-sub">Tiempo medio que mantienes abierta una operación</div>
-            </div>
-          </div>
-          <div id="mx-duration-hint" class="mx-empty-hint" style="display:none;margin-top:14px">Añade la duración (en minutos) al crear o editar tus operaciones para ver esta métrica.</div>
-        </div>
-
         <!-- 8. INFORMACIÓN RESUMIDA -->
         <div class="card mx-section-block">
           <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-list-details"></i>Información resumida</div>
@@ -1856,22 +1856,47 @@ function initLandingFX(){
             <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-target-arrow"></i></div><div class="metric-label">Expectancy</div><div class="metric-value" id="mx-exp">—</div><div class="metric-delta neutral">Beneficio neto ÷ Nº operaciones</div></div>
             <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-ratio"></i></div><div class="metric-label">R:R medio</div><div class="metric-value" id="mx-rr">—</div><div class="metric-delta neutral">Ganancia media ÷ Pérdida media</div></div>
           </div>
-          <div id="mx-summary-locked" class="mx-locked-panel mx-locked-inline" style="margin-top:14px">
-            <div class="mx-locked-icon">👑</div>
-            <div class="mx-locked-title">Drawdown, Recovery Factor y Riesgo — función Premium</div>
-            <div class="mx-locked-desc">Desbloquea el resto de información resumida con TradeDay Premium.</div>
-            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La información resumida avanzada')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
-          </div>
-          <div id="mx-summary-content" style="display:none;margin-top:14px">
-            <div class="mx-kpi-grid">
-              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-trending-down"></i></div><div class="metric-label">Drawdown máximo</div><div class="metric-value neg" id="mx-dd-max">—</div><div class="metric-delta neg" id="mx-dd-max-pct">—</div></div>
-              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-activity"></i></div><div class="metric-label">Drawdown actual</div><div class="metric-value" id="mx-dd-current">—</div><div class="metric-delta" id="mx-dd-current-pct">—</div></div>
-              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-rotate-clockwise"></i></div><div class="metric-label">Recovery Factor</div><div class="metric-value" id="mx-recovery">—</div><div class="metric-delta neutral">Beneficio neto ÷ Drawdown máximo</div></div>
-              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-half-filled"></i></div><div class="metric-label">Riesgo medio</div><div class="metric-value" id="mx-risk-avg">—</div></div>
-              <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-x"></i></div><div class="metric-label">Riesgo máximo</div><div class="metric-value" id="mx-risk-max">—</div></div>
+        </div>
+
+        <div id="mx-summary-locked" class="mx-locked-panel" style="margin-top:2px">
+          <div class="mx-locked-icon">👑</div>
+          <div class="mx-locked-title">Drawdown, Recovery Factor y Riesgo — función Premium</div>
+          <div class="mx-locked-desc">Desbloquea el resto de información resumida con TradeDay Premium.</div>
+          <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La información resumida avanzada')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+        </div>
+        <div id="mx-summary-content" style="display:none;flex-direction:column;gap:18px">
+          <div class="mx-two-col">
+            <div class="card mx-section-block">
+              <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-trending-down"></i>Drawdown y Recovery</div>
+              <div class="mx-kpi-grid">
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-trending-down"></i></div><div class="metric-label">Drawdown máximo</div><div class="metric-value neg" id="mx-dd-max">—</div><div class="metric-delta neg" id="mx-dd-max-pct">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-activity"></i></div><div class="metric-label">Drawdown actual</div><div class="metric-value" id="mx-dd-current">—</div><div class="metric-delta" id="mx-dd-current-pct">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-rotate-clockwise"></i></div><div class="metric-label">Recovery Factor</div><div class="metric-value" id="mx-recovery">—</div><div class="metric-delta neutral">Beneficio neto ÷ Drawdown máximo</div></div>
+              </div>
             </div>
-            <div id="mx-risk-hint" class="mx-empty-hint" style="display:none;margin-top:12px">Añade el % de riesgo al crear o editar tus operaciones para ver Riesgo medio/máximo.</div>
-            <div class="mx-chip-row" id="mx-activity-chips"></div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-shield-half-filled"></i>Riesgo</div>
+              <div class="mx-kpi-grid">
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-half-filled"></i></div><div class="metric-label">Riesgo medio</div><div class="metric-value" id="mx-risk-avg">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-x"></i></div><div class="metric-label">Riesgo máximo</div><div class="metric-value" id="mx-risk-max">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-check"></i></div><div class="metric-label">Riesgo mínimo</div><div class="metric-value" id="mx-risk-min">—</div></div>
+              </div>
+              <div id="mx-risk-hint" class="mx-empty-hint" style="display:none;margin-top:12px">Añade el % de riesgo al crear o editar tus operaciones para ver el Riesgo medio/máximo/mínimo.</div>
+            </div>
+          </div>
+          <div class="mx-three-col">
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-percentage"></i>Resultado medio (%)</div>
+              <div class="mx-chip-row" id="mx-summary-avgpct-chips" style="border-top:none;margin-top:0;padding-top:0"></div>
+            </div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Actividad</div>
+              <div class="mx-chip-row" id="mx-summary-activity-chips" style="border-top:none;margin-top:0;padding-top:0"></div>
+            </div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-flame"></i>Consistencia de rachas</div>
+              <div class="mx-chip-row" id="mx-summary-streaks-chips" style="border-top:none;margin-top:0;padding-top:0"></div>
+            </div>
           </div>
         </div>
 
@@ -6257,20 +6282,26 @@ function mxRenderSummary(m){
   if(riskHint)riskHint.style.display=hasRisk?'none':'block';
   setText('mx-risk-avg',hasRisk?mxFmtPlainPct(m.riesgo.riskAvg):'—');
   setText('mx-risk-max',hasRisk?mxFmtPlainPct(m.riesgo.riskMax):'—');
+  setText('mx-risk-min',hasRisk?mxFmtPlainPct(m.riesgo.riskMin):'—');
 
-  const actEl=document.getElementById('mx-activity-chips');
-  if(actEl)actEl.innerHTML=`
-    <div class="mx-chip">Riesgo mínimo <strong>${hasRisk?mxFmtPlainPct(m.riesgo.riskMin):'—'}</strong></div>
+  const avgPctEl=document.getElementById('mx-summary-avgpct-chips');
+  if(avgPctEl)avgPctEl.innerHTML=`
     <div class="mx-chip pos">Ganancia media (%) <strong>${mxFmtPlainPct(m.riesgo.avgWinPct)}</strong></div>
-    <div class="mx-chip neg">Pérdida media (%) <strong>${mxFmtPlainPct(m.riesgo.avgLossPct)}</strong></div>
+    <div class="mx-chip neg">Pérdida media (%) <strong>${mxFmtPlainPct(m.riesgo.avgLossPct)}</strong></div>`;
+
+  const activityEl=document.getElementById('mx-summary-activity-chips');
+  if(activityEl)activityEl.innerHTML=`
     <div class="mx-chip">Ops/día <strong>${mxFmtCount(m.generales.opsPerDay)}</strong></div>
     <div class="mx-chip">Ops/semana <strong>${mxFmtCount(m.generales.opsPerWeek)}</strong></div>
     <div class="mx-chip">Ops/mes <strong>${mxFmtCount(m.generales.opsPerMonth)}</strong></div>
-    <div class="mx-chip">Duración media entre ops. <strong>${mxFmtDays(m.generales.avgDaysBetween)}</strong></div>
     <div class="mx-chip">Ops/sesión <strong>${mxFmtCount(m.generales.opsPerSession)}</strong></div>
-    <div class="mx-chip pos">% en racha ganadora máx. <strong>${m.meta.total?m.generales.pctMaxWinStreak+'%':'—'}</strong></div>
-    <div class="mx-chip neg">% en racha perdedora máx. <strong>${m.meta.total?m.generales.pctMaxLossStreak+'%':'—'}</strong></div>
+    <div class="mx-chip">Duración media entre ops. <strong>${mxFmtDays(m.generales.avgDaysBetween)}</strong></div>
     <div class="mx-chip">Días con Journal sin operar <strong>${m.temporal.journalOnlyDays}</strong></div>`;
+
+  const streaksPctEl=document.getElementById('mx-summary-streaks-chips');
+  if(streaksPctEl)streaksPctEl.innerHTML=`
+    <div class="mx-chip pos">% en racha ganadora máx. <strong>${m.meta.total?m.generales.pctMaxWinStreak+'%':'—'}</strong></div>
+    <div class="mx-chip neg">% en racha perdedora máx. <strong>${m.meta.total?m.generales.pctMaxLossStreak+'%':'—'}</strong></div>`;
 }
 
 function mxRenderDuration(m){
