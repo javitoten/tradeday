@@ -278,8 +278,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .account-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
 .account-type-card{background:var(--bg3);border:2px solid var(--border2);border-radius:var(--radius-lg);padding:18px 14px;text-align:center;cursor:pointer;transition:all .2s}
 .account-type-card:hover{border-color:var(--border3)}
-.account-type-card.selected-real{border-color:var(--green);background:var(--green-bg)}
-.account-type-card.selected-funded{border-color:var(--purple);background:var(--purple-bg)}
+.account-type-card.selected{border-color:var(--accent);background:var(--green-bg)}
 .pricing-card{position:relative;background:var(--bg3);border:2px solid var(--border2);border-radius:var(--radius-lg);padding:18px 16px;text-align:center;cursor:pointer;transition:all .2s}
 .pricing-card:hover{border-color:var(--border3)}
 .pricing-card.selected{border-color:var(--accent);background:var(--green-bg)}
@@ -379,6 +378,9 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .account-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .account-dot.real{background:var(--green)}
 .account-dot.funded{background:var(--purple)}
+.account-dot.evaluation{background:var(--amber)}
+.account-dot.demo{background:var(--text3)}
+.account-dot.custom{background:var(--blue)}
 .account-chip-name{font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .account-chip-capital{font-size:11px;color:var(--text3)}
 .add-account-btn{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:var(--radius);color:var(--text3);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;margin:2px 0}
@@ -930,6 +932,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   initLandingFX();
   if(typeof initTechDropdowns==='function')initTechDropdowns();
+  if(typeof initAccountTypeGrids==='function')initAccountTypeGrids();
 });
 
 /* ── Landing page: aparición progresiva al hacer scroll + nav flotante ──
@@ -1336,18 +1339,7 @@ function initLandingFX(){
       <div class="onboarding-step" id="ob-step-1">
         <h2 class="onboarding-title" style="margin-bottom:6px">¿Qué tipo de cuenta es?</h2>
         <p class="onboarding-sub" style="margin-bottom:20px">Podrás añadir más cuentas después.</p>
-        <div class="account-type-grid" style="margin-bottom:16px">
-          <div class="account-type-card selected-real" id="ob-at-real" onclick="obSelectType('real')">
-            <div class="account-type-icon">💰</div>
-            <div class="account-type-title">Cuenta real</div>
-            <div class="account-type-sub">Capital propio</div>
-          </div>
-          <div class="account-type-card" id="ob-at-funded" onclick="obSelectType('funded')">
-            <div class="account-type-icon">🏦</div>
-            <div class="account-type-title">Cuenta fondeada</div>
-            <div class="account-type-sub">Prop firm / FTMO...</div>
-          </div>
-        </div>
+        <div class="account-type-grid" style="margin-bottom:16px" id="ob-type-grid"></div>
         <div class="form-group">
           <label class="form-label">Nombre de la cuenta</label>
           <input class="form-input" id="ob-account-name" placeholder="Ej: FTMO Principal, Pepperstone..." maxlength="60">
@@ -1409,6 +1401,7 @@ function initLandingFX(){
         <div class="sidebar-item" onclick="gotoView('calendar')" id="si-calendar"><i class="ti ti-calendar"></i>Calendario</div>
         <div class="sidebar-item" onclick="gotoView('ops')" id="si-ops"><i class="ti ti-list"></i>Mis operaciones</div>
         <div class="sidebar-item" onclick="gotoView('metrics')" id="si-metrics"><i class="ti ti-chart-bar"></i>Métricas</div>
+        <div class="sidebar-item" onclick="gotoView('balance')" id="si-balance"><i class="ti ti-wallet"></i>Balance</div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-item" onclick="gotoView('plan')" id="si-plan"><i class="ti ti-target"></i>Mi plan</div>
         <div class="sidebar-item" onclick="gotoView('routine')" id="si-routine"><i class="ti ti-sun"></i>Mi rutina</div>
@@ -1924,6 +1917,75 @@ function initLandingFX(){
 
       </div>
 
+      <!-- BALANCE -->
+      <div id="view-balance" style="display:none;flex-direction:column;gap:18px">
+        <div class="welcome-bar">
+          <div><div class="section-title" style="font-size:17px">Balance</div><div class="section-sub">Tu historial económico real: cuánto has invertido, recuperado y ganado</div></div>
+          <button class="btn btn-primary" onclick="openBalanceEventForm()"><i class="ti ti-plus"></i>Añadir movimiento</button>
+        </div>
+
+        <div class="card mx-section-block">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-report-money"></i>Resumen — fondeo</div>
+              <div class="mx-card-sub">Cuentas de evaluación y fondeadas (las cuentas demo no se incluyen)</div>
+            </div>
+          </div>
+          <div class="mx-kpi-grid">
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-arrow-down-circle"></i></div><div class="metric-label">Invertido en fondeo</div><div class="metric-value" id="bal-kpi-invested">—</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-arrow-up-circle"></i></div><div class="metric-label">Recuperado (payouts)</div><div class="metric-value" id="bal-kpi-recovered">—</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-scale"></i></div><div class="metric-label">Balance neto fondeo</div><div class="metric-value" id="bal-kpi-net">—</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-percentage"></i></div><div class="metric-label">ROI fondeo</div><div class="metric-value" id="bal-kpi-roi">—</div></div>
+          </div>
+          <div class="mx-kpi-grid" style="margin-top:12px">
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-credit-card"></i></div><div class="metric-label">Cuentas compradas</div><div class="metric-value" id="bal-kpi-bought">—</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-circle-check"></i></div><div class="metric-label">Cuentas aprobadas</div><div class="metric-value" id="bal-kpi-passed">—</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-circle-x"></i></div><div class="metric-label">Cuentas perdidas</div><div class="metric-value" id="bal-kpi-lost">—</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-bolt"></i></div><div class="metric-label">Fondeadas activas</div><div class="metric-value" id="bal-kpi-active-funded">—</div></div>
+          </div>
+        </div>
+
+        <div class="card mx-section-block" id="bal-own-capital-card" style="display:none">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-wallet"></i>Capital propio</div>
+              <div class="mx-card-sub">Evolución patrimonial de tus cuentas de capital propio</div>
+            </div>
+          </div>
+          <div class="mx-kpi-grid" id="bal-own-kpi-grid"></div>
+        </div>
+
+        <div class="card mx-section-block">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-chart-line"></i>Balance acumulado</div>
+              <div class="mx-card-sub">Evolución de tu balance neto a lo largo del tiempo (todas las cuentas)</div>
+            </div>
+          </div>
+          <div class="mx-chart-wrap" style="height:260px"><canvas id="bal-chart-equity"></canvas></div>
+        </div>
+
+        <div class="card mx-section-block">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-building-bank"></i>Tus cuentas</div>
+              <div class="mx-card-sub">Estado, tipo y balance de cada cuenta</div>
+            </div>
+          </div>
+          <div id="bal-accounts-list" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <div class="card mx-section-block">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-history"></i>Historial de movimientos</div>
+              <div class="mx-card-sub">Costes, payouts, aportaciones y retiradas registrados</div>
+            </div>
+          </div>
+          <div id="bal-events-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+
       <!-- PLAN -->
       <div id="view-plan" style="display:none;flex-direction:column;gap:20px">
 
@@ -2389,16 +2451,33 @@ function initLandingFX(){
   <div class="modal" style="max-width:420px">
     <div class="modal-header"><div class="modal-title">Añadir cuenta</div><button class="modal-close" onclick="closeModal('modal-add-account')"><i class="ti ti-x"></i></button></div>
     <div class="modal-body">
-      <div class="account-type-grid">
-        <div class="account-type-card selected-real" id="new-at-real" onclick="newAccType('real')"><div class="account-type-icon">💰</div><div class="account-type-title">Cuenta real</div><div class="account-type-sub">Capital propio</div></div>
-        <div class="account-type-card" id="new-at-funded" onclick="newAccType('funded')"><div class="account-type-icon">🏦</div><div class="account-type-title">Cuenta fondeada</div><div class="account-type-sub">Prop firm / FTMO...</div></div>
-      </div>
+      <div class="account-type-grid" id="new-type-grid"></div>
       <div class="form-group"><label class="form-label">Nombre de la cuenta</label><input class="form-input" id="new-acc-name" placeholder="Ej: FTMO #2, IC Markets..." maxlength="60"></div>
       <div class="form-group"><label class="form-label">Capital inicial ($)</label><input class="form-input" type="number" id="new-acc-capital" placeholder="Ej: 10000" min="1" max="100000000" step="0.01"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-add-account')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveNewAccount()"><i class="ti ti-plus"></i>Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- BALANCE: añadir/editar movimiento -->
+<div class="modal-overlay" id="modal-balance-event" style="display:none" onclick="if(event.target===this)closeModal('modal-balance-event')">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title" id="bal-event-modal-title">Añadir movimiento</div><button class="modal-close" onclick="closeModal('modal-balance-event')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Cuenta</label><select class="form-select" id="bal-ev-account"></select></div>
+      <div class="form-group"><label class="form-label">Tipo de movimiento</label><select class="form-select" id="bal-ev-type"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="bal-ev-date"></div>
+        <div class="form-group"><label class="form-label">Importe ($)</label><input class="form-input" type="number" id="bal-ev-amount" placeholder="Ej: 99" min="0.01" max="100000000" step="0.01"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notas <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><textarea class="form-input" id="bal-ev-notes" rows="2" maxlength="300" placeholder="Ej: 2º intento tras fallar por drawdown"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-balance-event')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBalanceEvent()" id="bal-ev-save-btn"><i class="ti ti-device-floppy"></i>Guardar movimiento</button>
     </div>
   </div>
 </div>
@@ -2670,12 +2749,42 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&currentUser)resetInactivity();
 });
 
-/* ── ONBOARDING ── */
-function obSelectType(type){
-  obAccountType=type;
-  document.getElementById('ob-at-real').className='account-type-card'+(type==='real'?' selected-real':'');
-  document.getElementById('ob-at-funded').className='account-type-card'+(type==='funded'?' selected-funded':'');
+/* ── TIPOS DE CUENTA (usados en onboarding, modal "Añadir cuenta" y Balance) ── */
+const ACCOUNT_TYPES=[
+  {key:'real',icon:'💰',title:'Cuenta propia',sub:'Capital propio'},
+  {key:'evaluation',icon:'🎯',title:'Evaluación de fondeo',sub:'Challenge en curso'},
+  {key:'funded',icon:'🏦',title:'Cuenta fondeada',sub:'Prop firm activa'},
+  {key:'demo',icon:'🧪',title:'Demo',sub:'Cuenta de práctica'},
+  {key:'custom',icon:'📁',title:'Otra',sub:'Personalizada'},
+];
+function accountTypeInfo(type){return ACCOUNT_TYPES.find(t=>t.key===type)||ACCOUNT_TYPES[0];}
+function accountTypeLabel(type){return accountTypeInfo(type).title;}
+function accountTypeIcon(type){return accountTypeInfo(type).icon;}
+function accountTypeGridHTML(prefix,selected){
+  return ACCOUNT_TYPES.map(t=>`<div class="account-type-card${t.key===selected?' selected':''}" id="${prefix}-at-${t.key}" onclick="selectAccountType('${prefix}','${t.key}')"><div class="account-type-icon">${t.icon}</div><div class="account-type-title">${esc(t.title)}</div><div class="account-type-sub">${esc(t.sub)}</div></div>`).join('');
 }
+function selectAccountType(prefix,type){
+  if(prefix==='ob')obAccountType=type;else if(prefix==='new')newAccType_val=type;
+  const grid=document.getElementById(prefix+'-type-grid');
+  if(!grid)return;
+  grid.querySelectorAll('.account-type-card').forEach(c=>{c.classList.toggle('selected',c.id===`${prefix}-at-${type}`);});
+}
+const ACCOUNT_STATUSES=[
+  {key:'active',label:'Activa'},
+  {key:'passed',label:'Aprobada'},
+  {key:'failed',label:'Fallida'},
+  {key:'lost',label:'Perdida'},
+  {key:'closed',label:'Cerrada'},
+];
+function accountStatusLabel(status){const s=ACCOUNT_STATUSES.find(x=>x.key===status);return s?s.label:'Activa';}
+function initAccountTypeGrids(){
+  const ob=document.getElementById('ob-type-grid');
+  if(ob&&!ob.dataset.built){ob.innerHTML=accountTypeGridHTML('ob','real');ob.dataset.built='1';}
+  const nw=document.getElementById('new-type-grid');
+  if(nw&&!nw.dataset.built){nw.innerHTML=accountTypeGridHTML('new','real');nw.dataset.built='1';}
+}
+
+/* ── ONBOARDING ── */
 function obNext(){
   if(obStep===0){ obStep=1; }
   else if(obStep===1){
@@ -2726,7 +2835,7 @@ function renderAccountsSidebar(){
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:8px">
           <div class="account-dot ${a.type}"></div>
-          <div><div style="font-size:13px;font-weight:600">${esc(a.name)}</div><div style="font-size:11px;color:var(--text3)">${a.type==='funded'?'Fondeada':'Real'} · ${fmtMoney(a.capital)}</div></div>
+          <div><div style="font-size:13px;font-weight:600">${esc(a.name)}</div><div style="font-size:11px;color:var(--text3)">${accountTypeLabel(a.type)} · ${fmtMoney(a.capital)}</div></div>
         </div>
         <button class="icon-btn danger" onclick="deleteAccount('${a.id}')"><i class="ti ti-trash"></i></button>
       </div>`).join('');
@@ -2738,11 +2847,6 @@ async function switchAccount(id){
   renderAccountsSidebar();
   updateDashboardAccountInfo();
   toast('Cuenta cambiada');
-}
-function newAccType(type){
-  newAccType_val=type;
-  document.getElementById('new-at-real').className='account-type-card'+(type==='real'?' selected-real':'');
-  document.getElementById('new-at-funded').className='account-type-card'+(type==='funded'?' selected-funded':'');
 }
 async function saveNewAccount(){
   const name=document.getElementById('new-acc-name').value.trim().slice(0,60);
@@ -2765,6 +2869,7 @@ async function deleteAccount(id){
   if(!confirm('¿Eliminar esta cuenta y todos sus datos?'))return;
   await sb.from('trades').delete().eq('account_id',id);
   await sb.from('journals').delete().eq('account_id',id);
+  await sb.from('balance_events').delete().eq('account_id',id);
   await sb.from('accounts').delete().eq('id',id);
   allAccounts=allAccounts.filter(a=>a.id!==id);
   if(currentAccountId===id)currentAccountId=allAccounts[0]?.id||null;
@@ -2789,6 +2894,304 @@ function currentCapitalBeforeTrade(excludeTradeId){
     }
   });
   return (acc.capital||0)+pnl;
+}
+
+/* ══════════════════ BALANCE ══════════════════
+   Historial económico real del trader: cuánto ha costado llegar hasta donde está
+   (evaluaciones, reintentos, coste de acceso a cuentas fondeadas), cuánto ha
+   recuperado (payouts, reembolsos) y, para capital propio, su evolución
+   patrimonial (aportaciones, retiradas, P&L de trading). Todo se apoya en una
+   única tabla ledger (`balance_events`) + los tipos de cuenta ya existentes. */
+const BALANCE_EVENT_TYPES=[
+  {key:'eval_cost',label:'Coste de evaluación',dir:'out',bucket:'cost'},
+  {key:'retry_cost',label:'Coste de reinicio / retry',dir:'out',bucket:'cost'},
+  {key:'funded_cost',label:'Coste inicial cuenta fondeada',dir:'out',bucket:'cost'},
+  {key:'fee',label:'Comisión',dir:'out',bucket:'cost'},
+  {key:'other_cost',label:'Otro coste',dir:'out',bucket:'cost'},
+  {key:'payout',label:'Payout',dir:'in',bucket:'income'},
+  {key:'refund',label:'Reembolso',dir:'in',bucket:'income'},
+  {key:'other_income',label:'Otro ingreso',dir:'in',bucket:'income'},
+  {key:'deposit',label:'Aportación de capital',dir:'in',bucket:'capital'},
+  {key:'withdrawal',label:'Retirada de beneficios',dir:'out',bucket:'capital'},
+];
+function balanceEventInfo(type){return BALANCE_EVENT_TYPES.find(t=>t.key===type)||BALANCE_EVENT_TYPES[0];}
+function balanceEventLabel(type){return balanceEventInfo(type).label;}
+function balanceEventSignedAmount(ev){const info=balanceEventInfo(ev.type);const n=parseFloat(ev.amount)||0;return info.dir==='in'?n:-n;}
+
+let allBalanceEvents=[];
+let balanceTradesCache=[]; // {account_id, amount, date} de TODAS las cuentas del usuario (no solo la activa), solo para Balance
+let editingBalanceEventId=null;
+
+async function loadBalanceEvents(){
+  if(!currentUser)return;
+  const{data}=await sb.from('balance_events').select('*').eq('user_id',currentUser.id).order('date',{ascending:false});
+  allBalanceEvents=data||[];
+}
+async function loadBalanceTrades(){
+  if(!currentUser)return;
+  const{data}=await sb.from('trades').select('account_id,amount,date').eq('user_id',currentUser.id);
+  balanceTradesCache=data||[];
+}
+
+function balanceEventTypeOptionsHTML(){
+  const groups=[['cost','Costes'],['income','Ingresos'],['capital','Cuenta propia']];
+  return groups.map(([bucket,label])=>`<optgroup label="${esc(label)}">${BALANCE_EVENT_TYPES.filter(t=>t.bucket===bucket).map(t=>`<option value="${t.key}">${esc(t.label)}</option>`).join('')}</optgroup>`).join('');
+}
+function openBalanceEventForm(accountId){
+  if(!allAccounts.length){toast('Crea antes una cuenta');return;}
+  editingBalanceEventId=null;
+  document.getElementById('bal-event-modal-title').textContent='Añadir movimiento';
+  document.getElementById('bal-ev-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar movimiento';
+  const accSel=document.getElementById('bal-ev-account');
+  accSel.innerHTML=allAccounts.map(a=>`<option value="${a.id}">${esc(a.name)} (${esc(accountTypeLabel(a.type))})</option>`).join('');
+  accSel.value=accountId||currentAccountId||(allAccounts[0]&&allAccounts[0].id)||'';
+  document.getElementById('bal-ev-type').innerHTML=balanceEventTypeOptionsHTML();
+  document.getElementById('bal-ev-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('bal-ev-amount').value='';
+  document.getElementById('bal-ev-notes').value='';
+  openModal('modal-balance-event');
+}
+function editBalanceEvent(id){
+  const ev=allBalanceEvents.find(e=>e.id===id);
+  if(!ev)return;
+  editingBalanceEventId=id;
+  document.getElementById('bal-event-modal-title').textContent='Editar movimiento';
+  document.getElementById('bal-ev-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar cambios';
+  const accSel=document.getElementById('bal-ev-account');
+  accSel.innerHTML=allAccounts.map(a=>`<option value="${a.id}">${esc(a.name)} (${esc(accountTypeLabel(a.type))})</option>`).join('');
+  accSel.value=ev.account_id;
+  document.getElementById('bal-ev-type').innerHTML=balanceEventTypeOptionsHTML();
+  document.getElementById('bal-ev-type').value=ev.type;
+  document.getElementById('bal-ev-date').value=ev.date;
+  document.getElementById('bal-ev-amount').value=ev.amount;
+  document.getElementById('bal-ev-notes').value=ev.notes||'';
+  openModal('modal-balance-event');
+}
+async function saveBalanceEvent(){
+  const account_id=document.getElementById('bal-ev-account').value;
+  const type=document.getElementById('bal-ev-type').value;
+  const date=document.getElementById('bal-ev-date').value;
+  const amount=parseFloat(document.getElementById('bal-ev-amount').value);
+  const notes=document.getElementById('bal-ev-notes').value.trim().slice(0,300);
+  if(!account_id||!date){toast('Selecciona cuenta y fecha');return;}
+  if(!Number.isFinite(amount)||amount<=0||amount>100000000){toast('Introduce un importe válido');return;}
+  const payload={account_id,type,date,amount,notes};
+  let error;
+  if(editingBalanceEventId){
+    ({error}=await sb.from('balance_events').update(payload).eq('id',editingBalanceEventId));
+  } else {
+    ({error}=await sb.from('balance_events').insert({user_id:currentUser.id,...payload}));
+  }
+  if(error){toast(friendlyDbError(error));return;}
+  closeModal('modal-balance-event');
+  toast(editingBalanceEventId?'Movimiento actualizado ✓':'Movimiento guardado ✓');
+  editingBalanceEventId=null;
+  await renderBalancePage();
+}
+async function deleteBalanceEvent(id){
+  if(!confirm('¿Eliminar este movimiento?'))return;
+  await sb.from('balance_events').delete().eq('id',id);
+  toast('Movimiento eliminado');
+  await renderBalancePage();
+}
+async function updateAccountStatus(accountId,status){
+  const{error}=await sb.from('accounts').update({status}).eq('id',accountId);
+  if(error){toast(friendlyDbError(error));return;}
+  const acc=allAccounts.find(a=>a.id===accountId);
+  if(acc)acc.status=status;
+  await renderBalancePage();
+}
+async function promoteAccountToFunded(accountId){
+  const{error}=await sb.from('accounts').update({type:'funded',status:'active'}).eq('id',accountId);
+  if(error){toast(friendlyDbError(error));return;}
+  const acc=allAccounts.find(a=>a.id===accountId);
+  if(acc){acc.type='funded';acc.status='active';}
+  toast('Cuenta pasada a fondeada ✓');
+  renderAccountsSidebar();
+  await renderBalancePage();
+}
+
+// Calcula todo lo necesario para pintar Balance: por cuenta y agregados globales.
+// Ninguna cifra de "invertido/recuperado" para cuentas de fondeo depende del P&L de
+// trading (que es virtual hasta que se cobra un payout) — solo de movimientos de
+// dinero real registrados en balance_events. El P&L de trading solo se usa para
+// las cuentas de capital propio, donde sí representa dinero real de la cuenta.
+function computeBalanceData(){
+  const FUNDED_TYPES=['evaluation','funded'];
+  const OWN_TYPES=['real','custom'];
+  const perAccount=allAccounts.map(acc=>{
+    const events=allBalanceEvents.filter(e=>e.account_id===acc.id);
+    const invested=events.filter(e=>balanceEventInfo(e.type).bucket==='cost').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    const recovered=events.filter(e=>balanceEventInfo(e.type).bucket==='income').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    const deposits=events.filter(e=>e.type==='deposit').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    const withdrawals=events.filter(e=>e.type==='withdrawal').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    const tradesPnl=balanceTradesCache.filter(t=>t.account_id===acc.id).reduce((s,t)=>{
+      const n=parseFloat(String(t.amount||'').replace(/[^0-9.\-]/g,''));
+      return s+(isNaN(n)?0:n);
+    },0);
+    const net=recovered-invested;
+    const roi=invested>0?(net/invested*100):null;
+    const capitalActual=(acc.capital||0)+tradesPnl+deposits-withdrawals;
+    return{account:acc,events,invested,recovered,deposits,withdrawals,tradesPnl,net,roi,capitalActual};
+  });
+  const fundedRows=perAccount.filter(r=>FUNDED_TYPES.includes(r.account.type));
+  const ownRows=perAccount.filter(r=>OWN_TYPES.includes(r.account.type));
+  const totalInvested=fundedRows.reduce((s,r)=>s+r.invested,0);
+  const totalRecovered=fundedRows.reduce((s,r)=>s+r.recovered,0);
+  const totalNet=totalRecovered-totalInvested;
+  const totalRoi=totalInvested>0?(totalNet/totalInvested*100):null;
+  const bought=fundedRows.length;
+  const passed=fundedRows.filter(r=>r.account.status==='passed'||r.account.type==='funded').length;
+  const lost=fundedRows.filter(r=>['failed','lost'].includes(r.account.status)).length;
+  const activeFunded=fundedRows.filter(r=>r.account.type==='funded'&&r.account.status==='active').length;
+  const ownInitial=ownRows.reduce((s,r)=>s+(r.account.capital||0),0);
+  const ownPnl=ownRows.reduce((s,r)=>s+r.tradesPnl,0);
+  const ownDeposits=ownRows.reduce((s,r)=>s+r.deposits,0);
+  const ownWithdrawals=ownRows.reduce((s,r)=>s+r.withdrawals,0);
+  const ownCurrent=ownInitial+ownPnl+ownDeposits-ownWithdrawals;
+  // Línea de balance acumulado: todos los balance_events (con signo) + el P&L de
+  // trading SOLO de cuentas de capital propio (para fondeo, el P&L no es dinero real).
+  const timelineItems=[];
+  allBalanceEvents.forEach(e=>timelineItems.push({date:e.date,delta:balanceEventSignedAmount(e)}));
+  balanceTradesCache.forEach(t=>{
+    const acc=allAccounts.find(a=>a.id===t.account_id);
+    if(!acc||!OWN_TYPES.includes(acc.type))return;
+    const n=parseFloat(String(t.amount||'').replace(/[^0-9.\-]/g,''));
+    if(!isNaN(n))timelineItems.push({date:t.date,delta:n});
+  });
+  timelineItems.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  let running=0;
+  const timeline=timelineItems.map(it=>{running+=it.delta;return{date:it.date,cumulative:running};});
+  return{
+    perAccount,fundedRows,ownRows,
+    totals:{invested:totalInvested,recovered:totalRecovered,net:totalNet,roi:totalRoi,bought,passed,lost,activeFunded},
+    own:{initial:ownInitial,pnl:ownPnl,deposits:ownDeposits,withdrawals:ownWithdrawals,current:ownCurrent,netAfterWithdrawals:ownPnl-ownWithdrawals},
+    timeline,
+  };
+}
+
+async function renderBalancePage(){
+  if(!currentUser)return;
+  await Promise.all([loadBalanceEvents(),loadBalanceTrades()]);
+  const d=computeBalanceData();
+  const{totals,own,perAccount,timeline}=d;
+
+  setText('bal-kpi-invested',fmtMoney(totals.invested));
+  setText('bal-kpi-recovered',fmtMoney(totals.recovered));
+  const netEl=document.getElementById('bal-kpi-net');
+  if(netEl){netEl.textContent=(totals.net>=0?'+':'')+fmtMoney(totals.net);netEl.className='metric-value '+(totals.net>0?'pos':totals.net<0?'neg':'neutral');}
+  setText('bal-kpi-roi',totals.roi===null?'—':(totals.roi>=0?'+':'')+totals.roi.toFixed(1)+'%');
+  setText('bal-kpi-bought',totals.bought);
+  setText('bal-kpi-passed',totals.passed);
+  setText('bal-kpi-lost',totals.lost);
+  setText('bal-kpi-active-funded',totals.activeFunded);
+
+  const ownCard=document.getElementById('bal-own-capital-card');
+  const ownGrid=document.getElementById('bal-own-kpi-grid');
+  if(d.ownRows.length&&ownCard&&ownGrid){
+    ownCard.style.display='block';
+    ownGrid.innerHTML=`
+      <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-cash"></i></div><div class="metric-label">Capital inicial</div><div class="metric-value">${fmtMoney(own.initial)}</div></div>
+      <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-wallet"></i></div><div class="metric-label">Capital actual</div><div class="metric-value">${fmtMoney(own.current)}</div></div>
+      <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-trending-up"></i></div><div class="metric-label">Beneficio neto (trading)</div><div class="metric-value ${own.pnl>0?'pos':own.pnl<0?'neg':'neutral'}">${own.pnl>=0?'+':''}${fmtMoney(own.pnl)}</div></div>
+      <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-arrow-bar-to-down"></i></div><div class="metric-label">Retiradas</div><div class="metric-value">${fmtMoney(own.withdrawals)}</div></div>
+      <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-arrow-bar-to-up"></i></div><div class="metric-label">Aportaciones</div><div class="metric-value">${fmtMoney(own.deposits)}</div></div>
+      <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-scale"></i></div><div class="metric-label">Balance real (tras retiradas)</div><div class="metric-value ${own.netAfterWithdrawals>0?'pos':own.netAfterWithdrawals<0?'neg':'neutral'}">${own.netAfterWithdrawals>=0?'+':''}${fmtMoney(own.netAfterWithdrawals)}</div></div>`;
+  } else if(ownCard){
+    ownCard.style.display='none';
+  }
+
+  // Gráfica de balance acumulado
+  if(timeline.length){
+    const labels=timeline.map(p=>mxFmtShortDate(p.date));
+    const values=timeline.map(p=>Math.round(p.cumulative));
+    const lineColor=mxCssVar('--accent')||'#22C55E';
+    mxMakeChart('bal-chart-equity',{
+      type:'line',
+      data:{labels,datasets:[{data:values,borderColor:lineColor,backgroundColor:mxHexAlpha(lineColor,0.12),borderWidth:2,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...mxTooltipBase(),callbacks:{label:c=>fmtMoney(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),maxTicksLimit:8}},y:{grid:{color:mxCssVar('--border2')},ticks:{color:mxCssVar('--text3'),callback:v=>fmtMoney(v)}}}}
+    });
+  } else {
+    mxDestroyChart('bal-chart-equity');
+  }
+
+  // Listado de cuentas
+  const accWrap=document.getElementById('bal-accounts-list');
+  if(accWrap){
+    if(!perAccount.length){
+      accWrap.innerHTML='<div class="we-empty">Todavía no tienes cuentas. Crea una desde el selector de cuentas.</div>';
+    } else {
+      accWrap.innerHTML=perAccount.map(r=>{
+        const acc=r.account;
+        const isFunded=['evaluation','funded'].includes(acc.type);
+        const isDemo=acc.type==='demo';
+        const statOpts=ACCOUNT_STATUSES.map(s=>`<option value="${s.key}"${acc.status===s.key?' selected':''}>${esc(s.label)}</option>`).join('');
+        let statsHTML='';
+        if(isFunded){
+          statsHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--text2)">
+            <span>Invertido: <strong style="color:var(--text)">${fmtMoney(r.invested)}</strong></span>
+            <span>Recuperado: <strong style="color:var(--text)">${fmtMoney(r.recovered)}</strong></span>
+            <span>Neto: <strong class="${r.net>0?'pos':r.net<0?'neg':'neutral'}">${r.net>=0?'+':''}${fmtMoney(r.net)}</strong></span>
+            <span>ROI: <strong>${r.roi===null?'—':(r.roi>=0?'+':'')+r.roi.toFixed(1)+'%'}</strong></span>
+          </div>`;
+        } else if(!isDemo){
+          statsHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--text2)">
+            <span>Capital actual: <strong style="color:var(--text)">${fmtMoney(r.capitalActual)}</strong></span>
+            <span>P&amp;L trading: <strong class="${r.tradesPnl>0?'pos':r.tradesPnl<0?'neg':'neutral'}">${r.tradesPnl>=0?'+':''}${fmtMoney(r.tradesPnl)}</strong></span>
+            <span>Retiradas: <strong style="color:var(--text)">${fmtMoney(r.withdrawals)}</strong></span>
+          </div>`;
+        }
+        const promoteBtn=acc.type==='evaluation'?`<button class="btn btn-ghost btn-sm" onclick="promoteAccountToFunded('${acc.id}')" title="Marcar como aprobada y pasar a cuenta fondeada"><i class="ti ti-arrow-up-circle"></i>Pasar a fondeada</button>`:'';
+        return `<div class="entry-row" style="flex-direction:column;align-items:stretch;gap:8px;padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:16px">${accountTypeIcon(acc.type)}</span>
+              <strong>${esc(acc.name)}</strong>
+              <span style="font-size:11.5px;color:var(--text3)">${esc(accountTypeLabel(acc.type))}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              ${isDemo?'':`<select class="form-select bal-status-select" data-account-id="${acc.id}" style="padding:4px 8px;font-size:12px;width:auto">${statOpts}</select>`}
+              <button class="btn btn-ghost btn-sm" onclick="openBalanceEventForm('${acc.id}')"><i class="ti ti-plus"></i>Movimiento</button>
+              ${promoteBtn}
+            </div>
+          </div>
+          ${statsHTML}
+        </div>`;
+      }).join('');
+      accWrap.querySelectorAll('select.bal-status-select').forEach(sel=>{
+        sel.onchange=()=>updateAccountStatus(sel.dataset.accountId,sel.value);
+      });
+    }
+  }
+
+  // Historial de movimientos
+  const evWrap=document.getElementById('bal-events-list');
+  if(evWrap){
+    if(!allBalanceEvents.length){
+      evWrap.innerHTML='<div class="we-empty">Todavía no has registrado ningún movimiento.</div>';
+    } else {
+      evWrap.innerHTML=allBalanceEvents.map(ev=>{
+        const acc=allAccounts.find(a=>a.id===ev.account_id);
+        const info=balanceEventInfo(ev.type);
+        const signed=balanceEventSignedAmount(ev);
+        return `<div class="entry-row" style="align-items:center;padding:10px 12px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <strong style="font-size:13px">${esc(info.label)}</strong>
+              <span style="font-size:11.5px;color:var(--text3)">${acc?esc(acc.name):'—'}</span>
+              <span style="font-size:11.5px;color:var(--text3)">${esc(ev.date)}</span>
+            </div>
+            ${ev.notes?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${esc(ev.notes)}</div>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <strong class="${signed>0?'pos':'neg'}">${signed>0?'+':''}${fmtMoney(signed)}</strong>
+            <button class="btn btn-ghost btn-sm" onclick="editBalanceEvent('${ev.id}')"><i class="ti ti-pencil"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteBalanceEvent('${ev.id}')"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
 }
 
 // Convierte un string numérico "sucio" (de datos antiguos, con formatos
@@ -3330,7 +3733,8 @@ function updateDashboardAccountInfo(){
   if(wa)wa.textContent=acc?acc.name:'—';
   const badge=document.getElementById('account-type-badge');
   if(badge&&acc){
-    badge.innerHTML=`<span style="display:inline-flex;align-items:center;gap:5px;margin-top:5px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;${acc.type==='funded'?'background:var(--purple-bg);color:var(--purple);border:1px solid #2A1A4A':'background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)'}">${acc.type==='funded'?'🏦 Fondeada':'💰 Real'}</span>`;
+    const badgeColors={real:'background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)',funded:'background:var(--purple-bg);color:var(--purple);border:1px solid #2A1A4A',evaluation:'background:var(--amber-bg);color:var(--amber);border:1px solid #3A2800',demo:'background:var(--bg4);color:var(--text3);border:1px solid var(--border2)',custom:'background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)'};
+    badge.innerHTML=`<span style="display:inline-flex;align-items:center;gap:5px;margin-top:5px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;${badgeColors[acc.type]||badgeColors.real}">${accountTypeIcon(acc.type)} ${esc(accountTypeLabel(acc.type))}</span>`;
   }
   const js=document.getElementById('journal-account-sub');if(js&&acc)js.textContent=acc.name;
   const os=document.getElementById('ops-account-sub');if(os&&acc)os.textContent=acc.name;
@@ -5610,7 +6014,7 @@ async function getRoutineComplianceForWeek(offset){
 
 function gotoView(v){
   currentView=v;
-  ['dashboard','journal','calendar','ops','metrics','plan','routine','config'].forEach(view=>{
+  ['dashboard','journal','calendar','ops','metrics','balance','plan','routine','config'].forEach(view=>{
     const el=document.getElementById('view-'+view);if(el)el.style.display=view===v?'flex':'none';
     const si=document.getElementById('si-'+view);if(si)si.classList.toggle('active',view===v);
   });
@@ -5623,6 +6027,7 @@ function gotoView(v){
   if(v==='journal')renderJournalList();
   if(v==='ops'){renderOpsList();renderMetrics();}
   if(v==='metrics'){const ms=document.getElementById('metrics-account-sub');const accM=currentAccount();if(ms&&accM)ms.textContent=accM.name;renderMetricsPage();}
+  if(v==='balance')renderBalancePage();
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
   if(v==='plan')loadPlan();
   if(v==='routine')loadRoutine();
