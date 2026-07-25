@@ -2868,7 +2868,7 @@ function requirePremium(featureLabel){
   return false;
 }
 function showUpgradePrompt(featureLabel){
-  toast(`${featureLabel||'Esta función'} estará disponible muy pronto 👑`);
+  toast(`${featureLabel||'Esta función'} es exclusiva de TradeDay Premium 👑`);
 }
 
 /* ── MODAL DE PRECIOS Y CHECKOUT ── */
@@ -3959,7 +3959,9 @@ function analysisBlockHTML(analysis){
     sentiment.behaviors.negative.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--red)'}));
     sentiment.behaviors.positive.slice(0,2).forEach(b=>badges.push({label:b.tag,color:'var(--green)'}));
   }
-  const suggestionRow=analysis.suggestion?`<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${analysis.suggestion}</div>`:'';
+  const suggestionRow=analysis.suggestion
+    ? `<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${analysis.suggestion}</div>`
+    : '';
   return `<div class="journal-analysis">
       <div class="journal-analysis-title"><i class="ti ti-sparkles"></i>Análisis del día</div>
       <div class="journal-analysis-row">${analysis.summary}</div>
@@ -5922,10 +5924,8 @@ function mxRowsHTML(items,opts){
    ══════════════════════════════════════════════════════════════════════ */
 let mxLastMetrics=null;
 let mxCharts={};
-let mxEquityPeriod='all', mxSessionMode='pnl', mxWeekdayMode='pnl';
-// TEMPORAL: desbloquea todas las secciones Premium de Métricas para usuarios existentes
-// hasta que se active Stripe/Premium formalmente. Revertir a false cuando corresponda.
 const MX_SHOW_ALL=true;
+let mxEquityPeriod='all', mxSessionMode='pnl', mxWeekdayMode='pnl';
 
 function mxCssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim();}
 function mxHexAlpha(hex,alpha){
@@ -6241,7 +6241,7 @@ function mxRenderSummary(m){
   const premium=MX_SHOW_ALL||isPremiumUser();
   const locked=document.getElementById('mx-summary-locked'),content=document.getElementById('mx-summary-content');
   if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'block':'none';
+  if(content)content.style.display=premium?'flex':'none';
   if(!premium)return;
 
   setText('mx-dd-max',m.riesgo.maxDD>0?('-'+fmtMoney(m.riesgo.maxDD)):'0$');
