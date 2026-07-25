@@ -6212,8 +6212,8 @@ function mxRenderSummary(m){
   if(content)content.style.display=premium?'block':'none';
   if(!premium)return;
 
-  setText('mx-dd-max','-'+fmtMoney(m.riesgo.maxDD));
-  setText('mx-dd-max-pct','-'+m.riesgo.maxDDPct.toFixed(1)+'%');
+  setText('mx-dd-max',m.riesgo.maxDD>0?('-'+fmtMoney(m.riesgo.maxDD)):'0$');
+  setText('mx-dd-max-pct',(m.riesgo.maxDD>0?'-':'')+m.riesgo.maxDDPct.toFixed(1)+'%');
   setText('mx-dd-current',m.riesgo.currentDD>0?('-'+fmtMoney(m.riesgo.currentDD)):'0$');
   mxSetClass('mx-dd-current','metric-value '+(m.riesgo.currentDD>0?'neg':'neutral'));
   const ddCurPctEl=document.getElementById('mx-dd-current-pct');
