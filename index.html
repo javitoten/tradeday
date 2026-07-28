@@ -334,9 +334,42 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .mx-duration-info{flex:1;min-width:180px}
 .mx-duration-value{font-size:32px;font-weight:800;color:var(--text);line-height:1.2;margin-top:4px}
 @media (max-width:520px){.mx-duration-value{font-size:26px}}
-.mx-section-block{animation:mxFadeIn .35s ease}
+.mx-section-block{animation:mxFadeIn .35s ease;position:relative}
+/* Vista previa difuminada: en vez de ocultar el bloque Premium por completo, mostramos los
+   datos reales del usuario desenfocados detrás del aviso de upgrade (más persuasivo que una
+   caja vacía, porque el usuario ve que hay valor real esperándole). */
+.mx-blur-wrap{position:relative}
+.mx-locked-panel.mx-blur-overlay{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,11,14,.6);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);border-radius:var(--radius-lg)}
+.mx-blur-preview{filter:blur(7px);pointer-events:none;user-select:none}
 @keyframes mxFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .mx-locked-panel.mx-locked-inline{padding:26px 18px}
+/* ── PAYWALL (modal de precios rediseñado, 2 pantallas + pantalla de última oportunidad) ── */
+.pp-compare{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}
+.pp-compare th{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;padding:8px 6px;text-align:center}
+.pp-compare th:first-child{text-align:left}
+.pp-compare th.pp-premium-col{color:var(--accent)}
+.pp-compare td{padding:10px 6px;text-align:center;border-top:1px solid var(--border);color:var(--text2)}
+.pp-compare td:first-child{text-align:left;color:var(--text);font-weight:500}
+.pp-compare .pp-check{color:var(--green);font-size:15px}
+.pp-compare .pp-cross{color:var(--text3);font-size:15px}
+.pp-faq{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.pp-faq-item{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.pp-faq-q{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text)}
+.pp-faq-q i{transition:transform .2s;color:var(--text3);font-size:14px;flex-shrink:0}
+.pp-faq-item.open .pp-faq-q i{transform:rotate(180deg)}
+.pp-faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.pp-faq-item.open .pp-faq-a{max-height:200px}
+.pp-faq-a-inner{padding:0 14px 12px;font-size:12px;color:var(--text2);line-height:1.6}
+.pp-trust{text-align:center;font-size:11.5px;color:var(--text3);margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.pp-back{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text3);cursor:pointer;margin-bottom:10px;width:fit-content}
+.pp-back:hover{color:var(--text2)}
+.pp-hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.pp-hero-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 8px;text-align:center}
+.pp-hero-stat-num{font-size:17px;font-weight:800;color:var(--accent)}
+.pp-hero-stat-label{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.3}
+.pp-promo-note{text-align:center;font-size:11px;color:var(--text3);margin-top:10px}
+#modal-pricing-exit .modal{max-width:420px}
+.pp-exit-icon{font-size:34px;color:var(--amber);text-align:center;margin-bottom:6px}
 .mx-cal-nav{display:flex;align-items:center;gap:10px}
 .mx-cal-nav-btn{width:26px;height:26px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .15s}
 .mx-cal-nav-btn:hover{border-color:var(--border3);color:var(--text)}
@@ -1415,7 +1448,7 @@ function initLandingFX(){
       <div class="account-switcher">
         <div class="account-switcher-label">Mis cuentas</div>
         <div id="accounts-list"></div>
-        <div class="add-account-btn" onclick="openModal('modal-add-account')">
+        <div class="add-account-btn" onclick="handleAddAccountClick()">
           <i class="ti ti-plus" style="font-size:13px"></i>Añadir cuenta
         </div>
       </div>
@@ -1873,6 +1906,7 @@ function initLandingFX(){
           </div>
         </div>
 
+        <div class="mx-blur-wrap" style="margin-top:2px">
         <div id="mx-summary-locked" class="mx-locked-panel" style="margin-top:2px">
           <div class="mx-locked-icon">👑</div>
           <div class="mx-locked-title">Drawdown, Recovery Factor y Riesgo — función Premium</div>
@@ -1913,6 +1947,7 @@ function initLandingFX(){
               <div class="mx-chip-row" id="mx-summary-streaks-chips" style="border-top:none;margin-top:0;padding-top:0"></div>
             </div>
           </div>
+        </div>
         </div>
 
       </div>
@@ -2299,13 +2334,13 @@ function initLandingFX(){
         <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:14px">Mis cuentas</div>
           <div id="config-accounts-list" style="margin-bottom:12px"></div>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('modal-add-account')"><i class="ti ti-plus"></i>Añadir cuenta</button>
+          <button class="btn btn-ghost btn-sm" onclick="handleAddAccountClick()"><i class="ti ti-plus"></i>Añadir cuenta</button>
         </div>
         <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Suscripción</div>
           <div id="cfg-sub-free" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
             <div><div style="font-size:13px;font-weight:600">Plan Gratuito</div><div style="font-size:12px;color:var(--text3)">Mejora a Premium para desbloquear todas las funciones</div></div>
-            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Premium')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+            <button class="btn btn-primary btn-sm" onclick="openPricingModal()"><i class="ti ti-crown"></i>Mejorar a Premium</button>
           </div>
           <div id="cfg-sub-premium" style="display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
             <div><div style="font-size:13px;font-weight:600"><i class="ti ti-crown" style="color:var(--amber)"></i> Plan Premium</div><div style="font-size:12px;color:var(--text3)" id="cfg-sub-premium-detail">Acceso completo a TradeDay</div></div>
@@ -2494,36 +2529,79 @@ function initLandingFX(){
   </div>
 </div>
 
-<!-- PRICING / UPGRADE -->
-<div class="modal-overlay" id="modal-pricing" style="display:none" onclick="if(event.target===this)closeModal('modal-pricing')">
-  <div class="modal" style="max-width:580px">
-    <div class="modal-header"><div class="modal-title"><i class="ti ti-crown" style="color:var(--amber)"></i> Mejora a TradeDay Premium</div><button class="modal-close" onclick="closeModal('modal-pricing')"><i class="ti ti-x"></i></button></div>
+<!-- PRICING / UPGRADE (paywall de 2 pantallas: 1) valor + comparativa + FAQ, 2) precio + oferta + CTA) -->
+<div class="modal-overlay" id="modal-pricing" style="display:none" onclick="if(event.target===this)attemptCloseModalPricing()">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><div class="modal-title"><i class="ti ti-crown" style="color:var(--amber)"></i> TradeDay Premium</div><button class="modal-close" onclick="attemptCloseModalPricing()"><i class="ti ti-x"></i></button></div>
     <div class="modal-body">
-      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin:0 0 4px">Desbloquea el análisis completo del Journal, las métricas avanzadas, el Índice de Disciplina y la eliminación de operaciones y entradas.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px">
-        <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
-          <div class="pricing-card-title">Plan Mensual</div>
-          <div class="pricing-card-price">8,99€<span>/mes</span></div>
-          <div class="pricing-card-sub">Facturación mensual · cancela cuando quieras</div>
+
+      <!-- PANTALLA 1: VALOR + COMPARATIVA + FAQ -->
+      <div id="pp-screen-value">
+        <p style="font-size:13px;color:var(--text2);line-height:1.6;margin:0">Con Premium dejas de operar a ciegas: analizas cada operación, controlas tu disciplina y llevas todas tus cuentas en un solo sitio.</p>
+        <table class="pp-compare">
+          <thead><tr><th></th><th>Free</th><th class="pp-premium-col">Premium</th></tr></thead>
+          <tbody>
+            <tr><td>Cuentas de trading</td><td>1</td><td><i class="ti ti-infinity pp-check"></i></td></tr>
+            <tr><td>Análisis del Journal</td><td>Básico</td><td>Completo</td></tr>
+            <tr><td>Métricas avanzadas</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
+            <tr><td>Índice de Disciplina</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
+            <tr><td>Eliminar operaciones y entradas</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
+            <tr><td>Futuras funciones Premium</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
+          </tbody>
+        </table>
+        <div class="pp-faq">
+          <div class="pp-faq-item">
+            <div class="pp-faq-q" onclick="togglePpFaq(this)">¿Puedo cancelar cuando quiera?<i class="ti ti-chevron-down"></i></div>
+            <div class="pp-faq-a"><div class="pp-faq-a-inner">Sí. No hay permanencia: cancela cuando quieras desde tu perfil y seguirás con Premium hasta el final del periodo ya pagado.</div></div>
+          </div>
+          <div class="pp-faq-item">
+            <div class="pp-faq-q" onclick="togglePpFaq(this)">¿Qué pasa con mis datos si cancelo?<i class="ti ti-chevron-down"></i></div>
+            <div class="pp-faq-a"><div class="pp-faq-a-inner">Nada. Tus operaciones, diario y cuentas se quedan intactos. Solo vuelves a los límites del plan Free, sin perder ningún dato.</div></div>
+          </div>
+          <div class="pp-faq-item">
+            <div class="pp-faq-q" onclick="togglePpFaq(this)">¿Hay compromiso de permanencia?<i class="ti ti-chevron-down"></i></div>
+            <div class="pp-faq-a"><div class="pp-faq-a-inner">No. Es una suscripción mensual o anual sin contrato ni permanencia mínima.</div></div>
+          </div>
         </div>
-        <div class="pricing-card selected" id="pp-card-annual" onclick="selectPricingPlan('annual')">
-          <div class="pricing-badge">Ahorra 34%</div>
-          <div class="pricing-card-title">Plan Anual</div>
-          <div class="pricing-card-price">69€<span>/año</span></div>
-          <div class="pricing-card-sub">Solo 5,75€/mes</div>
-        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:18px" onclick="showPricingScreen(2)"><i class="ti ti-crown"></i>Ver planes y precios</button>
       </div>
-      <ul style="margin:18px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
-        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Análisis completo del Journal y métricas avanzadas</li>
-        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Índice de Disciplina</li>
-        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Elimina operaciones y entradas del Journal</li>
-        <li style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)"><i class="ti ti-check" style="color:var(--green)"></i>Acceso a todas las futuras funciones Premium</li>
-      </ul>
-      <div id="pp-error" style="display:none;font-size:12px;color:var(--red);margin-top:12px"></div>
+
+      <!-- PANTALLA 2: PRECIO + OFERTA + CTA -->
+      <div id="pp-screen-plans" style="display:none">
+        <div class="pp-back" onclick="showPricingScreen(1)"><i class="ti ti-arrow-left"></i>Volver</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
+            <div class="pricing-card-title">Plan Mensual</div>
+            <div class="pricing-card-price">9,99€<span>/mes</span></div>
+            <div class="pricing-card-sub">Facturación mensual · cancela cuando quieras</div>
+          </div>
+          <div class="pricing-card selected" id="pp-card-annual" onclick="selectPricingPlan('annual')">
+            <div class="pricing-badge">Ahorra 42%</div>
+            <div class="pricing-card-title">Plan Anual</div>
+            <div class="pricing-card-price">69€<span>/año</span></div>
+            <div class="pricing-card-sub">Solo 5,75€/mes</div>
+          </div>
+        </div>
+        <div id="pp-error" style="display:none;font-size:12px;color:var(--red);margin-top:12px"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:16px" id="pp-checkout-btn" onclick="startCheckout()"><i class="ti ti-crown"></i>Continuar con Premium</button>
+        <div class="pp-trust"><i class="ti ti-shield-check"></i>Cancela cuando quieras. Sin permanencia.</div>
+        <div class="pp-promo-note">¿Tienes un código de colaborador? Podrás introducirlo en el siguiente paso del pago.</div>
+      </div>
+
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-pricing')">Ahora no</button>
-      <button class="btn btn-primary" id="pp-checkout-btn" onclick="startCheckout()"><i class="ti ti-crown"></i>Continuar con Premium</button>
+  </div>
+</div>
+
+<!-- PRICING: última oportunidad (exit-intent, sin descuento adicional) -->
+<div class="modal-overlay" id="modal-pricing-exit" style="display:none" onclick="if(event.target===this)closeModal('modal-pricing-exit')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-body" style="padding-top:28px">
+      <div class="pp-exit-icon"><i class="ti ti-alert-triangle"></i></div>
+      <div style="text-align:center;font-size:16px;font-weight:700;color:var(--text)">¿Seguro que quieres perderte esto?</div>
+      <p style="text-align:center;font-size:12.5px;color:var(--text2);line-height:1.6;margin:10px 0 0">Con Premium desbloqueas el análisis completo de tu Journal, las métricas avanzadas y el Índice de Disciplina para dejar de repetir errores.</p>
+      <button class="btn btn-primary" style="width:100%;margin-top:18px" onclick="resumeCheckoutFromExit()"><i class="ti ti-crown"></i>Continuar con Premium</button>
+      <div class="pp-trust"><i class="ti ti-shield-check"></i>Cancela cuando quieras. Sin permanencia.</div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:6px" onclick="closeModal('modal-pricing-exit')">No, gracias</button>
     </div>
   </div>
 </div>
@@ -3307,10 +3385,56 @@ function requirePremium(featureLabel){
 }
 function showUpgradePrompt(featureLabel){
   toast(`${featureLabel||'Esta función'} es exclusiva de TradeDay Premium 👑`);
+  openPricingModal();
+}
+// Gate específico para "Añadir cuenta": el plan Free solo puede tener 1 cuenta.
+// A partir de la 2ª cuenta, el botón muestra el paywall en vez de abrir el modal de creación.
+function handleAddAccountClick(){
+  if(!isPremiumUser()&&allAccounts.length>=1){
+    showUpgradePrompt('Añadir más de 1 cuenta');
+    return;
+  }
+  openModal('modal-add-account');
 }
 
-/* ── MODAL DE PRECIOS Y CHECKOUT ── */
+/* ── MODAL DE PRECIOS Y CHECKOUT (paywall de 2 pantallas + última oportunidad) ── */
 let selectedPricingPlan='annual';
+let pricingExitShown=false; // controla que la pantalla de "última oportunidad" solo salga una vez por apertura del paywall
+// Punto de entrada único para abrir el paywall: siempre arranca en la pantalla de valor
+// y reactiva la posibilidad de mostrar la pantalla de última oportunidad si el usuario intenta cerrar.
+function openPricingModal(){
+  pricingExitShown=false;
+  showPricingScreen(1);
+  openModal('modal-pricing');
+}
+function showPricingScreen(n){
+  const v=document.getElementById('pp-screen-value'), p=document.getElementById('pp-screen-plans');
+  if(!v||!p)return;
+  v.style.display=n===1?'block':'none';
+  p.style.display=n===2?'block':'none';
+}
+function togglePpFaq(el){
+  const item=el.closest('.pp-faq-item');
+  if(item)item.classList.toggle('open');
+}
+// Si el usuario intenta cerrar el paywall (X o clic fuera) y todavía no ha visto la
+// pantalla de última oportunidad en esta apertura, se la mostramos una única vez antes de cerrar.
+function attemptCloseModalPricing(){
+  if(!pricingExitShown){
+    pricingExitShown=true;
+    closeModal('modal-pricing');
+    openModal('modal-pricing-exit');
+    return;
+  }
+  closeModal('modal-pricing');
+}
+// Desde la pantalla de última oportunidad, "Continuar con Premium" lleva directo a los planes
+// (el usuario ya vio el valor antes), sin ofrecer ningún descuento adicional.
+function resumeCheckoutFromExit(){
+  closeModal('modal-pricing-exit');
+  showPricingScreen(2);
+  openModal('modal-pricing');
+}
 function selectPricingPlan(plan){
   selectedPricingPlan=plan;
   const mCard=document.getElementById('pp-card-monthly'), aCard=document.getElementById('pp-card-annual');
@@ -3700,8 +3824,8 @@ async function saveJournal(){
   });
 }
 
-async function deleteTrade(id){if(!confirm('¿Eliminar?'))return;await sb.from('trades').delete().eq('id',id);toast('Trade eliminado');await loadData();}
-async function deleteJournal(id){if(!confirm('¿Eliminar?'))return;await sb.from('journals').delete().eq('id',id);toast('Entrada eliminada');await loadData();}
+async function deleteTrade(id){if(!requirePremium('Eliminar operaciones'))return;if(!confirm('¿Eliminar?'))return;await sb.from('trades').delete().eq('id',id);toast('Trade eliminado');await loadData();}
+async function deleteJournal(id){if(!requirePremium('Eliminar entradas del Journal'))return;if(!confirm('¿Eliminar?'))return;await sb.from('journals').delete().eq('id',id);toast('Entrada eliminada');await loadData();}
 
 async function saveConfig(){
   if(!currentUser)return;
@@ -4564,8 +4688,11 @@ function executionBlockHTML(analysis,executionText){
 }
 
 function analysisBlockHTML(g){
+  const premium=isPremiumUser();
   const suggestionRow=g.suggestion
-    ? `<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${g.suggestion}</div>`
+    ? (premium
+        ? `<div class="journal-analysis-row"><strong>Posible mejora:</strong> ${g.suggestion}</div>`
+        : `<div class="journal-analysis-row" style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="showUpgradePrompt('El análisis avanzado del Journal')"><i class="ti ti-lock" style="color:var(--text3)"></i><strong>Posible mejora:</strong> <span style="color:var(--text3);filter:blur(3px);user-select:none">${g.suggestion}</span> <span style="color:var(--accent);font-weight:700;white-space:nowrap">👑 Premium</span></div>`)
     : '';
   const openingRow=g.opening?`<div class="journal-analysis-row">${g.opening}</div>`:'';
   const noSignalRow=g.noSignal?`<div class="journal-analysis-row">${g.noSignal}</div>`:'';
@@ -4688,6 +4815,16 @@ const WE_IMPROVEMENT_TEMPLATES={
 function renderWeeklyEmotional(){
   const content0=document.getElementById('weekly-emotional-content');
   const navRow=document.getElementById('we-nav-row');
+  if(!isPremiumUser()){
+    if(navRow)navRow.style.display='none';
+    if(content0)content0.innerHTML=`<div style="text-align:center;padding:14px 10px 6px">
+      <div style="font-size:26px;margin-bottom:8px">👑</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px">Análisis emocional semanal — función Premium</div>
+      <div style="font-size:12px;color:var(--text2);max-width:380px;margin:0 auto 14px;line-height:1.6">Descubre tus patrones emocionales a lo largo de la semana, su evolución día a día y cómo se relacionan con tus resultados. Disponible con TradeDay Premium.</div>
+      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El análisis emocional semanal')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+    </div>`;
+    return;
+  }
   if(navRow)navRow.style.display='flex';
   const{monday,sunday}=getWeekRange(weekEmoOffset);
   const M=gM();
@@ -4854,6 +4991,14 @@ function initDisciplineScore(){
   const locked=document.getElementById('ds-locked');
   const unlocked=document.getElementById('ds-unlocked');
   const hasPlan=currentPlan&&currentPlan.completed;
+  if(!isPremiumUser()){
+    locked.innerHTML=`<div style="font-size:30px;margin-bottom:10px">👑</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px">Índice de Disciplina — función Premium</div>
+      <div style="font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6">Mide tu proceso comparando tus acciones con las reglas de tu propio Plan de Trading. Disponible en el plan Premium.</div>
+      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El Índice de Disciplina')"><i class="ti ti-crown"></i>Mejorar a Premium</button>`;
+    locked.style.display='block';unlocked.style.display='none';
+    return;
+  }
   if(!hasPlan){
     locked.innerHTML=`<div style="font-size:30px;margin-bottom:10px">🔒</div>
       <div style="font-size:14px;font-weight:700;margin-bottom:8px">Índice de Disciplina bloqueado</div>
@@ -6220,13 +6365,16 @@ function renderDashMetricsFull(){
 
   const advBlock=document.getElementById('dm-advanced-block');
   const advLocked=document.getElementById('dm-advanced-locked-panel');
-  if(advBlock)advBlock.style.display='flex';
-  if(advLocked)advLocked.style.display='none';
-  renderAnnualCalendar();
-  renderBuySellDonut(trades);
-  renderSessionsDonut(trades);
-  renderResultsDonut(trades);
-  renderSessionAnalysis(trades);
+  const premium=isPremiumUser();
+  if(advBlock)advBlock.style.display=premium?'flex':'none';
+  if(advLocked)advLocked.style.display=premium?'none':'block';
+  if(premium){
+    renderAnnualCalendar();
+    renderBuySellDonut(trades);
+    renderSessionsDonut(trades);
+    renderResultsDonut(trades);
+    renderSessionAnalysis(trades);
+  }
 }
 
 function winRateFor(session){
@@ -6406,7 +6554,6 @@ function mxWeekISOKey(ds){
   return d.getFullYear()+'-W'+String(week).padStart(2,'0');
 }
 
-const MX_SHOW_ALL=true;
 function computeFullMetrics(){
   const trades=[...allTrades].filter(t=>t.date).sort((a,b)=>{
     if(a.date!==b.date)return a.date<b.date?-1:1;
@@ -6755,11 +6902,10 @@ function mxRenderResultsChart(m){
   }
 }
 function mxRenderBuySellChart(m){
-  const premium=MX_SHOW_ALL||isPremiumUser();
+  const premium=isPremiumUser();
   const locked=document.getElementById('mx-buysell-locked'),content=document.getElementById('mx-buysell-content');
-  if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'block':'none';
-  if(!premium)return;
+  if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
+  if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
   const[buy,sell]=m.tipos.directionStats;
   const total=buy.count+sell.count;
   mxMakeChart('mx-chart-buysell',{
@@ -6783,11 +6929,10 @@ function mxSetSessionMode(mode){
   if(mxLastMetrics)mxRenderSessionChart(mxLastMetrics);
 }
 function mxRenderSessionChart(m){
-  const premium=MX_SHOW_ALL||isPremiumUser();
+  const premium=isPremiumUser();
   const locked=document.getElementById('mx-session-locked'),content=document.getElementById('mx-session-content');
-  if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'block':'none';
-  if(!premium)return;
+  if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
+  if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
   const st=m.sesiones.sessionStats;
   const colors={'Londres':mxCssVar('--amber'),'New York':mxCssVar('--blue'),'Asia':mxCssVar('--purple')};
   const isWr=mxSessionMode==='wr';
@@ -6813,11 +6958,10 @@ function mxRenderSessionChart(m){
 
 /* — 4. Rendimiento por activo — */
 function mxRenderAssetChart(m){
-  const premium=MX_SHOW_ALL||isPremiumUser();
+  const premium=isPremiumUser();
   const locked=document.getElementById('mx-asset-locked'),content=document.getElementById('mx-asset-content');
-  if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'block':'none';
-  if(!premium)return;
+  if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
+  if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
   const st=[...m.activos.assetStats].sort((a,b)=>b.pnl-a.pnl);
   mxMakeChart('mx-chart-asset',{
     type:'bar',
@@ -6843,11 +6987,10 @@ function mxSetWeekdayMode(mode){
   if(mxLastMetrics)mxRenderWeekdayChart(mxLastMetrics);
 }
 function mxRenderWeekdayChart(m){
-  const premium=MX_SHOW_ALL||isPremiumUser();
+  const premium=isPremiumUser();
   const locked=document.getElementById('mx-weekday-locked'),content=document.getElementById('mx-weekday-content');
-  if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'block':'none';
-  if(!premium)return;
+  if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
+  if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
   const order=[1,2,3,4,5];
   const st=order.map(idx=>m.temporal.weekdayStats[idx]);
   const isWr=mxWeekdayMode==='wr';
@@ -6865,11 +7008,10 @@ function mxRenderWeekdayChart(m){
 
 /* — 6. Evolución mensual — */
 function mxRenderMonthlyChart(m){
-  const premium=MX_SHOW_ALL||isPremiumUser();
+  const premium=isPremiumUser();
   const locked=document.getElementById('mx-monthly-locked'),content=document.getElementById('mx-monthly-content');
-  if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'block':'none';
-  if(!premium)return;
+  if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
+  if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
   const evo=m.temporal.monthlyEvolution;
   mxMakeChart('mx-chart-monthly',{
     type:'bar',
@@ -6956,11 +7098,10 @@ function mxRenderSummary(m){
   mxSetClass('mx-exp','metric-value '+(m.rendimiento.expectancy>=0?'pos':'neg'));
   setText('mx-rr',mxFmtRatio(m.rendimiento.avgRR));
 
-  const premium=MX_SHOW_ALL||isPremiumUser();
+  const premium=isPremiumUser();
   const locked=document.getElementById('mx-summary-locked'),content=document.getElementById('mx-summary-content');
-  if(locked)locked.style.display=premium?'none':'block';
-  if(content)content.style.display=premium?'flex':'none';
-  if(!premium)return;
+  if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
+  if(content){content.style.display='flex';content.classList.toggle('mx-blur-preview',!premium);}
 
   setText('mx-dd-max',m.riesgo.maxDD>0?('-'+fmtMoney(m.riesgo.maxDD)):'0$');
   setText('mx-dd-max-pct',(m.riesgo.maxDD>0?'-':'')+m.riesgo.maxDDPct.toFixed(1)+'%');
