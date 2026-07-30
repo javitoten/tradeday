@@ -914,7 +914,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
   .bottom-nav-item span{font-size:9px}
   .bigcal-day{min-height:48px}
 }
-</style>
+[onclick]:not(input):not(textarea):not(select){cursor:pointer;-webkit-user-select:none;user-select:none}</style>
 </head>
 <body>
 
@@ -2365,13 +2365,13 @@ function initLandingFX(){
     <div class="modal-body">
       <div class="form-section">Información básica</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="t-date"></div>
+        <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="t-date"></div><div class="form-group"><label class="form-label">Hora <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="time" id="t-time" oninput="handleTradeTimeInput()"></div>
         <div class="form-group"><label class="form-label">Par</label><select class="form-select" id="t-pair"><option value="">Seleccionar...</option><option>XAUUSD</option><option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option><option>GBPJPY</option><option>NAS100</option><option>US30</option><option>SP500</option><option>Otro</option></select></div>
       </div>
       <div class="form-section">Tipo y sesión</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')">📈 Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')">📉 Sell</div></div></div>
-        <div class="form-group"><label class="form-label">Sesión</label><div class="chip-group" id="t-sess"><div class="chip" onclick="selectChip('t-sess',this,'sel-london')">🇬🇧 Londres</div><div class="chip" onclick="selectChip('t-sess',this,'sel-ny')">🇺🇸 NY</div><div class="chip" onclick="selectChip('t-sess',this,'sel-asia')">🌏 Asia</div></div></div>
+        <div class="form-group"><label class="form-label">Sesión</label><div class="chip-group" id="t-sess"><div class="chip" onclick="selectChip('t-sess',this,'sel-london');tSessManuallySet=true">🇬🇧 Londres</div><div class="chip" onclick="selectChip('t-sess',this,'sel-ny');tSessManuallySet=true">🇺🇸 NY</div><div class="chip" onclick="selectChip('t-sess',this,'sel-asia');tSessManuallySet=true">🌏 Asia</div></div></div>
       </div>
       <div class="form-section">Resultado</div>
       <div class="form-row">
@@ -3397,7 +3397,7 @@ async function saveTrade(){
   if(!currentUser||!currentAccountId)return;
   const btn=document.getElementById('t-save-btn');
   const pair=document.getElementById('t-pair').value.trim().slice(0,40);
-  const date=document.getElementById('t-date').value;
+  const date=document.getElementById('t-date').value;const time=document.getElementById('t-time').value||null;
   let amount=document.getElementById('t-amount').value.trim().slice(0,20);
   const riskRaw=document.getElementById('t-risk').value.trim().slice(0,10);
   const durationRaw=document.getElementById('t-duration').value.trim().slice(0,10);
@@ -3516,7 +3516,7 @@ async function saveTrade(){
     if(!isNaN(dNum)&&dNum>=0)durationMinutes=dNum;
   }
 
-  const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
+  const payload={date,time,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
     followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
     emotions,notes,technical_tags:techTags,technical_notes:techNotes,image_url:coverUrl,images:finalImages};
 
@@ -5151,7 +5151,7 @@ function tradeCardHTML(t){
       <div class="trade-card-meta">
         <span class="badge ${badgeCls}">${resLabel}</span>
         <span class="trade-card-pct" style="color:${pctColor}">${pctLabel}</span>
-        <span class="trade-card-date">${fmtDate(t.date)}</span>
+        <span class="trade-card-date">${fmtDate(t.date)}${t.time?' · '+esc(t.time.slice(0,5)):''}</span>
       </div>
       <div class="trade-card-tags">
         ${t.direction?`<span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${esc(t.direction)}</span>`:''}
@@ -5194,14 +5194,14 @@ function editTradeEntry(id){
   const t=allTrades.find(x=>x.id===id);
   if(!t)return;
   editingTradeId=id;
-  document.getElementById('t-date').value=t.date;
+  document.getElementById('t-date').value=t.date;document.getElementById('t-time').value=t.time||'';tSessManuallySet=true;
   document.getElementById('t-pair').value=t.pair||'';
   document.getElementById('t-amount').value=(t.amount||'').replace(/[+\-]/,'').trim();
   document.getElementById('t-risk').value=(t.risk_pct!==null&&t.risk_pct!==undefined)?String(t.risk_pct):'';
   document.getElementById('t-duration').value=(t.duration_minutes!==null&&t.duration_minutes!==undefined)?String(t.duration_minutes):'';
   document.getElementById('t-notes').value=t.notes||'';
   document.getElementById('t-tech-notes').value=t.technical_notes||'';
-  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});handleTradeTimeInput();
   setSelectedTechTags('t-tech-dropdowns',Array.isArray(t.technical_tags)?t.technical_tags:[]);
   if(t.direction==='Buy')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(1)'),'sel-buy');
   if(t.direction==='Sell')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(2)'),'sel-sell');
@@ -6050,11 +6050,11 @@ function openTradeForm(){
   closeModal('modal-choice');
   editingTradeId=null;
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
-  document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('t-date').value=new Date().toISOString().split('T')[0];document.getElementById('t-time').value=new Date().toTimeString().slice(0,5);tSessManuallySet=false;
   document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
   document.getElementById('t-tech-notes').value='';
   resetTechDropdowns('t-tech-dropdowns');
-  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});handleTradeTimeInput();
   updateBeTypeVisibility();
   const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
   tradeImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
@@ -6087,7 +6087,7 @@ function abandonConfirm(){
   closeModal('modal-abandon');
 }
 function selectChip(gId,el,cls){const g=document.getElementById(gId);if(!g)return;g.querySelectorAll('.chip').forEach(c=>c.className='chip');el.classList.add(cls);}
-function toggleChip(el,cls){if(el.classList.contains(cls))el.className='chip';else el.classList.add(cls);}
+function toggleChip(el,cls){if(el.classList.contains(cls))el.className='chip';else el.classList.add(cls);} let tSessManuallySet=false; function suggestSessionFromTime(hhmm){if(!hhmm)return null;const h=parseInt(hhmm.split(':')[0],10);if(isNaN(h))return null;if(h>=8&&h<13)return'london';if(h>=13&&h<22)return'ny';return'asia';} function handleTradeTimeInput(){if(tSessManuallySet)return;const sugg=suggestSessionFromTime(document.getElementById('t-time').value);if(!sugg)return;const chip=document.querySelector('#t-sess .chip[onclick*="sel-'+sugg+'"]');if(chip)selectChip('t-sess',chip,'sel-'+sugg);}
 
 /* ── SETUP TÉCNICO: menús desplegables de selección múltiple ──
    Genera 4 dropdowns (uno por categoría de TECH_CATEGORIES) dentro del contenedor indicado, cada uno
