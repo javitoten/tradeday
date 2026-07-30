@@ -947,6 +947,12 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
   .bottom-nav-item span{font-size:9px}
   .bigcal-day{min-height:48px}
 }
+
+/* ── Cursor en zonas clicables ── */
+/* Cualquier elemento con onclick (tarjetas, chips, filas, iconos...) no es texto editable:
+   el navegador no debe mostrar el cursor de texto (I-beam) al pasar por encima, solo la manita.
+   Se excluyen los campos donde SÍ se puede escribir (input, textarea, select). */
+[onclick]:not(input):not(textarea):not(select){cursor:pointer;-webkit-user-select:none;user-select:none}
 </style>
 </head>
 <body>
