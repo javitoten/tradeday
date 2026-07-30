@@ -1824,7 +1824,7 @@ function initLandingFX(){
             <div class="mx-card-head">
               <div>
                 <div class="mx-card-title"><i class="ti ti-clock"></i>Rendimiento por sesión</div>
-                <div class="mx-card-sub">Usamos la sesión (Londres / New York / Asia) como aproximación de la franja horaria en la que operas</div>
+                <div class="mx-card-sub">Sesión (Londres / New York / Asia) sugerida automáticamente según la hora que registras en cada trade</div>
               </div>
               <div class="mx-toggle-group" id="mx-session-toggle">
                 <button class="mx-toggle active" data-m="pnl" onclick="mxSetSessionMode('pnl')">Beneficio</button>
@@ -2407,12 +2407,16 @@ function initLandingFX(){
       <div class="form-section">Información básica</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="t-date"></div>
+        <div class="form-group"><label class="form-label">Hora <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="time" id="t-time" oninput="handleTradeTimeInput()"><div class="form-hint">Sugiere automáticamente la sesión</div></div>
+      </div>
+      <div class="form-row">
         <div class="form-group"><label class="form-label">Par</label><select class="form-select" id="t-pair"><option value="">Seleccionar...</option><option>XAUUSD</option><option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option><option>GBPJPY</option><option>NAS100</option><option>US30</option><option>SP500</option><option>Otro</option></select></div>
+        <div class="form-group"></div>
       </div>
       <div class="form-section">Tipo y sesión</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')">📈 Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')">📉 Sell</div></div></div>
-        <div class="form-group"><label class="form-label">Sesión</label><div class="chip-group" id="t-sess"><div class="chip" onclick="selectChip('t-sess',this,'sel-london')">🇬🇧 Londres</div><div class="chip" onclick="selectChip('t-sess',this,'sel-ny')">🇺🇸 NY</div><div class="chip" onclick="selectChip('t-sess',this,'sel-asia')">🌏 Asia</div></div></div>
+        <div class="form-group"><label class="form-label">Sesión</label><div class="chip-group" id="t-sess"><div class="chip" onclick="selectChip('t-sess',this,'sel-london');tSessManuallySet=true">🇬🇧 Londres</div><div class="chip" onclick="selectChip('t-sess',this,'sel-ny');tSessManuallySet=true">🇺🇸 NY</div><div class="chip" onclick="selectChip('t-sess',this,'sel-asia');tSessManuallySet=true">🌏 Asia</div></div></div>
       </div>
       <div class="form-section">Resultado</div>
       <div class="form-row">
@@ -3528,6 +3532,7 @@ async function saveTrade(){
   const btn=document.getElementById('t-save-btn');
   const pair=document.getElementById('t-pair').value.trim().slice(0,40);
   const date=document.getElementById('t-date').value;
+  const time=document.getElementById('t-time').value||null;
   let amount=document.getElementById('t-amount').value.trim().slice(0,20);
   const riskRaw=document.getElementById('t-risk').value.trim().slice(0,10);
   const durationRaw=document.getElementById('t-duration').value.trim().slice(0,10);
@@ -3646,7 +3651,7 @@ async function saveTrade(){
     if(!isNaN(dNum)&&dNum>=0)durationMinutes=dNum;
   }
 
-  const payload={date,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
+  const payload={date,time,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
     followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
     emotions,notes,technical_tags:techTags,technical_notes:techNotes,image_url:coverUrl,images:finalImages};
 
@@ -5302,7 +5307,7 @@ function tradeCardHTML(t){
       <div class="trade-card-meta">
         <span class="badge ${badgeCls}">${resLabel}</span>
         <span class="trade-card-pct" style="color:${pctColor}">${pctLabel}</span>
-        <span class="trade-card-date">${fmtDate(t.date)}</span>
+        <span class="trade-card-date">${fmtDate(t.date)}${t.time?' · '+esc(t.time.slice(0,5)):''}</span>
       </div>
       <div class="trade-card-tags">
         ${t.direction?`<span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${esc(t.direction)}</span>`:''}
@@ -5346,6 +5351,8 @@ function editTradeEntry(id){
   if(!t)return;
   editingTradeId=id;
   document.getElementById('t-date').value=t.date;
+  document.getElementById('t-time').value=t.time||'';
+  tSessManuallySet=true;
   document.getElementById('t-pair').value=t.pair||'';
   document.getElementById('t-amount').value=(t.amount||'').replace(/[+\-]/,'').trim();
   document.getElementById('t-risk').value=(t.risk_pct!==null&&t.risk_pct!==undefined)?String(t.risk_pct):'';
@@ -6202,10 +6209,13 @@ function openTradeForm(){
   editingTradeId=null;
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('t-time').value=new Date().toTimeString().slice(0,5);
+  tSessManuallySet=false;
   document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
   document.getElementById('t-tech-notes').value='';
   resetTechDropdowns('t-tech-dropdowns');
   ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
+  handleTradeTimeInput();
   updateBeTypeVisibility();
   const imgInput2=document.getElementById('t-image-input');if(imgInput2)imgInput2.value='';
   tradeImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
@@ -6239,6 +6249,30 @@ function abandonConfirm(){
 }
 function selectChip(gId,el,cls){const g=document.getElementById(gId);if(!g)return;g.querySelectorAll('.chip').forEach(c=>c.className='chip');el.classList.add(cls);}
 function toggleChip(el,cls){if(el.classList.contains(cls))el.className='chip';else el.classList.add(cls);}
+
+/* ── Hora del trade → sugerencia automática de sesión ──
+   Al registrar la hora exacta de la operación, sugerimos la sesión (Londres/NY/Asia)
+   correspondiente a esa franja horaria, para que la métrica "Rendimiento por sesión"
+   quede alineada con datos reales en vez de una elección manual desconectada.
+   Franjas aproximadas (hora local del dispositivo): Asia 00:00–08:00 y 22:00–24:00,
+   Londres 08:00–13:00, New York 13:00–22:00. El usuario puede pulsar un chip de sesión
+   distinto en cualquier momento para anular la sugerencia. */
+let tSessManuallySet=false;
+function suggestSessionFromTime(hhmm){
+  if(!hhmm)return null;
+  const h=parseInt(hhmm.split(':')[0],10);
+  if(isNaN(h))return null;
+  if(h>=8&&h<13)return'london';
+  if(h>=13&&h<22)return'ny';
+  return'asia';
+}
+function handleTradeTimeInput(){
+  if(tSessManuallySet)return;
+  const sugg=suggestSessionFromTime(document.getElementById('t-time').value);
+  if(!sugg)return;
+  const chip=document.querySelector(`#t-sess .chip[onclick*="sel-${sugg}"]`);
+  if(chip)selectChip('t-sess',chip,'sel-'+sugg);
+}
 
 /* ── SETUP TÉCNICO: menús desplegables de selección múltiple ──
    Genera 4 dropdowns (uno por categoría de TECH_CATEGORIES) dentro del contenedor indicado, cada uno
