@@ -11,6 +11,10 @@
     {
       "source": "/qv3f/:path(.*)",
       "destination": "https://eu.i.posthog.com/:path"
+    },
+    {
+      "source": "/invitacion",
+      "destination": "/invitacion.html"
     }
   ]
 }
