@@ -41,6 +41,10 @@ h1{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-
 h1 span{color:var(--green)}
 .subhead{font-size:16px;color:var(--text2);line-height:1.6;margin-bottom:32px;max-width:460px}
 
+.free-note{display:flex;align-items:flex-start;gap:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius);padding:13px 15px;margin-bottom:20px;font-size:13px;line-height:1.5;color:var(--text2)}
+.free-note svg{width:18px;height:18px;flex-shrink:0;color:var(--green);margin-top:1px}
+.free-note strong{color:var(--green)}
+
 .offer-card{background:linear-gradient(180deg,var(--bg3),var(--bg2));border:1px solid var(--border3);border-radius:var(--radius-xl);padding:26px;margin-bottom:24px;position:relative;overflow:hidden}
 .offer-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
 .offer-label{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
@@ -113,10 +117,15 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
     <h1>Tu diario de trading, <span>con precio de acceso anticipado</span></h1>
     <p class="subhead">TradeDay registra tus operaciones, analiza tu comportamiento y te ayuda a construir disciplina real. Reserva tu plaza ahora y asegura un precio exclusivo antes del lanzamiento.</p>
 
+    <div class="free-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span><strong>Usar TradeDay y registrar tus operaciones es gratis</strong>, siempre. El precio de esta invitación es solo para desbloquear Premium desde el primer día.</span>
+    </div>
+
     <div class="offer-card">
       <div class="offer-label">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-        Precio exclusivo de esta invitación
+        Precio exclusivo Premium de esta invitación
       </div>
       <div class="price-row">
         <span class="price-new">6,99€</span>
@@ -127,9 +136,9 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
     </div>
 
     <ul class="features">
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Registro completo de operaciones con imágenes y notas</li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Métricas avanzadas: rendimiento, riesgo y disciplina</li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Análisis de tu comportamiento emocional al operar</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Registro completo de operaciones con imágenes y notas — <strong>gratis</strong></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Métricas avanzadas: rendimiento, riesgo y disciplina — Premium</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Análisis de tu comportamiento emocional al operar — Premium</li>
     </ul>
 
     <form id="signup-form">
@@ -158,7 +167,8 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
     </div>
     <h2>Ya tienes tu plaza reservada</h2>
     <p>Te avisaremos por email en cuanto abramos el acceso. Tu precio exclusivo estará esperándote.</p>
-    <div class="price-tag">Tu precio reservado: <strong>6,99€/mes</strong></div>
+    <div class="price-tag">Tu precio Premium reservado: <strong>6,99€/mes</strong></div>
+    <p style="margin-top:14px;font-size:13px">Recuerda: registrar tus operaciones en TradeDay siempre es gratis.</p>
   </div>
 
 </main>
