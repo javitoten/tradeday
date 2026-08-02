@@ -3705,6 +3705,42 @@ function tradeImageStoragePath(url){
   return url.slice(idx+marker.length).split('?')[0];
 }
 
+/* ── URLs firmadas para el bucket privado 'trade-images' ──
+   El bucket es privado: la URL guardada en BD (con forma de URL pública histórica)
+   solo sirve como identificador para extraer la ruta del archivo. Para poder mostrarlo
+   hay que pedir a Supabase una URL firmada (temporal) cada vez, así que se cachea en
+   memoria mientras dure la sesión para no repetir peticiones de red innecesarias. */
+const _signedUrlCache=new Map(); // path -> {signedUrl, exp(ms epoch)}
+const SIGNED_URL_TTL=3600; // segundos de validez que pedimos a Supabase
+const TRADE_IMG_PLACEHOLDER='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+async function resolveTradeImgUrl(url){
+  if(!url)return '';
+  if(url.startsWith('blob:')||url.startsWith('data:'))return url; // previsualizaciones locales sin subir aún
+  const path=tradeImageStoragePath(url);
+  if(!path)return url; // no es del bucket trade-images: se usa tal cual
+  const cached=_signedUrlCache.get(path);
+  if(cached&&cached.exp>Date.now())return cached.signedUrl;
+  try{
+    const{data,error}=await sb.storage.from('trade-images').createSignedUrl(path,SIGNED_URL_TTL);
+    if(error||!data)return url;
+    _signedUrlCache.set(path,{signedUrl:data.signedUrl,exp:Date.now()+(SIGNED_URL_TTL-120)*1000});
+    return data.signedUrl;
+  }catch(e){
+    console.error('[Signed URL error]',e);
+    return url;
+  }
+}
+/* Resuelve todas las <img data-tsrc="..."> dentro de root (o todo el documento) a su URL
+   firmada. Se llama justo después de insertar cualquier HTML que contenga imágenes de trades. */
+function hydrateTradeImages(root){
+  const scope=root||document;
+  scope.querySelectorAll('img[data-tsrc]').forEach(async img=>{
+    const raw=img.getAttribute('data-tsrc');
+    img.removeAttribute('data-tsrc');
+    img.src=await resolveTradeImgUrl(raw);
+  });
+}
+
 /* ── COMPOSER DE IMÁGENES MÚLTIPLES DEL TRADE ──
    tradeImagesDraft guarda el estado en memoria mientras el modal está abierto;
    nada se sube a Storage hasta que se pulsa "Guardar trade" (ver saveTrade). */
@@ -3776,7 +3812,7 @@ function renderTradeImagesComposer(){
       ondragstart="timgDragStart(event,${idx})" ondragend="timgDragEnd(event)"
       ondragover="timgDragOver(event)" ondragleave="timgDragLeave(event)" ondrop="timgDrop(event,${idx})">
       ${img.isCover?'<span class="timg-cover-badge">Portada</span>':''}
-      <img src="${esc(img.previewUrl)}" alt="Imagen del trade" onclick="openImageLightbox('${esc(img.previewUrl)}')">
+      <img data-tsrc="${esc(img.previewUrl)}" src="${TRADE_IMG_PLACEHOLDER}" alt="Imagen del trade" onclick="openImageLightbox('${esc(img.previewUrl)}')">
       <div class="timg-thumb-actions">
         <div class="timg-btn-row">
           <div class="timg-btn timg-cover-btn${img.isCover?' is-cover':''}" title="Marcar como portada" onclick="event.stopPropagation();setTradeImageCover(${idx})"><i class="ti ti-star"></i></div>
@@ -3789,6 +3825,7 @@ function renderTradeImagesComposer(){
       </div>
     </div>
   `).join('');
+  hydrateTradeImages(grid);
 }
 let lightboxImages=[];
 let lightboxIndex=0;
@@ -3817,13 +3854,16 @@ function openTradeGallery(tradeId){
   renderLightbox();
   openModal('modal-lightbox');
 }
-function renderLightbox(){
+async function renderLightbox(){
   const img=document.getElementById('lightbox-img');
   const prev=document.getElementById('lightbox-prev');
   const next=document.getElementById('lightbox-next');
   const counter=document.getElementById('lightbox-counter');
   if(!img)return;
-  img.src=lightboxImages[lightboxIndex]||'';
+  const raw=lightboxImages[lightboxIndex]||'';
+  const myIndex=lightboxIndex; // evita pisar la imagen si el usuario navega mientras resuelve
+  img.src=await resolveTradeImgUrl(raw);
+  if(myIndex!==lightboxIndex)return;
   const multi=lightboxImages.length>1;
   if(prev)prev.style.display=multi?'flex':'none';
   if(next)next.style.display=multi?'flex':'none';
@@ -4035,6 +4075,7 @@ function renderRecent(){
   const el=document.getElementById('d-recent');if(!el)return;
   if(!all.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:24px">Aún no hay entradas. ¡Añade tu primer trade!</div>';return;}
   el.innerHTML=all.map(entryHTML).join('');
+  hydrateTradeImages(el);
 }
 /* ── MOTOR DE ANÁLISIS AVANZADO DEL JOURNAL (basado en reglas y palabras clave, sin IA externa) ── */
 
@@ -5357,7 +5398,7 @@ function tradeCardHTML(t){
   const imgCount=Array.isArray(t.images)?t.images.length:(t.image_url?1:0);
   return `<div class="trade-card" onclick="editTradeEntry('${t.id}')">
     <div class="trade-card-imgwrap">
-      ${img?`<img src="${esc(img)}" class="trade-card-img" alt="Captura ${esc(t.pair||'')}" loading="lazy">`:`<div class="trade-card-noimg"><i class="ti ti-photo-off"></i></div>`}
+      ${img?`<img data-tsrc="${esc(img)}" src="${TRADE_IMG_PLACEHOLDER}" class="trade-card-img" alt="Captura ${esc(t.pair||'')}" loading="lazy">`:`<div class="trade-card-noimg"><i class="ti ti-photo-off"></i></div>`}
       ${imgCount>1?`<span class="trade-card-imgcount"><i class="ti ti-photo"></i> ${imgCount}</span>`:''}
       ${img?`<button class="trade-card-viewbtn" onclick="event.stopPropagation();openTradeGallery('${t.id}')" title="Ver foto${imgCount>1?'s':''} en grande"><i class="ti ti-zoom-in"></i></button>`:''}
       <button class="trade-card-del" onclick="event.stopPropagation();deleteTrade('${t.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>
@@ -5383,6 +5424,7 @@ function renderOpsList(){
   const sorted=[...allTrades].sort((a,b)=>b.date.localeCompare(a.date));
   if(!sorted.length){el.innerHTML='<div class="ops-empty">No hay trades registrados en esta cuenta aún.</div>';return;}
   el.innerHTML=sorted.map(tradeCardHTML).join('');
+  hydrateTradeImages(el);
 }
 
 function mergeEntries(){
@@ -5400,7 +5442,7 @@ function entryHTML(e){
   const delCall=isJ?`deleteJournal('${e.id}')`:`deleteTrade('${e.id}')`;
   const editCall=isJ?`editJournalEntry('${e.id}')`:`editTradeEntry('${e.id}')`;
   const coverUrl=isJ?'':getTradeCoverUrl(e);
-  const thumb=coverUrl?`<img src="${esc(coverUrl)}" class="entry-thumb" alt="Portada de ${esc(e.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
+  const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="entry-thumb" alt="Portada de ${esc(e.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
   return`<div class="entry-row"><div class="entry-left-bar ${barCls}"></div>${thumb}<div class="entry-body"><div class="entry-top"><span class="entry-pair">${isJ?'Diario':esc(e.pair)}</span>${badges}</div>${preview?`<div class="entry-note-preview">${preview}${preview.length>=65?'…':''}</div>`:''}</div><div class="entry-right">${!isJ&&e.amount?`<span class="entry-amount" style="color:${amtColor}">${e.result==='be'?'BE':esc(e.amount)}</span>`:''}<span class="entry-date-lbl">${fmtDate(e.date)}</span><div class="entry-actions"><button class="icon-btn" onclick="${editCall}"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="${delCall}"><i class="ti ti-trash"></i></button></div></div></div>`;
 }
 
@@ -5684,11 +5726,12 @@ function showDayDetail(key,day,month,year,panelId){
   let html=`<div style="font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:-.02em">${day} ${M[month]} ${year}</div>`;
   dt.forEach(t=>{
     const coverUrl=getTradeCoverUrl(t);
-    const thumb=coverUrl?`<img src="${esc(coverUrl)}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
+    const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
     html+=`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">${thumb}<div style="flex:1;min-width:0;font-size:12px"><strong>${esc(t.pair)}</strong> <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction}</span> · ${esc(t.session)} · <span class="${t.result==='win'?'pos':t.result==='loss'?'neg':'neutral'}">${t.amount||'BE'}</span>${t.notes?`<div style="color:var(--text3);margin-top:3px;font-size:11px">${esc(t.notes.slice(0,100))}</div>`:''}</div></div>`;
   });
   dj.forEach(j=>{html+=`<div style="font-size:12px;padding:7px 0;color:var(--text2)">${j.content?esc(j.content.slice(0,120))+'…':'Diario sin contenido'}</div>`;});
   panel.innerHTML=html;
+  hydrateTradeImages(panel);
 }
 
 /* ── HELPERS ── */
@@ -5766,8 +5809,9 @@ function showSaveConfirmation({type,date,resultLabel,resultClass,emotion,summary
   if(resultLabel)body+=`<div class="save-confirm-row"><span>Resultado</span><span class="badge ${resultClass}">${esc(resultLabel)}</span></div>`;
   if(emotion)body+=`<div class="save-confirm-row"><span>Estado emocional</span><span style="color:var(--text)">${esc(emotion)}</span></div>`;
   if(summary)body+=`<div class="save-confirm-notes">${summary}</div>`;
-  if(imageUrl)body+=`<img src="${esc(imageUrl)}" class="save-confirm-img" alt="Captura del trade guardado">`;
+  if(imageUrl)body+=`<img data-tsrc="${esc(imageUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="save-confirm-img" alt="Captura del trade guardado">`;
   document.getElementById('sc-body').innerHTML=body;
+  hydrateTradeImages(document.getElementById('sc-body'));
   el.classList.add('show');
   clearTimeout(_saveConfirmTimer);
   _saveConfirmTimer=setTimeout(hideSaveConfirmation,8000);
