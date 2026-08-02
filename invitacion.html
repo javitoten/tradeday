@@ -8,7 +8,7 @@
   posthog.init('phc_mDvwsCnHjKfZGLTkgxp2M8gnUKkLFhAetgfcsLYvDpnU',{api_host:'/qv3f',ui_host:'https://eu.posthog.com',person_profiles:'always'})
 </script>
 <title>TradeDay — Acceso exclusivo</title>
-<meta name="description" content="Consigue tu precio exclusivo en TradeDay, tu diario de trading completo.">
+<meta name="description" content="Consigue tu oferta exclusiva en TradeDay, tu diario de trading completo.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -54,6 +54,12 @@ h1 span{color:var(--green)}
 .price-old{font-size:18px;color:var(--text3);text-decoration:line-through;font-weight:600}
 .offer-note{font-size:13px;color:var(--text2);line-height:1.55;margin-top:10px;padding-top:14px;border-top:1px solid var(--border)}
 .offer-note strong{color:var(--text)}
+
+.lock-row{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.lock-icon{width:44px;height:44px;flex-shrink:0;border-radius:50%;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.lock-icon svg{width:20px;height:20px}
+.lock-title{font-size:16px;font-weight:700;color:var(--text)}
+.lock-sub{font-size:13px;color:var(--text2);margin-top:2px}
 
 .features{list-style:none;margin:22px 0 24px;display:flex;flex-direction:column;gap:11px}
 .features li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--text2)}
@@ -114,25 +120,27 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
       Acceso exclusivo por invitación
     </span>
 
-    <h1>Tu diario de trading, <span>con precio de acceso anticipado</span></h1>
-    <p class="subhead">TradeDay registra tus operaciones, analiza tu comportamiento y te ayuda a construir disciplina real. Reserva tu plaza ahora y asegura un precio exclusivo antes del lanzamiento.</p>
+    <h1>Tu diario de trading, <span>con oferta exclusiva de acceso anticipado</span></h1>
+    <p class="subhead">TradeDay registra tus operaciones, analiza tu comportamiento y te ayuda a construir disciplina real. Reserva tu plaza ahora y desbloquea una oferta exclusiva antes del lanzamiento.</p>
 
     <div class="free-note">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <span><strong>Usar TradeDay y registrar tus operaciones es gratis</strong>, siempre. El precio de esta invitación es solo para desbloquear Premium desde el primer día.</span>
+      <span><strong>Usar TradeDay y registrar tus operaciones es gratis</strong>, siempre. La oferta exclusiva es solo para desbloquear Premium desde el primer día.</span>
     </div>
 
     <div class="offer-card">
       <div class="offer-label">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-        Precio exclusivo Premium de esta invitación
+        Oferta exclusiva Premium de esta invitación
       </div>
-      <div class="price-row">
-        <span class="price-new">6,99€</span>
-        <span class="price-period">/mes</span>
-        <span class="price-old">9,99€/mes</span>
+      <div class="lock-row">
+        <div class="lock-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div>
+          <div class="lock-title">Se desbloquea al reservar tu plaza</div>
+          <div class="lock-sub">Hasta un 30% de descuento sobre el precio de lanzamiento</div>
+        </div>
       </div>
-      <div class="offer-note">Precio exclusivo <strong>mientras mantengas tu suscripción activa</strong>. Si la cancelas, al volver se aplicará el precio estándar.</div>
+      <div class="offer-note">Oferta exclusiva <strong>mientras mantengas tu suscripción activa</strong>. Sin compromiso y sin cobro ahora.</div>
     </div>
 
     <ul class="features">
@@ -152,12 +160,12 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
       </div>
       <input type="text" id="f-website" name="website" class="hp-field" tabindex="-1" autocomplete="off">
       <div class="form-error" id="form-error">Revisa tu nombre y email e inténtalo de nuevo.</div>
-      <button type="submit" class="btn-cta" id="submit-btn">Quiero mi precio exclusivo</button>
+      <button type="submit" class="btn-cta" id="submit-btn">Reservar mi plaza y desbloquear oferta</button>
     </form>
 
     <div class="trust-line">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      No se te cobra nada ahora. Solo reservas tu precio.
+      No se te cobra nada ahora. Solo reservas tu plaza.
     </div>
   </div>
 
@@ -166,8 +174,8 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
     <h2>Ya tienes tu plaza reservada</h2>
-    <p>Te avisaremos por email en cuanto abramos el acceso. Tu precio exclusivo estará esperándote.</p>
-    <div class="price-tag">Tu precio Premium reservado: <strong>6,99€/mes</strong></div>
+    <p>Te avisaremos por email en cuanto abramos el acceso. Esta es tu oferta exclusiva Premium, ya desbloqueada:</p>
+    <div class="price-tag">Tu precio Premium reservado: <strong>6,99€/mes</strong> <span style="text-decoration:line-through;color:var(--text3);font-weight:600">9,99€/mes</span></div>
     <p style="margin-top:14px;font-size:13px">Recuerda: registrar tus operaciones en TradeDay siempre es gratis.</p>
   </div>
 
