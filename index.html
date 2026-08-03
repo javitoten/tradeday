@@ -1109,7 +1109,7 @@ function initLandingFX(){
     <div class="ld-section-head ld-reveal">
       <div class="ld-eyebrow">Precios</div>
       <h2 class="ld-h2" style="font-size:clamp(30px,3.2vw,44px)">Tu primera cuenta,<br>gratis para siempre</h2>
-      <p class="ld-section-desc">Sin prueba con caducidad ni tarjeta al registrarte. Si además operas con varias cuentas — reales, fondeadas o demo — Pro te lo desbloquea todo por 4,99€/mes.</p>
+      <p class="ld-section-desc">Sin prueba con caducidad ni tarjeta al registrarte. Si además operas con varias cuentas — reales, fondeadas o demo — Pro te lo desbloquea todo por 9,99€/mes.</p>
     </div>
     <div class="ld-pricing-grid">
       <div class="ld-price-card ld-reveal">
@@ -1126,7 +1126,7 @@ function initLandingFX(){
       <div class="ld-price-card pro ld-reveal ld-reveal-1">
         <div class="ld-price-badge">Para multi-cuenta</div>
         <div class="ld-price-tier">Pro</div>
-        <div class="ld-price-amount">4,99€<span>/mes</span></div>
+        <div class="ld-price-amount">9,99€<span>/mes</span></div>
         <p class="ld-price-desc">Cuando gestionas más de una cuenta — o quieres análisis más a fondo.</p>
         <ul class="ld-price-list">
           <li><i class="ti ti-check"></i>Cuentas ilimitadas</li>
@@ -1514,6 +1514,13 @@ function initLandingFX(){
             <div style="font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6">Para activar tu Índice de Disciplina primero necesitas crear tu Plan de Trading. Tu disciplina se mide comparando tus acciones con las reglas que tú mismo has definido.</div>
             <button class="btn btn-primary btn-sm" onclick="gotoView('plan')"><i class="ti ti-target"></i>Crear mi Plan</button>
           </div>
+          <div class="mx-blur-wrap">
+          <div id="ds-premium-locked" class="mx-locked-panel" style="display:none">
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Índice de Disciplina — función Premium</div>
+            <div class="mx-locked-desc">Mide tu proceso comparando tus acciones con las reglas de tu propio Plan de Trading. Disponible en el plan Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El Índice de Disciplina')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
           <div id="ds-unlocked" style="display:none">
             <div class="section-header" style="margin-bottom:14px">
               <div>
@@ -1544,6 +1551,7 @@ function initLandingFX(){
               <div id="ds-history-chart"></div>
             </div>
           </div>
+          </div>
         </div>
 
         <!-- MÉTRICAS COMPLETAS (Dashboard) -->
@@ -1563,10 +1571,11 @@ function initLandingFX(){
             </div>
 
             <!-- MÉTRICAS AVANZADAS (Premium) -->
-            <div id="dm-advanced-locked-panel" style="display:none;text-align:center;padding:20px 10px">
-              <div style="font-size:28px;margin-bottom:8px">👑</div>
-              <div style="font-size:14px;font-weight:700;margin-bottom:8px">Métricas avanzadas — función Premium</div>
-              <div style="font-size:13px;color:var(--text2);max-width:420px;margin:0 auto 16px;line-height:1.6">El calendario anual de rendimiento, la distribución Buy/Sell y por sesión, el análisis de breakeven y el rendimiento por sesión están disponibles con TradeDay Premium.</div>
+            <div class="mx-blur-wrap">
+            <div id="dm-advanced-locked-panel" class="mx-locked-panel" style="display:none">
+              <div class="mx-locked-icon">👑</div>
+              <div class="mx-locked-title">Métricas avanzadas — función Premium</div>
+              <div class="mx-locked-desc">El calendario anual de rendimiento, la distribución Buy/Sell y por sesión, el análisis de breakeven y el rendimiento por sesión están disponibles con TradeDay Premium.</div>
               <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Las métricas avanzadas')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
             </div>
 
@@ -1616,6 +1625,7 @@ function initLandingFX(){
               <div id="session-analysis-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
             </div>
             </div>
+            </div>
 
             <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="gotoView('metrics')"><i class="ti ti-chart-bar"></i>Ver todas las métricas</button>
           </div>
@@ -1660,12 +1670,22 @@ function initLandingFX(){
             <i class="ti ti-chevron-down" id="we-chev" style="color:var(--text3);transition:transform .2s;font-size:16px"></i>
           </div>
           <div id="weekly-emotional-body" style="display:none;padding:0 20px 22px;flex-direction:column;gap:16px">
-            <div id="we-nav-row" style="display:flex;align-items:center;justify-content:space-between">
-              <div class="cal-nav-btn" onclick="weekEmoPrev()"><i class="ti ti-chevron-left"></i></div>
-              <div style="font-size:13px;font-weight:700" id="we-week-label">Semana actual</div>
-              <div class="cal-nav-btn" onclick="weekEmoNext()"><i class="ti ti-chevron-right"></i></div>
+            <div class="mx-blur-wrap">
+              <div id="we-premium-locked" class="mx-locked-panel mx-locked-inline" style="display:none">
+                <div class="mx-locked-icon">👑</div>
+                <div class="mx-locked-title">Análisis emocional semanal — función Premium</div>
+                <div class="mx-locked-desc">Descubre tus patrones emocionales a lo largo de la semana, su evolución día a día y cómo se relacionan con tus resultados. Disponible con TradeDay Premium.</div>
+                <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El análisis emocional semanal')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+              </div>
+              <div id="we-blur-content" style="display:flex;flex-direction:column;gap:16px">
+                <div id="we-nav-row" style="display:flex;align-items:center;justify-content:space-between">
+                  <div class="cal-nav-btn" onclick="weekEmoPrev()"><i class="ti ti-chevron-left"></i></div>
+                  <div style="font-size:13px;font-weight:700" id="we-week-label">Semana actual</div>
+                  <div class="cal-nav-btn" onclick="weekEmoNext()"><i class="ti ti-chevron-right"></i></div>
+                </div>
+                <div id="weekly-emotional-content"></div>
+              </div>
             </div>
-            <div id="weekly-emotional-content"></div>
           </div>
         </div>
 
@@ -4926,16 +4946,11 @@ const WE_IMPROVEMENT_TEMPLATES={
 function renderWeeklyEmotional(){
   const content0=document.getElementById('weekly-emotional-content');
   const navRow=document.getElementById('we-nav-row');
-  if(!isPremiumUser()){
-    if(navRow)navRow.style.display='none';
-    if(content0)content0.innerHTML=`<div style="text-align:center;padding:14px 10px 6px">
-      <div style="font-size:26px;margin-bottom:8px">👑</div>
-      <div style="font-size:13px;font-weight:700;margin-bottom:6px">Análisis emocional semanal — función Premium</div>
-      <div style="font-size:12px;color:var(--text2);max-width:380px;margin:0 auto 14px;line-height:1.6">Descubre tus patrones emocionales a lo largo de la semana, su evolución día a día y cómo se relacionan con tus resultados. Disponible con TradeDay Premium.</div>
-      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El análisis emocional semanal')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
-    </div>`;
-    return;
-  }
+  const premium=isPremiumUser();
+  const premiumLocked=document.getElementById('we-premium-locked');
+  const blurContent=document.getElementById('we-blur-content');
+  if(premiumLocked){premiumLocked.style.display=premium?'none':'flex';premiumLocked.classList.toggle('mx-blur-overlay',!premium);}
+  if(blurContent)blurContent.classList.toggle('mx-blur-preview',!premium);
   if(navRow)navRow.style.display='flex';
   const{monday,sunday}=getWeekRange(weekEmoOffset);
   const M=gM();
@@ -5100,25 +5115,19 @@ let disciplineHistory=[];
 
 function initDisciplineScore(){
   const locked=document.getElementById('ds-locked');
+  const premiumLocked=document.getElementById('ds-premium-locked');
   const unlocked=document.getElementById('ds-unlocked');
   const hasPlan=currentPlan&&currentPlan.completed;
-  if(!isPremiumUser()){
-    locked.innerHTML=`<div style="font-size:30px;margin-bottom:10px">👑</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:8px">Índice de Disciplina — función Premium</div>
-      <div style="font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6">Mide tu proceso comparando tus acciones con las reglas de tu propio Plan de Trading. Disponible en el plan Premium.</div>
-      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El Índice de Disciplina')"><i class="ti ti-crown"></i>Mejorar a Premium</button>`;
-    locked.style.display='block';unlocked.style.display='none';
-    return;
-  }
   if(!hasPlan){
-    locked.innerHTML=`<div style="font-size:30px;margin-bottom:10px">🔒</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:8px">Índice de Disciplina bloqueado</div>
-      <div style="font-size:13px;color:var(--text2);max-width:440px;margin:0 auto 16px;line-height:1.6">Para activar tu Índice de Disciplina primero necesitas crear tu Plan de Trading. Tu disciplina se mide comparando tus acciones con las reglas que tú mismo has definido.</div>
-      <button class="btn btn-primary btn-sm" onclick="gotoView('plan')"><i class="ti ti-target"></i>Crear mi Plan</button>`;
     locked.style.display='block';unlocked.style.display='none';
+    if(premiumLocked){premiumLocked.style.display='none';premiumLocked.classList.remove('mx-blur-overlay');}
     return;
   }
-  locked.style.display='none';unlocked.style.display='block';
+  locked.style.display='none';
+  const premium=isPremiumUser();
+  unlocked.style.display='block';
+  unlocked.classList.toggle('mx-blur-preview',!premium);
+  if(premiumLocked){premiumLocked.style.display=premium?'none':'flex';premiumLocked.classList.toggle('mx-blur-overlay',!premium);}
   computeAndRenderDisciplineScore();
 }
 
@@ -6510,15 +6519,13 @@ function renderDashMetricsFull(){
   const advBlock=document.getElementById('dm-advanced-block');
   const advLocked=document.getElementById('dm-advanced-locked-panel');
   const premium=isPremiumUser();
-  if(advBlock)advBlock.style.display=premium?'flex':'none';
-  if(advLocked)advLocked.style.display=premium?'none':'block';
-  if(premium){
-    renderAnnualCalendar();
-    renderBuySellDonut(trades);
-    renderSessionsDonut(trades);
-    renderResultsDonut(trades);
-    renderSessionAnalysis(trades);
-  }
+  if(advBlock){advBlock.style.display='flex';advBlock.classList.toggle('mx-blur-preview',!premium);}
+  if(advLocked){advLocked.style.display=premium?'none':'flex';advLocked.classList.toggle('mx-blur-overlay',!premium);}
+  renderAnnualCalendar();
+  renderBuySellDonut(trades);
+  renderSessionsDonut(trades);
+  renderResultsDonut(trades);
+  renderSessionAnalysis(trades);
 }
 
 function winRateFor(session){
