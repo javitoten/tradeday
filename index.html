@@ -3395,7 +3395,9 @@ async function loadSubscription(){
 // que salta RLS) tras confirmar el pago con Stripe. El cliente nunca puede escribir aquí,
 // así que un usuario no puede marcarse Premium a si mismo manipulando el navegador.
 function isPremiumUser(){
-  return !!(currentSubscription&&['active','trialing'].includes(currentSubscription.status));
+  // TEMPORAL: todo desbloqueado a petición del usuario, hasta nueva indicación.
+  return true;
+  // return !!(currentSubscription&&['active','trialing'].includes(currentSubscription.status));
 }
 // Gate reutilizable para cualquier función Premium: si el usuario no es Premium,
 // muestra el aviso de upgrade y devuelve false (sin ejecutar la acción).
