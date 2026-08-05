@@ -18,6 +18,7 @@
   --border:#ffffff0d;--border2:#ffffff16;--border3:#ffffff22;
   --text:#F0F2F5;--text2:#9BA3AF;--text3:#6B7280;
   --green:#22C55E;--green-bg:#052C14;--green-border:#0B4A20;
+  --violet:#A78BFA;--violet-bg:#1B1530;--violet-border:#3D2F6B;
   --red:#EF4444;
   --accent:#22C55E;--accent2:#16A34A;
   --radius:8px;--radius-lg:12px;--radius-xl:16px;
@@ -60,15 +61,14 @@ h1 span{color:var(--green)}
 
 .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0 24px}
 .compare-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:16px 14px}
-.compare-card.premium{border-color:var(--green-border);background:linear-gradient(180deg,var(--bg3),var(--bg2))}
+.compare-card.premium{border-color:var(--violet-border);background:linear-gradient(180deg,var(--violet-bg),var(--bg2));box-shadow:0 0 0 1px var(--violet-border) inset,0 0 24px -8px rgba(167,139,250,.35)}
 .compare-card h3{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:13px;color:var(--text3)}
-.compare-card.premium{box-shadow:0 0 0 1px var(--green-border) inset}
-.compare-card.premium h3{color:var(--green)}
+.compare-card.premium h3{color:var(--violet)}
 .compare-card ul{list-style:none;display:flex;flex-direction:column;gap:10px}
 .compare-card li{display:flex;align-items:flex-start;gap:7px;font-size:12.5px;color:var(--text2);line-height:1.4}
 .compare-card li svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
 .compare-card:not(.premium) li svg{color:var(--text3)}
-.compare-card.premium li svg{color:var(--green)}
+.compare-card.premium li svg{color:var(--violet)}
 
 form{display:flex;flex-direction:column;gap:12px}
 .field-group{display:flex;flex-direction:column;gap:6px}
