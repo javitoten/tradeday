@@ -58,9 +58,16 @@ h1 span{color:var(--green)}
 .offer-note{font-size:13px;color:var(--text2);line-height:1.55;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
 .offer-note strong{color:var(--text)}
 
-.features{list-style:none;margin:22px 0 24px;display:flex;flex-direction:column;gap:11px}
-.features li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--text2)}
-.features li svg{width:17px;height:17px;flex-shrink:0;color:var(--green);margin-top:1px}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0 24px}
+.compare-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:16px 14px}
+.compare-card.premium{border-color:var(--green-border);background:linear-gradient(180deg,var(--bg3),var(--bg2))}
+.compare-card h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:13px;color:var(--text3)}
+.compare-card.premium h3{color:var(--green)}
+.compare-card ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.compare-card li{display:flex;align-items:flex-start;gap:7px;font-size:12.5px;color:var(--text2);line-height:1.4}
+.compare-card li svg{width:14px;height:14px;flex-shrink:0;margin-top:1px}
+.compare-card:not(.premium) li svg{color:var(--text3)}
+.compare-card.premium li svg{color:var(--green)}
 
 form{display:flex;flex-direction:column;gap:12px}
 .field-group{display:flex;flex-direction:column;gap:6px}
@@ -95,6 +102,9 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
 @media(max-width:480px){
   h1{font-size:28px}
   .offer-card{padding:20px}
+  .compare-grid{gap:8px}
+  .compare-card{padding:13px 11px}
+  .compare-card li{font-size:11.5px}
 }
 </style>
 </head>
@@ -116,13 +126,8 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
       Acceso exclusivo por invitación
     </span>
 
-    <h1>Tu diario de trading, <span>con código de descuento exclusivo de este enlace</span></h1>
-    <p class="subhead">TradeDay registra tus operaciones, analiza tu comportamiento y te ayuda a construir disciplina real. Este código de descuento solo está disponible para quienes reserven su plaza a través de este enlace.</p>
-
-    <div class="free-note">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <span><strong>Usar TradeDay y registrar tus operaciones es gratis</strong>, siempre. El código de descuento es solo para desbloquear Premium desde el primer día.</span>
-    </div>
+    <h1>Tu diario de trading, <span>con código de descuento exclusivo</span></h1>
+    <p class="subhead">Reserva tu plaza en este enlace y te enviamos tu código de descuento para Premium.</p>
 
     <div class="offer-card">
       <div class="offer-label">
@@ -136,14 +141,27 @@ footer{text-align:center;padding:20px 0 10px;font-size:12px;color:var(--text3)}
           <div class="lock-sub">No disponible fuera de este enlace</div>
         </div>
       </div>
-      <div class="offer-note">Te enviaremos tu código de descuento por email <strong>en cuanto reserves tu plaza</strong>. Sin compromiso y sin cobro ahora.</div>
+      <div class="offer-note">Te lo enviamos por email <strong>en cuanto reserves tu plaza</strong>. Sin compromiso y sin cobro ahora.</div>
     </div>
 
-    <ul class="features">
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Registro completo de operaciones con imágenes y notas — <strong>gratis</strong></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Métricas avanzadas: rendimiento, riesgo y disciplina — Premium</li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Análisis de tu comportamiento emocional al operar — Premium</li>
-    </ul>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h3>Gratis</h3>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Registro ilimitado de operaciones</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Notas e imágenes por operación</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Calendario y resumen de trading</li>
+        </ul>
+      </div>
+      <div class="compare-card premium">
+        <h3>Premium</h3>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Métricas avanzadas de rendimiento y riesgo</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Discipline Score</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Análisis de tu comportamiento emocional</li>
+        </ul>
+      </div>
+    </div>
 
     <form id="signup-form">
       <div class="field-group">
