@@ -7101,9 +7101,9 @@ function mxRenderSessionChart(m){
   if(!chipsEl)return;
   const withData=st.filter(s=>s.count>0);
   if(!withData.length){chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
-  let html=withData.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${s.name} <strong>${s.count} op.</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
-  if(m.sesiones.bestSessionByPnl)html+=`<div class="mx-chip pos">Mejor sesión <strong>${m.sesiones.bestSessionByPnl.name}</strong></div>`;
-  if(m.sesiones.worstSessionByPnl)html+=`<div class="mx-chip neg">Peor sesión <strong>${m.sesiones.worstSessionByPnl.name}</strong></div>`;
+  let html=withData.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${esc(s.name)} <strong>${s.count} op.</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
+  if(m.sesiones.bestSessionByPnl)html+=`<div class="mx-chip pos">Mejor sesión <strong>${esc(m.sesiones.bestSessionByPnl.name)}</strong></div>`;
+  if(m.sesiones.worstSessionByPnl)html+=`<div class="mx-chip neg">Peor sesión <strong>${esc(m.sesiones.worstSessionByPnl.name)}</strong></div>`;
   chipsEl.innerHTML=html;
 }
 
