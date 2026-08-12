@@ -1,0 +1,10 @@
+# TradeDay — https://tradeday.me
+# Diario de trading / trading journal online
+
+User-agent: *
+Allow: /
+
+# La landing de campaña por invitación no debe indexarse
+# (ya lleva meta robots noindex; la dejamos rastreable para que Google lea ese noindex)
+
+Sitemap: https://tradeday.me/sitemap.xml

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario de Trading: visualiza tu consistencia | TradeDay</title>
+<meta name="description" content="Un calendario de trading te muestra tu consistencia de un vistazo: días verdes, rojos y de disciplina. Descubre cómo usarlo para operar mejor con TradeDay. Gratis.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://tradeday.me/calendario-de-trading">
+<meta name="theme-color" content="#0A0B0E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TradeDay">
+<meta property="og:title" content="Calendario de Trading: visualiza tu consistencia">
+<meta property="og:description" content="Cómo un calendario de trading te ayuda a ver tu consistencia y construir el hábito de seguir tu plan.">
+<meta property="og:url" content="https://tradeday.me/calendario-de-trading">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2322C55E'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-weight='900' font-size='52' fill='%23000' text-anchor='middle'%3ETD%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0B0E;--bg2:#111318;--bg3:#181A20;--border:#ffffff0d;--border2:#ffffff16;--text:#F0F2F5;--text2:#9BA3AF;--text3:#6B7280;--green:#22C55E;--green2:#16A34A;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+a{color:var(--green);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(10,11,14,.85);backdrop-filter:blur(10px)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--text)}
+.logo-mark{width:26px;height:26px;background:var(--green);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#000}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;background:var(--green);color:#000;border:none;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--green2);text-decoration:none}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border2)}
+header.hero{padding:70px 0 40px;text-align:center}
+.eyebrow{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:16px}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-bottom:20px}
+.lead{font-size:18px;color:var(--text2);max-width:640px;margin:0 auto 28px}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+article{padding:20px 0 40px}
+article h2{font-size:clamp(24px,3.4vw,32px);font-weight:800;letter-spacing:-.02em;margin:44px 0 16px}
+article h3{font-size:19px;font-weight:700;margin:28px 0 10px}
+article p{color:var(--text2);margin-bottom:16px}article ul{color:var(--text2);margin:0 0 16px 22px}article li{margin-bottom:9px}
+article strong{color:var(--text)}
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:22px 24px;margin:22px 0}
+.breadcrumb{font-size:13px;color:var(--text3);padding:18px 0 0}.breadcrumb a{color:var(--text3)}
+.related{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:20px 0}
+.related a{display:block;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px 18px;color:var(--text);font-weight:600}
+.related a:hover{border-color:var(--green);text-decoration:none}
+.related a span{display:block;font-size:13px;color:var(--text3);font-weight:400;margin-top:4px}
+details{border-bottom:1px solid var(--border2)}
+details summary{list-style:none;cursor:pointer;padding:18px 0;font-weight:600;font-size:16px;display:flex;justify-content:space-between;gap:14px}
+details summary::-webkit-details-marker{display:none}details summary::after{content:'+';color:var(--text3);font-size:20px}details[open] summary::after{content:'−'}
+details .a{padding:0 0 18px;color:var(--text2)}
+.cta-band{text-align:center;background:linear-gradient(180deg,var(--bg2),var(--bg));border:1px solid var(--border2);border-radius:16px;padding:40px 24px;margin:44px 0}
+.cta-band h2{margin:0 0 10px}.cta-band p{color:var(--text2);margin-bottom:22px}
+footer{border-top:1px solid var(--border);padding:34px 0;margin-top:20px}
+.foot-links{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;margin:14px 0}.foot-links a{color:var(--text2)}
+.copy{font-size:13px;color:var(--text3)}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://tradeday.me/"},{"@type":"ListItem","position":2,"name":"Calendario de trading","item":"https://tradeday.me/calendario-de-trading"}]},
+{"@type":"Article","headline":"Calendario de trading: visualiza tu consistencia","inLanguage":"es","author":{"@type":"Organization","name":"TradeDay"},"publisher":{"@type":"Organization","name":"TradeDay","logo":{"@type":"ImageObject","url":"https://tradeday.me/logo.svg"}},"mainEntityOfPage":"https://tradeday.me/calendario-de-trading"},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"¿Qué es un calendario de trading?","acceptedAnswer":{"@type":"Answer","text":"Es una vista mensual donde cada día se colorea según tu resultado o tu comportamiento: verde si ganaste, rojo si perdiste y un color distinto para los días de disciplina en los que decidiste no operar. Permite ver tu consistencia de un vistazo."}},
+{"@type":"Question","name":"¿Para qué sirve ver mi trading en un calendario?","acceptedAnswer":{"@type":"Answer","text":"Para detectar patrones temporales, ver tu regularidad y reforzar el hábito de seguir tu plan. La consistencia visual es un motivador muy potente."}}
+]}
+]}
+</script>
+</head>
+<body>
+<nav><a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a><a class="btn" href="/">Empezar gratis</a></nav>
+<div class="wrap"><div class="breadcrumb"><a href="/">Inicio</a> › Calendario de trading</div></div>
+<header class="hero"><div class="wrap">
+  <span class="eyebrow">Calendario de trading</span>
+  <h1>Tu consistencia, de un solo vistazo</h1>
+  <p class="lead">Un calendario de trading convierte meses de operativa en un mapa de color. Ves al instante tus rachas, tus patrones y los días en los que la disciplina ganó.</p>
+  <div class="hero-cta"><a class="btn" href="/">Abrir mi calendario gratis</a><a class="btn btn-ghost" href="#que-es">Cómo funciona</a></div>
+</div></header>
+<article class="wrap">
+  <h2 id="que-es">¿Qué es un calendario de trading?</h2>
+  <p>Un <strong>calendario de trading</strong> es una vista mensual donde cada día se colorea según lo que pasó: verde si fue rentable, rojo si perdiste y un color distinto para los <strong>días de disciplina</strong> en los que decidiste no operar. En lugar de una lista interminable de operaciones, ves tu mes entero como un patrón visual.</p>
+
+  <h2>Por qué el color cambia tu forma de operar</h2>
+  <p>El cerebro procesa un patrón de colores mucho más rápido que una tabla de números. Un calendario te muestra cosas que una hoja de cálculo esconde:</p>
+  <ul>
+    <li><strong>Rachas:</strong> ¿cuántos días verdes seguidos llevas? ¿Cuándo se rompió la buena racha y por qué?</li>
+    <li><strong>Patrones temporales:</strong> ¿pierdes siempre los lunes? ¿Ganas al principio de mes y te descontrolas al final?</li>
+    <li><strong>Sobreoperación:</strong> muchos días seguidos operando sin descanso suelen preceder a los peores resultados.</li>
+    <li><strong>Disciplina real:</strong> ver los días en los que supiste esperar tu setup refuerza el hábito.</li>
+  </ul>
+
+  <div class="card">
+    <h3 style="margin-top:0">El calendario de TradeDay</h3>
+    <p style="margin-bottom:0">Cada día que registras en tu <a href="/diario-de-trading">diario</a> aparece en el calendario con su color. Pulsa cualquier día para ver sus operaciones, notas y capturas. Se combina con tus <a href="/metricas-de-trading">métricas</a> y tu <a href="/disciplina-en-trading">índice de disciplina</a> para darte la foto completa de tu mes.</p>
+  </div>
+
+  <h2>Registra también los días que no operas</h2>
+  <p>Un calendario de trading no es solo para trades. Los días en los que decides <strong>no operar</strong> porque no había setup son parte de tu proceso. Registrarlos como días de disciplina te ayuda a valorar la paciencia tanto como la acción — y es justo lo que hacen los traders consistentes.</p>
+
+  <div class="cta-band">
+    <h2>Visualiza tu trading gratis</h2>
+    <p>Tu calendario en color, sin tarjeta, en 2 minutos.</p>
+    <a class="btn" href="/">Crear cuenta gratis</a>
+  </div>
+
+  <h2>Sigue explorando</h2>
+  <div class="related">
+    <a href="/diario-de-trading">Diario de trading<span>Registra tu operativa</span></a>
+    <a href="/metricas-de-trading">Métricas de trading<span>Win rate, R:R y más</span></a>
+    <a href="/disciplina-en-trading">Disciplina en trading<span>Plan vs. ejecución</span></a>
+    <a href="/blog/como-revisar-una-semana-de-trading">Guía: revisar tu semana<span>Rutina de análisis</span></a>
+  </div>
+
+  <h2>Preguntas frecuentes</h2>
+  <details open><summary>¿Qué es un calendario de trading?</summary><div class="a">Es una vista mensual donde cada día se colorea según tu resultado o tu comportamiento: verde si ganaste, rojo si perdiste y un color distinto para los días de disciplina en los que decidiste no operar. Permite ver tu consistencia de un vistazo.</div></details>
+  <details><summary>¿Para qué sirve ver mi trading en un calendario?</summary><div class="a">Para detectar patrones temporales, ver tu regularidad y reforzar el hábito de seguir tu plan. La consistencia visual es un motivador muy potente.</div></details>
+</article>
+<footer><div class="wrap">
+  <a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a>
+  <div class="foot-links"><a href="/diario-de-trading">Diario de trading</a><a href="/metricas-de-trading">Métricas</a><a href="/calendario-de-trading">Calendario</a><a href="/plan-de-trading">Plan de trading</a><a href="/disciplina-en-trading">Disciplina</a><a href="/blog/">Blog</a></div>
+  <div class="copy">© 2026 TradeDay · Tu diario de trading online</div>
+</div></footer>
+</body>
+</html>
