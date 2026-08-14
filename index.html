@@ -1995,7 +1995,7 @@ function initLandingFX(){
           <div class="mx-kpi-grid">
             <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-scale"></i></div><div class="metric-label">Profit Factor</div><div class="metric-value" id="mx-pf">—</div><div class="metric-delta neutral">Ganancia bruta ÷ Pérdida bruta</div></div>
             <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-target-arrow"></i></div><div class="metric-label">Expectancy</div><div class="metric-value" id="mx-exp">—</div><div class="metric-delta neutral">Beneficio neto ÷ Nº operaciones</div></div>
-            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-ratio"></i></div><div class="metric-label">R:R medio</div><div class="metric-value" id="mx-rr">—</div><div class="metric-delta neutral">Ganancia media ÷ Pérdida media</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-arrows-up-down"></i></div><div class="metric-label">R:R medio</div><div class="metric-value" id="mx-rr">—</div><div class="metric-delta neutral">Ganancia media ÷ Pérdida media</div></div>
           </div>
         </div>
 
@@ -2017,9 +2017,9 @@ function initLandingFX(){
               </div>
             </div>
             <div class="card mx-section-block">
-              <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-shield-half-filled"></i>Riesgo</div>
+              <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-shield"></i>Riesgo</div>
               <div class="mx-kpi-grid">
-                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-half-filled"></i></div><div class="metric-label">Riesgo medio</div><div class="metric-value" id="mx-risk-avg">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield"></i></div><div class="metric-label">Riesgo medio</div><div class="metric-value" id="mx-risk-avg">—</div></div>
                 <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-x"></i></div><div class="metric-label">Riesgo máximo</div><div class="metric-value" id="mx-risk-max">—</div></div>
                 <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-check"></i></div><div class="metric-label">Riesgo mínimo</div><div class="metric-value" id="mx-risk-min">—</div></div>
               </div>
@@ -7121,6 +7121,15 @@ function mxMakeChart(id,config){
   mxDestroyChart(id);
   const el=document.getElementById(id);
   if(!el||typeof Chart==='undefined')return null;
+  // Para TODA gráfica de línea: tooltip que sigue el cursor por índice + línea vertical (crosshair)
+  if(config&&config.type==='line'){
+    config.options=config.options||{};
+    if(!config.options.interaction)config.options.interaction={mode:'index',intersect:false,axis:'x'};
+    config.plugins=config.plugins||[];
+    if(!config.plugins.some(p=>p&&p.id==='mxCrosshair')){
+      config.plugins.push({id:'mxCrosshair',afterDraw(chart){const t=chart.tooltip;const act=(t&&t.getActiveElements)?t.getActiveElements():((t&&t._active)||[]);if(act&&act.length){const x=act[0].element.x,ctx=chart.ctx,ya=chart.scales.y;ctx.save();ctx.beginPath();ctx.moveTo(x,ya.top);ctx.lineTo(x,ya.bottom);ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeStyle=mxCssVar('--text3')||'#888';ctx.globalAlpha=.55;ctx.stroke();ctx.restore();}}});
+    }
+  }
   mxCharts[id]=new Chart(el.getContext('2d'),config);
   return mxCharts[id];
 }
@@ -7166,12 +7175,10 @@ function mxRenderEquityChart(m){
     type:'line',
     data:{labels,datasets:[{data,borderColor:lineColor,backgroundColor:mxHexAlpha(lineColor,.12),borderWidth:2,fill:true,tension:.3,pointRadius:0,pointHoverRadius:5,pointHitRadius:14,pointBackgroundColor:lineColor,pointBorderColor:mxCssVar('--bg')||'#fff',pointBorderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false,axis:'x'},
       plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{title:items=>items&&items.length?items[0].label:'',label:c=>'Capital: '+fmtMoney(c.parsed.y)}},mxTooltipBase())},
       scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:8}},
         y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}
-    },
-    plugins:[{id:'mxEquityCrosshair',afterDraw(chart){const t=chart.tooltip;const act=(t&&t.getActiveElements)?t.getActiveElements():(t&&t._active)||[];if(act&&act.length){const x=act[0].element.x,ctx=chart.ctx,ya=chart.scales.y;ctx.save();ctx.beginPath();ctx.moveTo(x,ya.top);ctx.lineTo(x,ya.bottom);ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeStyle=mxCssVar('--text3')||'#888';ctx.globalAlpha=.55;ctx.stroke();ctx.restore();}}}]
+    }
   });
 }
 
