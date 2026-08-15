@@ -4751,6 +4751,185 @@ function analyzeSentimentText(text){
   return analyzeJournalText(text,'legacy:'+normText(text).slice(0,60));
 }
 
+/* ============================================================================
+   MOTOR CONTEXTUAL DE "POSIBLE MEJORA" (Premium)
+   Va un paso más allá del banco de frases clásico: interpreta la RELACIÓN entre
+   lo que pasó, lo que hizo el trader, cómo se sintió, el resultado, el plan y el
+   historial, y elige la recomendación que probablemente aporte más valor.
+   Principios: no repetir lo que el usuario acaba de decir; separar el resultado
+   de la calidad de la decisión; no asumir siempre que hay algo que corregir;
+   reforzar lo que se hizo bien; 2-4 frases; tono cercano, sin moralizar ni dar
+   consejos financieros. Si nada encaja, cae al banco clásico (buildSuggestion).
+   ============================================================================ */
+const IMPROVE_FAMILIES={
+  'Operar por FOMO':'fomo','Entrar demasiado tarde':'fomo',
+  'Entrar demasiado pronto':'precipitacion','No esperar confirmación':'precipitacion','Forzar operaciones':'precipitacion','Setup poco claro':'precipitacion',
+  'Operar por venganza':'recuperar','Sobreoperar':'recuperar','Operar por aburrimiento':'recuperar',
+  'No respetar el riesgo':'riesgo','Aumentar el lotaje':'riesgo',
+  'Mover el stop':'salida','Cerrar antes de tiempo':'salida','Dejar correr una pérdida':'salida',
+  'Saltarse el plan':'plan','Falta de disciplina':'plan','Operar fuera de horario':'plan',
+  'Indecisión / cambios de opinión':'indecision','Falta de control emocional':'emocional',
+};
+const IMPROVE_FAMILY_LABEL={
+  fomo:'entrar cuando el movimiento ya está en marcha',
+  precipitacion:'adelantarte a la confirmación que sueles pedir',
+  recuperar:'seguir operando después de una pérdida',
+  riesgo:'ajustar el riesgo sobre la marcha',
+  salida:'gestionar la salida antes de tiempo',
+  plan:'hacer excepciones a tus propias reglas',
+  indecision:'cambiar de idea una vez dentro de la operación',
+  emocional:'operar arrastrando el estado del momento',
+};
+const IMPROVE_BANK={
+  historyPattern:[
+    'Hay algo que empieza a repetirse en tus últimos registros: varias de tus operaciones tienen que ver con {theme}. Quizá el punto a trabajar no sea el setup, sino identificar ese momento en el que pasas de analizar una oportunidad a sentir que tienes que actuar.',
+    'Esto ya ha aparecido otras veces en tus registros recientes. Cuando un mismo patrón se repite —{theme}—, suele ser más útil observar qué situación lo dispara que corregir cada operación por separado.',
+    'Más que esta operación en concreto, lo interesante es que {theme} se está volviendo recurrente en lo que escribes. Detectar el disparador común puede darte más margen que revisar cada entrada por su cuenta.'],
+  lossGoodExecution:[
+    'Aquí no parece haber una corrección evidente que hacer. Seguiste el proceso que habías definido y el resultado fue simplemente negativo. Puede tener más valor guardar este registro como referencia de una buena ejecución que cambiar algo solo porque la operación terminó en pérdida.',
+    'No todo lo que acaba en pérdida es un error. Si la entrada cumplía tus condiciones y la gestionaste como habías previsto, esta operación sirve más como ejemplo de proceso correcto que como algo que arreglar.',
+    'Lo importante de esta operación no es la pérdida, sino que no cambió tu forma de ejecutar. Guarda este tipo de registros para cuando el resultado no acompañe y te entren dudas sobre tu método.'],
+  winBadExecution:[
+    'El resultado fue positivo, pero hay un detalle en lo que cuentas: la operación salió bien aunque la entrada no cumpliera del todo tus condiciones. Si usas el journal para pulir tu proceso, quizá merezca la pena valorarla por cómo la ejecutaste y no por cómo terminó.',
+    'Salió a favor, y eso puede hacer que la entrada parezca mejor de lo que fue. Intenta separar el resultado de la calidad de la decisión: repetir una entrada así en otro contexto podría no acabar igual.',
+    'Ganar de esta forma es de lo más difícil de leer bien, porque el resultado tapa el proceso. Registrar esta operación como buen resultado con ejecución mejorable puede ayudarte más que darla por buena sin más.'],
+  winOverconfident:[
+    'Varias operaciones a favor y mucha seguridad es justo el momento en el que se suelen relajar las reglas, como parece que pasó en la última entrada. Puede ser útil observar si esa confianza venía de tu análisis o del resultado de las anteriores.',
+    'La seguridad después de encadenar ganancias es agradable, pero también es cuando entrar sin confirmación pesa más. Aquí lo interesante no es el acierto, sino preguntarte si repetirías esa última entrada estando en frío.'],
+  noTradeGood:[
+    'No operar también forma parte de ejecutar bien. Si de verdad no apareció una oportunidad que cumpliera tus condiciones, registrar estos días te sirve para comprobar con el tiempo si distingues cada vez mejor una oportunidad real de una entrada por necesidad de operar.',
+    'Quedarte fuera cuando no hay setup es una decisión, no una ausencia de ella. Con el tiempo, estos registros son los que te muestran si tu criterio para no entrar está mejorando.'],
+  selfControlPrior:[
+    'Hiciste algo interesante al reconocer que tu estado podía influir en las decisiones de hoy y decidir quedarte fuera. Puede merecer la pena observar si consigues aplicar esa misma lectura de cómo estás cuando ya te encuentras dentro del mercado.',
+    'Lo valioso de hoy no fue una entrada, sino saber cuándo no hacerla. Reconocer que no estabas en las mejores condiciones y mantenerte fuera es una parte del proceso que conviene conservar.'],
+  planViolation:[
+    'Aquí hay una diferencia bastante clara entre lo que habías definido y lo que terminó ocurriendo. No parece que desconocieras tu regla, sino que decidiste hacer una excepción porque esperabas que el movimiento continuara. Identificar ese momento previo a la entrada suele ayudar más que recordarte la norma.',
+    'Lo interesante no es tanto que te saltaras la regla, sino el instante exacto en que decidiste hacerlo. Si consigues reconocer qué te empujó a esa excepción concreta, tendrás más margen para frenarla la próxima vez que aparezca.'],
+  revengeAfterLoss:[
+    'Más que el número de operaciones, quizá merezca la pena mirar qué ocurrió entre una y otra. Si la necesidad de seguir buscando entradas apareció justo después de la pérdida, ese momento concreto es el que conviene identificar para decidir de antemano cuándo una sesión debería terminar.',
+    'Lo que suele pesar aquí no es la primera pérdida, sino lo que viene después. Si notas que buscas operaciones que en frío no tomarías, ese cambio de estado puede convertirse en tu señal para parar antes de encadenar más.',
+    'Después de perder, la cabeza tiende a operar para recuperar en vez de operar el gráfico. Puede ayudarte fijar de antemano un límite de pérdidas del día, para que parar no dependa de cómo te sientas en ese momento.'],
+  fomo:[
+    'En lo que cuentas, la entrada parece llegar cuando el precio ya se estaba moviendo. Quizá el punto a observar no sea encontrar mejores setups, sino identificar ese instante en el que pasas de analizar una oportunidad a sentir que tienes que entrar.',
+    'La sensación de que se te escapa el movimiento suele ser, en realidad, una buena señal para no entrar. Puede ser útil anotar cuántas de esas entradas por miedo a perdértelas habrían cumplido tus condiciones si las miraras en frío.'],
+  stopMoved:[
+    'Mover el stop suele decir menos del mercado y más del momento en que cuesta aceptar la pérdida. Definir dónde va antes de entrar y no tocarlo durante la operación quita esa decisión de en medio justo cuando es más difícil tomarla.',
+    'Lo que aparece aquí no es tanto un fallo técnico como la dificultad de dar una operación por perdida. Si el stop ya estaba puesto con criterio, el trabajo quizá esté en respetar tu análisis previo más que en recalcularlo en caliente.'],
+  closedEarly:[
+    'Cerrar antes de tiempo suele venir de querer asegurar algo, no del gráfico. Puede ser interesante revisar si la operación llegó a invalidar tu idea o si simplemente apareció una pequeña ganancia que costó dejar correr.',
+    'Aquí lo que aparece no es un error de análisis, sino la tensión de sostener una operación abierta. Merece la pena comprobar si tu salida respondió a tu plan o al alivio de cerrar con algo a favor.'],
+  oversize:[
+    'Aumentar el tamaño fuera de lo habitual casi siempre nace de una emoción —confianza, prisa— más que de un análisis. Mantener el mismo riesgo pase lo que pase es de lo más simple de decir y lo más difícil de sostener; puede merecer la pena observar qué lo disparó hoy.',
+    'Más que el riesgo en sí, lo interesante es qué te hizo salirte de tu tamaño habitual en esta operación concreta. Ese disparador suele repetirse, y reconocerlo vale más que recordarte el número.'],
+  impatience:[
+    'Parece que la entrada se adelantó a la confirmación que sueles pedirte. Lo interesante no es la prisa en sí, sino qué la provocó: si fue el precio acelerando o el miedo a quedarte fuera, cada caso se trabaja distinto.',
+    'En lo que describes, la decisión llega antes que la confirmación. Puede ayudarte fijarte en qué señal concreta esperabas y si de verdad apareció, o si entraste dando por hecho que iba a llegar.'],
+  contradiction:[
+    'Hay algo revelador en que supieras lo que tocaba y aun así decidieras lo contrario. Ahí el punto no es de conocimiento, sino ese instante concreto en el que la excepción parece justificada; reconocerlo suele valer más que repetirte la regla.',
+    'Lo que cuentas no parece falta de criterio, sino una excepción que en el momento tuvo sentido para ti. Observar qué la hizo parecer razonable puede darte más margen que proponerte no repetirla.'],
+  positiveReinforce:[
+    'Aquí no aparece un comportamiento concreto que necesites corregir. Lo importante es que mantuviste tu forma de ejecutar; este tipo de sesiones son buenas para guardarlas como referencia.',
+    'No parece haber nada que arreglar en lo que describes. Cuando la ejecución acompaña, el trabajo es simplemente repetirla; registrar estos días te ayuda a recordar cómo se siente hacerlo bien.'],
+};
+function _improveNegSet(a){return new Set(a&&a.behaviors?a.behaviors.negative.map(b=>b.tag):[]);}
+function _improvePosSet(a){return new Set(a&&a.behaviors?a.behaviors.positive.map(b=>b.tag):[]);}
+function _improveMentionsPlan(entry){
+  const t=normText([entry&&entry.content||'',entry&&entry.notes||''].join(' '));
+  return /(cumpli|segui|respete).*(plan|condicion|regla|criterio|riesgo)|cumplia (todas )?(mis )?condicion/.test(t);
+}
+function _improveContradiction(entry){
+  const t=normText([entry&&entry.content||'',entry&&entry.notes||''].join(' '));
+  return /(sabia|aunque|a pesar|pese a|deberia|debia|no deberia)[^.]{0,40}(entr|opere|force|movi|cerre|salte|anticip)/.test(t)||/(entr|opere|force|movi|cerre|salte)[^.]{0,40}(aunque|a pesar|pese a|sabiendo|sin que)/.test(t);
+}
+/* Señales heurísticas leídas directamente del texto libre, como red de seguridad cuando el léxico de
+   comportamiento no captura una redacción concreta (p.ej. "me iba a perder el movimiento", "otras
+   cuatro operaciones para recuperar", "no estaba convencido del setup"). No sustituyen al léxico:
+   lo complementan para que la recomendación no caiga al banco genérico por una frase no prevista. */
+function _improveSignals(entry){
+  const t=normText([entry&&entry.content||'',entry&&entry.notes||''].join(' . '));
+  return {
+    fomo:/me iba a perder|perderme (el|ese)? ?movimiento|se me (iba|escapa|escapaba|escapo)|el precio (ya )?(estaba )?(subiendo|cayendo|moviendo|acelerando|corriendo)|iba a (continuar|seguir)|persegu|entre tarde|ya (se habia|se estaba) movi|no queria quedarme fuera|estaba (subiendo|cayendo) (rapido|muy rapido|con fuerza)/.test(t),
+    recuperar:/intentando recuperar|para recuperar|recuperar (la|lo|las) ?perd|otras (dos|tres|cuatro|cinco|seis|varias|mas) (operaciones|entradas)|hice (mas|otras|varias|dos|tres|cuatro) (operaciones|entradas)|empece a (buscar|hacer|tomar) (mas )?(operaciones|entradas|trades)|segui (operando|buscando)|sobreoper|demasiadas (operaciones|entradas)|una detras de otra|encaden/.test(t),
+    uncertain:/no estaba (del todo )?convencid|no lo tenia (del todo )?claro|no (era|estaba) (del todo )?clar|sin estar (del todo )?segur|dudaba del setup|el setup no (era|estaba|me convencia|estaba claro)|no (lo )?veia claro/.test(t),
+    frustrated:/me frustr|frustrad|me cabree|me enfad|con rabia|de mala manera|con impotencia/.test(t),
+    forced:/force la entrada|entre a la fuerza|forzar la entrada|obligue la entrada|me obligue a entrar/.test(t),
+    noConfirm:/sin (esperar )?(la )?confirmacion|sin confirmar|no espere (la )?confirmacion|antes de (la )?confirmacion|no hubo confirmacion/.test(t),
+  };
+}
+let _improveHistCache={key:null,fams:null};
+function improveHistoryFamilies(){
+  try{
+    const js=(typeof allJournals!=='undefined'&&allJournals)?allJournals:[];
+    const ts=(typeof allTrades!=='undefined'&&allTrades)?allTrades:[];
+    const acc=(typeof currentAccountId!=='undefined')?currentAccountId:null;
+    const entries=[...js,...ts].filter(e=>!acc||e.account_id===acc);
+    const key=acc+'|'+entries.length;
+    if(_improveHistCache.key===key)return _improveHistCache.fams;
+    const fams={};
+    entries.forEach(e=>{
+      const txt=[e.content||'',e.notes||'',e.technical_notes||'',synthesizeTechTagPhrases(e.technical_tags)].filter(Boolean).join('. ');
+      if(!txt.trim())return;
+      const a=analyzeJournalText(txt,'hist:'+(e.id||e.date||''));
+      const seen=new Set();
+      a.behaviors.negative.forEach(b=>{const f=IMPROVE_FAMILIES[b.tag];if(f&&!seen.has(f)){seen.add(f);fams[f]=(fams[f]||0)+1;}});
+    });
+    _improveHistCache={key,fams};
+    return fams;
+  }catch(_e){return {};}
+}
+/* Devuelve la recomendación "Posible mejora" más relevante para una entrada, con prioridad:
+   historial repetido > perder ejecutando bien > ganar con mala ejecución > autocontrol/estado
+   reconocido > no operar bien > incumplimiento de plan > venganza tras pérdida > reencuadre por
+   categoría de ejecución > contradicción intención/conducta > refuerzo positivo > banco clásico. */
+function buildImprovement(ctx){
+  const analysis=ctx.analysis,isTrade=ctx.isTrade,seedKey=ctx.seedKey,entry=ctx.entry||{},plan=ctx.plan||null;
+  const S=k=>pick(IMPROVE_BANK[k],seedKey,'imp-'+k);
+  const neg=_improveNegSet(analysis),pos=_improvePosSet(analysis);
+  const emos=new Set(analysis?analysis.emotions.map(e=>e.tag):[]);
+  const combos=analysis?analysis.combos:[];
+  const hasNegCombo=combos.some(c=>c.type==='negative');
+  const positiveCombo=combos.find(c=>c.type==='positive'&&(String(c.id).indexOf('autocontrol')===0||String(c.id).indexOf('resiliencia')===0));
+  const result=isTrade?entry.result:null;
+  const followedFull=isTrade&&/100/.test(entry.followed_plan||'');
+  const isNoTrade=!isTrade&&!!entry.reason;
+  const sig=_improveSignals(entry);
+  const has=(...tags)=>tags.some(t=>neg.has(t));
+  const anyNeg=neg.size>0||hasNegCombo||sig.fomo||sig.recuperar||sig.forced||(result==='win'&&sig.uncertain);
+  const hasFomo=has('Operar por FOMO','Entrar demasiado tarde')||sig.fomo;
+  const hasRevenge=has('Operar por venganza','Sobreoperar','Operar por aburrimiento')||sig.recuperar||combos.some(c=>String(c.id).indexOf('frustracion')===0);
+
+  // 1) Patrón repetido en el historial (máxima prioridad)
+  for(const t of neg){const f=IMPROVE_FAMILIES[t];if(f&&(improveHistoryFamilies()[f]||0)>=3)return fillTemplate(S('historyPattern'),{theme:IMPROVE_FAMILY_LABEL[f]});}
+  // 2) Perder ejecutando bien: puede no haber nada que corregir
+  if(result==='loss'&&!anyNeg&&(followedFull||pos.has('Seguir el plan')||pos.has('Esperar con paciencia')||pos.has('Buena gestión del riesgo')||pos.has('Aceptar la pérdida sin frustración')||_improveMentionsPlan(entry)))return S('lossGoodExecution');
+  // 3) Ganar con ejecución mejorable (el resultado no valida la decisión)
+  if(result==='win'&&(has('No esperar confirmación','Entrar demasiado pronto','Forzar operaciones','Setup poco claro','Saltarse el plan','Operar por FOMO','Aumentar el lotaje','Operar fuera de horario','Resultado no refleja ejecución')||sig.uncertain||sig.forced||sig.fomo))return (emos.has('Euforia')||emos.has('Confianza'))?S('winOverconfident'):S('winBadExecution');
+  // 4) Reconocer el estado y decidir no operar / autocontrol
+  if(positiveCombo||(!isTrade&&(pos.has('Evitar operar por autocontrol')||pos.has('Control de impulsos'))))return S('selfControlPrior');
+  // 5) No operar bien (día sin oportunidad)
+  if(isNoTrade&&!anyNeg)return S('noTradeGood');
+  // 6) Incumplimiento del plan (cuando hay plan definido)
+  if(plan&&anyNeg){
+    const planText=normText([plan.entryConfirm,plan.entryPatterns,plan.entryInvalid,plan.setups].filter(Boolean).join(' . '));
+    const wantsConfirm=/confirmac|retest|cierre de vela|estructura/.test(planText);
+    if((wantsConfirm&&(has('No esperar confirmación','Entrar demasiado pronto','Forzar operaciones')||sig.forced||sig.noConfirm))||has('Operar fuera de horario','Saltarse el plan'))return S('planViolation');
+  }
+  // 7) Venganza / sobreoperación tras una pérdida
+  if(hasRevenge)return S('revengeAfterLoss');
+  // 8) Reencuadres por categoría de ejecución
+  if(hasFomo)return S('fomo');
+  if(has('Mover el stop'))return S('stopMoved');
+  if(has('Cerrar antes de tiempo','Dejar correr una pérdida'))return S('closedEarly');
+  if(has('Aumentar el lotaje','No respetar el riesgo'))return S('oversize');
+  if(has('No esperar confirmación','Entrar demasiado pronto'))return S('impatience');
+  // 9) Contradicción entre intención y conducta
+  if(anyNeg&&_improveContradiction(entry))return S('contradiction');
+  // 10) Refuerzo positivo (buena ejecución, nada que corregir)
+  if(!anyNeg&&(pos.size>0||positiveCombo))return S('positiveReinforce');
+  // 11) Fallback al banco clásico (compatibilidad)
+  return buildSuggestion(analysis,isTrade,seedKey);
+}
+
 function buildSuggestion(analysis,isTrade,seedKey){
   if(!analysis)return pick(isTrade?TRADE_NO_SIGNAL_SUGGESTIONS:JOURNAL_NO_SIGNAL_SUGGESTIONS,seedKey,'suggestion-nosignal');
   if(analysis.behaviors.negative.length){
@@ -4920,7 +5099,7 @@ function generateJournalSummary(j){
     opening:openingParts.join(' '),emotionText,executionText,noSignal,
     technical,technicalNotes:j.technical_notes||'',
     sentiment:analysis,
-    suggestion:buildSuggestion(analysis,false,seedKey)
+    suggestion:buildImprovement({analysis,isTrade:false,seedKey,entry:j,plan:(typeof currentPlan!=='undefined'&&currentPlan&&currentPlan.data)?currentPlan.data:null})
   };
 }
 
@@ -4943,7 +5122,7 @@ function generateTradeSummary(t){
     opening,emotionText,executionText,noSignal,
     technical,technicalNotes:t.technical_notes||'',
     sentiment:analysis,
-    suggestion:buildSuggestion(analysis,true,seedKey)
+    suggestion:buildImprovement({analysis,isTrade:true,seedKey,entry:t,plan:(typeof currentPlan!=='undefined'&&currentPlan&&currentPlan.data)?currentPlan.data:null})
   };
 }
 
