@@ -2782,7 +2782,7 @@ function initLandingFX(){
             <div class="pricing-badge">Ahorra 42%</div>
             <div class="pricing-card-title">Plan Anual</div>
             <div class="pricing-card-price" id="pp-price-annual">69€<span>/año</span></div>
-            <div class="pricing-card-sub">Solo 5,75€/mes</div>
+            <div class="pricing-card-sub" id="pp-sub-annual">Solo 5,75€/mes</div>
           </div>
         </div>
         <div class="pp-coupon" style="margin-top:14px">
@@ -3659,6 +3659,7 @@ function ppFmtEuro(n){
 function ppResetPrices(){
   const m=document.getElementById('pp-price-monthly'); if(m)m.innerHTML='9,99€<span>/mes</span>';
   const a=document.getElementById('pp-price-annual'); if(a)a.innerHTML='69€<span>/año</span>';
+  const as=document.getElementById('pp-sub-annual'); if(as)as.textContent='Solo 5,75€/mes';
 }
 function ppDisc(base){
   if(!ppCoupon) return base;
@@ -3671,8 +3672,11 @@ function ppApplyPricesPreview(){
   const strike=(orig)=>'<span style="text-decoration:line-through;opacity:.5;font-size:.65em;margin-right:6px">'+orig+'</span>';
   const mEl=document.getElementById('pp-price-monthly');
   if(mEl)mEl.innerHTML=strike('9,99€')+ppFmtEuro(ppDisc(PP_BASE.monthly))+'<span>/mes</span>';
+  // El código de descuento solo aplica al plan Mensual: el Anual se queda en 69€
   const aEl=document.getElementById('pp-price-annual');
-  if(aEl)aEl.innerHTML=strike('69€')+ppFmtEuro(ppDisc(PP_BASE.annual))+'<span>/año</span>';
+  if(aEl)aEl.innerHTML='69€<span>/año</span>';
+  const asEl=document.getElementById('pp-sub-annual');
+  if(asEl)asEl.textContent='Solo 5,75€/mes';
 }
 function onCouponInput(){
   if(ppCoupon){ppCoupon=null;ppResetPrices();const m=document.getElementById('pp-coupon-msg');if(m)m.style.display='none';}
@@ -3697,7 +3701,7 @@ async function applyCoupon(){
       ppCoupon={code,percent_off:data.percent_off,amount_off:data.amount_off,currency:data.currency};
       ppApplyPricesPreview();
       const label=data.percent_off!=null?('−'+data.percent_off+'%'):(data.amount_off!=null?('−'+ppFmtEuro(data.amount_off/100)):'descuento');
-      show('var(--green)','<i class="ti ti-discount-2"></i> Código aplicado: '+label+' de descuento. El precio ya sale rebajado y llegará aplicado al pago.');
+      show('var(--green)','<i class="ti ti-discount-2"></i> Código aplicado: '+label+' en el plan Mensual. Se aplica al pago del plan de 9,99€ (el Anual se queda en 69€).');
     }
   }catch(e){
     show('var(--red)',(e&&e.message)||'No se pudo validar el código.');
@@ -3715,7 +3719,7 @@ async function startCheckout(){
   btn.innerHTML='<i class="ti ti-loader-2"></i>Redirigiendo...';
   try{
     const checkoutBody={plan:selectedPricingPlan};
-    if(ppCoupon&&ppCoupon.code)checkoutBody.code=ppCoupon.code;
+    if(ppCoupon&&ppCoupon.code&&selectedPricingPlan==='monthly')checkoutBody.code=ppCoupon.code;
     const{data,error}=await sb.functions.invoke('create-checkout-session',{body:checkoutBody});
     if(error||!data||!data.url){
       throw new Error((data&&data.error)||(error&&error.message)||'No se pudo iniciar el pago. Inténtalo de nuevo.');
