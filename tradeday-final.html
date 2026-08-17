@@ -2775,20 +2775,26 @@ function initLandingFX(){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
             <div class="pricing-card-title">Plan Mensual</div>
-            <div class="pricing-card-price">9,99€<span>/mes</span></div>
+            <div class="pricing-card-price" id="pp-price-monthly">9,99€<span>/mes</span></div>
             <div class="pricing-card-sub">Facturación mensual · cancela cuando quieras</div>
           </div>
           <div class="pricing-card selected" id="pp-card-annual" onclick="selectPricingPlan('annual')">
             <div class="pricing-badge">Ahorra 42%</div>
             <div class="pricing-card-title">Plan Anual</div>
-            <div class="pricing-card-price">69€<span>/año</span></div>
+            <div class="pricing-card-price" id="pp-price-annual">69€<span>/año</span></div>
             <div class="pricing-card-sub">Solo 5,75€/mes</div>
           </div>
+        </div>
+        <div class="pp-coupon" style="margin-top:14px">
+          <div style="display:flex;gap:8px">
+            <input id="pp-coupon-input" type="text" autocomplete="off" spellcheck="false" placeholder="¿Tienes un código de descuento?" oninput="onCouponInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon();}" style="flex:1;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;text-transform:uppercase">
+            <button type="button" id="pp-coupon-btn" class="btn btn-ghost btn-sm" onclick="applyCoupon()" style="white-space:nowrap">Aplicar</button>
+          </div>
+          <div id="pp-coupon-msg" style="display:none;font-size:12px;margin-top:8px;line-height:1.5"></div>
         </div>
         <div id="pp-error" style="display:none;font-size:12px;color:var(--red);margin-top:12px"></div>
         <button class="btn btn-primary" style="width:100%;margin-top:16px" id="pp-checkout-btn" onclick="startCheckout()"><i class="ti ti-crown"></i>Continuar con Premium</button>
         <div class="pp-trust"><i class="ti ti-shield-check"></i>Cancela cuando quieras. Sin permanencia.</div>
-        <div class="pp-promo-note">¿Tienes un código de colaborador? Podrás introducirlo en el siguiente paso del pago.</div>
       </div>
 
     </div>
@@ -3644,6 +3650,61 @@ function selectPricingPlan(plan){
   if(mCard)mCard.classList.toggle('selected',plan==='monthly');
   if(aCard)aCard.classList.toggle('selected',plan==='annual');
 }
+let ppCoupon=null; // {code, percent_off, amount_off, currency}
+const PP_BASE={monthly:9.99, annual:69};
+function ppFmtEuro(n){
+  if(Math.abs(n-Math.round(n))<0.005) return Math.round(n)+'€';
+  return n.toFixed(2).replace('.',',')+'€';
+}
+function ppResetPrices(){
+  const m=document.getElementById('pp-price-monthly'); if(m)m.innerHTML='9,99€<span>/mes</span>';
+  const a=document.getElementById('pp-price-annual'); if(a)a.innerHTML='69€<span>/año</span>';
+}
+function ppDisc(base){
+  if(!ppCoupon) return base;
+  if(ppCoupon.percent_off!=null) return base*(1-ppCoupon.percent_off/100);
+  if(ppCoupon.amount_off!=null) return Math.max(0, base-ppCoupon.amount_off/100);
+  return base;
+}
+function ppApplyPricesPreview(){
+  if(!ppCoupon){ppResetPrices();return;}
+  const strike=(orig)=>'<span style="text-decoration:line-through;opacity:.5;font-size:.65em;margin-right:6px">'+orig+'</span>';
+  const mEl=document.getElementById('pp-price-monthly');
+  if(mEl)mEl.innerHTML=strike('9,99€')+ppFmtEuro(ppDisc(PP_BASE.monthly))+'<span>/mes</span>';
+  const aEl=document.getElementById('pp-price-annual');
+  if(aEl)aEl.innerHTML=strike('69€')+ppFmtEuro(ppDisc(PP_BASE.annual))+'<span>/año</span>';
+}
+function onCouponInput(){
+  if(ppCoupon){ppCoupon=null;ppResetPrices();const m=document.getElementById('pp-coupon-msg');if(m)m.style.display='none';}
+}
+async function applyCoupon(){
+  const input=document.getElementById('pp-coupon-input');
+  const msg=document.getElementById('pp-coupon-msg');
+  const btn=document.getElementById('pp-coupon-btn');
+  const code=(input?input.value:'').trim();
+  const show=(color,html)=>{if(msg){msg.style.display='block';msg.style.color=color;msg.innerHTML=html;}};
+  if(!code){show('var(--text3)','Escribe un código.');return;}
+  if(!currentUser){toast('Debes iniciar sesión');return;}
+  const orig=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  try{
+    const{data,error}=await sb.functions.invoke('create-checkout-session',{body:{action:'validate',code}});
+    if(error||!data)throw new Error('No se pudo validar el código. Inténtalo de nuevo.');
+    if(!data.valid){
+      ppCoupon=null;ppResetPrices();
+      show('var(--red)','Código no válido o caducado.');
+    }else{
+      ppCoupon={code,percent_off:data.percent_off,amount_off:data.amount_off,currency:data.currency};
+      ppApplyPricesPreview();
+      const label=data.percent_off!=null?('−'+data.percent_off+'%'):(data.amount_off!=null?('−'+ppFmtEuro(data.amount_off/100)):'descuento');
+      show('var(--green)','<i class="ti ti-discount-2"></i> Código aplicado: '+label+' de descuento. El precio ya sale rebajado y llegará aplicado al pago.');
+    }
+  }catch(e){
+    show('var(--red)',(e&&e.message)||'No se pudo validar el código.');
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML=orig||'Aplicar';}
+  }
+}
 async function startCheckout(){
   const btn=document.getElementById('pp-checkout-btn');
   const errEl=document.getElementById('pp-error');
@@ -3653,7 +3714,9 @@ async function startCheckout(){
   const originalHTML=btn.innerHTML;
   btn.innerHTML='<i class="ti ti-loader-2"></i>Redirigiendo...';
   try{
-    const{data,error}=await sb.functions.invoke('create-checkout-session',{body:{plan:selectedPricingPlan}});
+    const checkoutBody={plan:selectedPricingPlan};
+    if(ppCoupon&&ppCoupon.code)checkoutBody.code=ppCoupon.code;
+    const{data,error}=await sb.functions.invoke('create-checkout-session',{body:checkoutBody});
     if(error||!data||!data.url){
       throw new Error((data&&data.error)||(error&&error.message)||'No se pudo iniciar el pago. Inténtalo de nuevo.');
     }
@@ -5875,8 +5938,17 @@ function editJournalEntry(id){
 /* ── CALENDAR ── */
 function getCalData(){
   const d={};
-  allTrades.forEach(t=>{if(t.date&&t.result)d[t.date]=t.result;});
-  allJournals.forEach(j=>{if(j.date)d[j.date]='journal';});
+  const pnl={};const rated={};
+  allTrades.forEach(t=>{
+    if(!t.date)return;
+    const n=t.amount?parseFloat(String(t.amount).replace(/[^0-9.\-]/g,'')):0;
+    if(!isNaN(n))pnl[t.date]=(pnl[t.date]||0)+n;
+    if(t.result)rated[t.date]=true;
+  });
+  // Estado del día por el P&L NETO (no por la última operación)
+  Object.keys(rated).forEach(date=>{const p=pnl[date]||0;d[date]=p>0?'win':p<0?'loss':'be';});
+  // 'journal' solo en días sin operaciones (no debe tapar el P&L)
+  allJournals.forEach(j=>{if(j.date&&!rated[j.date])d[j.date]='journal';});
   return d;
 }
 function renderCal(gridId,labelId,titleId,year,month,clickable,detailPanelId){
