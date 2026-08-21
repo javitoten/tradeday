@@ -976,9 +976,9 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
   .section-header{flex-wrap:wrap;gap:10px}
 
   /* ── CALENDARIO COMPLETO (página dedicada) ── */
-  #view-calendar > div[style*="grid-template-columns:1fr 220px"]{
-    display:flex !important;flex-direction:column !important;gap:18px !important;
-  }
+  .cal-layout{display:flex !important;flex-direction:column !important;gap:16px !important}
+  #weekly-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .week-summary-card{margin-bottom:0}
   .bigcal-grid{gap:4px}
   .bigcal-grid-header{gap:4px}
   .bigcal-day-label{font-size:10px;padding:3px 0}
@@ -1881,7 +1881,7 @@ function initLandingFX(){
         </div>
 
         <!-- Layout: calendario + resumen semanal -->
-        <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start">
+        <div class="cal-layout" style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start">
 
           <!-- CALENDARIO GRANDE -->
           <div>
