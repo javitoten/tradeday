@@ -976,9 +976,10 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
   .section-header{flex-wrap:wrap;gap:10px}
 
   /* ── CALENDARIO COMPLETO (página dedicada) ── */
-  .cal-layout{display:flex !important;flex-direction:column !important;gap:16px !important}
-  #weekly-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .week-summary-card{margin-bottom:0}
+  .cal-layout{display:flex !important;flex-direction:column !important;gap:16px !important;align-items:stretch !important}
+  .cal-layout > div{width:100%;min-width:0}
+  #weekly-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+  .week-summary-card{margin-bottom:0;width:auto}
   .bigcal-grid{gap:4px}
   .bigcal-grid-header{gap:4px}
   .bigcal-day-label{font-size:10px;padding:3px 0}
