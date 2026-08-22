@@ -2995,11 +2995,24 @@ sb.auth.onAuthStateChange(async(event,session)=>{
       return;
     }
     currentUser=session.user;
-    await loadProfile();
-    await loadSubscription();
-    updateSubscriptionUI();
-    handleCheckoutRedirect();
-    await loadAccounts();
+    try{
+      await loadProfile();
+      await loadSubscription();
+      updateSubscriptionUI();
+      handleCheckoutRedirect();
+      await loadAccounts();
+    }catch(e){
+      // La sesion no se pudo validar contra el servidor (token rechazado / fallo transitorio
+      // de Auth). En vez de dejar al usuario a medias o rebotarlo al inicio en silencio,
+      // limpiamos la sesion para que el proximo intento de login entre limpio.
+      console.error('No se pudo cargar la sesion, limpiando para reintentar:',e);
+      try{await sb.auth.signOut();}catch(_){}
+      currentUser=null;appInitialized=false;
+      hideLoading();
+      showScreen('login');
+      toast('No se pudo validar tu sesión. Vuelve a iniciar sesión.');
+      return;
+    }
     if(allAccounts.length===0){
       // Primera vez: mostrar onboarding
       const un=document.getElementById('ob-username');
@@ -3104,7 +3117,11 @@ async function obFinish(){
 /* ── ACCOUNTS ── */
 async function loadAccounts(){
   if(!currentUser)return;
-  const{data}=await sb.from('accounts').select('*').eq('user_id',currentUser.id).order('created_at');
+  const{data,error}=await sb.from('accounts').select('*').eq('user_id',currentUser.id).order('created_at');
+  // Si la consulta falla (p. ej. token rechazado tras un login problematico), NO tratamos
+  // "0 filas" como "usuario sin cuentas": propagamos el error para que el flujo de login lo
+  // gestione (limpiar sesion y reintentar) en vez de mandar al onboarding o dejar la app a medias.
+  if(error)throw error;
   allAccounts=data||[];
   renderAccountsSidebar();
 }
@@ -8043,6 +8060,18 @@ function cycleLang(){
 
 (async()=>{
   initCookieBanner();
+  // Si volvemos de un login con Google que falló (Supabase devuelve el error en el hash de la
+  // URL), avisamos y llevamos a login en vez de rebotar al inicio en silencio, y limpiamos la
+  // URL para que un reintento no arrastre el error.
+  const _h=window.location.hash||'';
+  if(/[#&]error=/.test(_h)){
+    try{await sb.auth.signOut();}catch(_){}
+    try{history.replaceState(null,'',window.location.pathname);}catch(_){}
+    hideLoading();
+    showScreen('login');
+    toast('No se pudo completar el inicio de sesión con Google. Inténtalo de nuevo.');
+    return;
+  }
   const{data:{session}}=await sb.auth.getSession();
   if(!session){hideLoading();showScreen('home');}
 })();
