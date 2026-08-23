@@ -1117,7 +1117,6 @@ function initLandingFX(){
 </script>
 
 <div class="loading-screen" id="loading" style="display:none">
-  <div class="loading-logo"><div class="logo-mark">TD</div>TradeDay</div>
   <div class="loading-spinner"></div>
 </div>
 <script>
@@ -2959,10 +2958,13 @@ function initCookieBanner(){if(!localStorage.getItem('td_cookies_ok')){const b=d
 let appInitialized=false; // true tras la primera carga real de la app
 
 sb.auth.onAuthStateChange(async(event,session)=>{
-  hideLoading();
+  // Nota: NO ocultamos la carga aquí arriba. Si lo hacemos, durante los ~1-2s que tardan en
+  // cargar perfil/cuentas se vería la landing por detrás (parecía un bug). Mantenemos la carga
+  // hasta que la app esté lista (más abajo).
   if(event==='PASSWORD_RECOVERY'){
     // El usuario ha llegado desde el enlace de "recuperar contraseña" del email:
     // le pedimos la contraseña nueva en lugar de meterlo directo en la app.
+    hideLoading();
     showScreen('reset-password');
     return;
   }
@@ -2997,8 +2999,10 @@ sb.auth.onAuthStateChange(async(event,session)=>{
       startInactivity();
     }
     appInitialized=true;
+    hideLoading();
   } else {
     appInitialized=false;
+    hideLoading();
     showScreen('home');
   }
 });
@@ -8025,8 +8029,16 @@ function cycleLang(){
 
 (async()=>{
   initCookieBanner();
+  // Si volvemos de un login (token en la URL) o ya hay sesión guardada, ocultamos la landing y
+  // mostramos una carga limpia hasta que entre la app, para que no parpadee la página de inicio.
+  const _authInUrl = /[#&](access_token|code)=/.test(window.location.hash||'') || /[?&]code=/.test(window.location.search||'');
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){hideLoading();showScreen('home');}
+  if(session||_authInUrl){
+    document.getElementById('screen-home')?.classList.remove('active');
+    const _l=document.getElementById('loading'); if(_l)_l.style.display='flex';
+  } else {
+    hideLoading(); showScreen('home');
+  }
 })();
 
 /* ── AUTOGUARDADO DEL PLAN ──
