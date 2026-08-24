@@ -150,7 +150,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .nav-link{padding:5px 11px;border-radius:var(--radius);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;background:none;border:none;font-family:inherit;font-weight:500}
 .nav-link:hover,.nav-link.active{color:var(--text);background:var(--bg3)}
 .nav-actions{display:flex;align-items:center;gap:8px}
-.lang-btn{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+.lang-btn{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:default;pointer-events:none;font-family:inherit;transition:all .15s}
 .lang-btn:hover{border-color:var(--border3);color:var(--text)}
 .btn{padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;border:none;display:inline-flex;align-items:center;gap:6px}
 .btn-ghost{background:none;border:1px solid var(--border2);color:var(--text2)}
@@ -426,6 +426,61 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .mx-duration-value{font-size:32px;font-weight:800;color:var(--text);line-height:1.2;margin-top:4px}
 @media (max-width:520px){.mx-duration-value{font-size:26px}}
 .mx-section-block{animation:mxFadeIn .35s ease;position:relative}
+/* ── 🧠 Análisis de rendimiento ── */
+.pa-section{border-color:var(--border2)}
+#pa-body{margin-top:6px}
+.pa-summary{font-size:13px;color:var(--text2);line-height:1.6;margin:14px 0 4px}
+.pa-summary b{color:var(--text)}
+.pa-cards{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.pa-card{border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px 16px;background:var(--bg3);border-left-width:3px}
+.pa-card.pa-high{border-left-color:var(--red)}
+.pa-card.pa-watch{border-left-color:#F59E0B}
+.pa-card.pa-strength{border-left-color:var(--green)}
+.pa-card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pa-badge{font-size:11px;font-weight:700;letter-spacing:.01em}
+.pa-badge-high{color:var(--red)}.pa-badge-watch{color:#F59E0B}.pa-badge-strength{color:var(--green)}
+.pa-card-title{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.01em;margin-bottom:6px}
+.pa-card-text{font-size:13px;color:var(--text2);line-height:1.6}
+.pa-observe{font-size:12.5px;color:var(--text2);line-height:1.6;margin-top:12px;padding-top:11px;border-top:1px solid var(--border)}
+.pa-observe-label{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-right:6px}
+.pa-compare{display:flex;align-items:center;gap:12px;margin:13px 0 2px;flex-wrap:wrap}
+.pa-compare-item{flex:1;min-width:120px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:10px 12px;text-align:center}
+.pa-compare-label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:4px}
+.pa-compare-val{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.pa-compare-arrow{color:var(--text3);font-size:16px;font-weight:700}
+.pa-bars{display:flex;flex-direction:column;gap:8px;margin:13px 0 2px}
+.pa-bar-row{display:flex;align-items:center;gap:9px;font-size:12px}
+.pa-bar-name{width:64px;flex-shrink:0;color:var(--text2);font-weight:600}
+.pa-bar-track{flex:1;height:8px;border-radius:6px;background:var(--bg5);overflow:hidden;min-width:40px}
+.pa-bar-fill{height:100%;border-radius:6px}
+.pa-bar-fill.pos{background:var(--green)}.pa-bar-fill.neg{background:var(--red)}.pa-bar-fill.neutral{background:var(--text3)}
+.pa-bar-val{font-weight:700;min-width:44px;text-align:right}
+.pa-bar-val.pos{color:var(--green)}.pa-bar-val.neg{color:var(--red)}.pa-bar-val.neutral{color:var(--text2)}
+.pa-bar-n{color:var(--text3);font-size:11px;width:44px;text-align:right;flex-shrink:0}
+.pa-prog{margin:13px 0 2px}
+.pa-prog-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600}
+.pa-areas-block{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.pa-areas-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px}
+.pa-area{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.pa-area-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pa-area-name{font-size:13px;font-weight:700;color:var(--text)}
+.pa-trend{font-size:11px;font-weight:700;white-space:nowrap}
+.pa-trend-improving{color:var(--green)}.pa-trend-worsening{color:var(--red)}.pa-trend-stable{color:#F59E0B}.pa-trend-insufficient{color:var(--text3)}
+.pa-area-prog{margin-top:10px}
+.pa-area-prog-row{display:flex;align-items:center;gap:9px;font-size:11px;margin-bottom:5px}
+.pa-area-prog-lbl{width:76px;flex-shrink:0;color:var(--text3)}
+.pa-area-hint{font-size:11.5px;color:var(--text3);line-height:1.5;margin-top:7px}
+.pa-building{text-align:center;padding:22px 16px}
+.pa-building-icon{font-size:30px;margin-bottom:8px}
+.pa-building-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:7px}
+.pa-building-text{font-size:13px;color:var(--text2);line-height:1.6;max-width:440px;margin:0 auto 16px}
+.pa-building-prog{display:flex;align-items:center;gap:10px;max-width:300px;margin:0 auto 10px}
+.pa-building-hint{font-size:12px;color:var(--text3);line-height:1.5;max-width:440px;margin:0 auto}
+.pa-empty{font-size:13px;color:var(--text3);line-height:1.6;padding:14px 2px}
+.pa-locked{text-align:center;padding:20px 16px;margin-top:12px;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-lg)}
+.pa-locked-icon{font-size:26px;margin-bottom:6px}
+.pa-locked-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:6px}
+.pa-locked-desc{font-size:12.5px;color:var(--text2);line-height:1.6;max-width:460px;margin:0 auto 14px}
 /* Vista previa difuminada: en vez de ocultar el bloque Premium por completo, mostramos los
    datos reales del usuario desenfocados detrás del aviso de upgrade (más persuasivo que una
    caja vacía, porque el usuario ve que hay valor real esperándole). */
@@ -1925,6 +1980,23 @@ function initLandingFX(){
       <div id="view-metrics" style="display:none;flex-direction:column;gap:18px">
         <div class="welcome-bar">
           <div><div class="section-title" style="font-size:17px">Métricas</div><div class="section-sub">Estadísticas completas de tu trading — <span id="metrics-account-sub">—</span></div></div>
+        </div>
+
+        <!-- 0. 🧠 ANÁLISIS DE RENDIMIENTO (interpretación antes que datos) -->
+        <div class="card mx-section-block pa-section">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><span style="font-size:17px;margin-right:2px">🧠</span>Análisis de rendimiento</div>
+              <div class="mx-card-sub">Qué parece estar ocurriendo en tu trading, ordenado por importancia</div>
+            </div>
+            <div class="mx-toggle-group" id="pa-period-toggle">
+              <button class="mx-toggle" data-p="week" onclick="paSetPeriod('week')">Semana</button>
+              <button class="mx-toggle" data-p="month" onclick="paSetPeriod('month')">Mes</button>
+              <button class="mx-toggle" data-p="3m" onclick="paSetPeriod('3m')">3 meses</button>
+              <button class="mx-toggle active" data-p="all" onclick="paSetPeriod('all')">Todo</button>
+            </div>
+          </div>
+          <div id="pa-body"></div>
         </div>
 
         <!-- 1. EVOLUCIÓN DEL CAPITAL (Free) -->
@@ -7714,11 +7786,322 @@ function mxRenderDuration(m){
   if(subEl)subEl.textContent=hasData?`Basado en ${m.generales.durationTradesCount} operación${m.generales.durationTradesCount===1?'':'es'} con duración registrada`:'Tiempo medio que mantienes abierta una operación';
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   🧠 ANÁLISIS DE RENDIMIENTO — capa de interpretación sobre las métricas.
+   Motor puro (paX) + wrapper de navegador + renderer DOM. Reutiliza
+   analyzeJournalText, synthesizeTechTagPhrases, normText, mxAmt/mxAmtPct,
+   currentPlan e isPremiumUser. No duplica cálculos de computeFullMetrics().
+   ══════════════════════════════════════════════════════════════════════ */
+/*PA-START*/
+const PA_MIN={trades:8, session:5, afterLoss:5, afterLossStrong:10, planTech:6, journalEmo:3, area:3, prevMin:5};
+function paByDateId(a,b){if(a.date!==b.date)return a.date<b.date?-1:1;return String(a.id).localeCompare(String(b.id));}
+function paAvg(arr){const v=arr.filter(x=>typeof x==='number'&&!isNaN(x));return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
+function paWR(dec){const w=dec.filter(t=>t.result==='win').length,l=dec.filter(t=>t.result==='loss').length;return(w+l)>0?Math.round(w/(w+l)*100):null;}
+function paStd(arr){const v=arr.filter(x=>typeof x==='number'&&!isNaN(x));if(v.length<2)return null;const m=v.reduce((a,b)=>a+b,0)/v.length;return Math.sqrt(v.reduce((a,b)=>a+(b-m)*(b-m),0)/v.length);}
+function paRange(periodKey, now){
+  now=now?new Date(now):new Date();
+  const end=new Date(now); end.setHours(23,59,59,999);
+  const daysMap={week:7,month:30,'3m':90};
+  const days=daysMap[periodKey]||null;
+  if(!days)return {days:null,start:null,end,prevStart:null,prevEnd:null};
+  const start=new Date(end); start.setDate(start.getDate()-days+1); start.setHours(0,0,0,0);
+  const prevEnd=new Date(start.getTime()-1);
+  const prevStart=new Date(prevEnd); prevStart.setDate(prevStart.getDate()-days+1); prevStart.setHours(0,0,0,0);
+  return {days,start,end,prevStart,prevEnd};
+}
+function paIn(dateStr,start,end){if(!dateStr)return false;const d=new Date(dateStr+'T12:00:00');if(start&&d<start)return false;if(end&&d>end)return false;return true;}
+function paSignals(entry, ctx){
+  const parts=[entry.notes||entry.content||'', entry.technical_notes||'', ctx.synth?ctx.synth(entry.technical_tags||[]):''].filter(Boolean).join('. ');
+  if(!parts.trim())return {neg:new Set(),pos:new Set(),emo:new Set(),has:false};
+  let a=null; try{a=ctx.analyze(parts);}catch(e){a=null;}
+  if(!a)return {neg:new Set(),pos:new Set(),emo:new Set(),has:false};
+  return {
+    neg:new Set(((a.behaviors&&a.behaviors.negative)||[]).map(b=>b.tag)),
+    pos:new Set(((a.behaviors&&a.behaviors.positive)||[]).map(b=>b.tag)),
+    emo:new Set((a.emotions||[]).map(e=>e.tag)),
+    has:true
+  };
+}
+function paDetectAfterLoss(trades, ctx){
+  const afterIdx=[];
+  for(let i=0;i<trades.length-1;i++){ if(trades[i].result==='loss') afterIdx.push(i+1); }
+  if(afterIdx.length<PA_MIN.afterLoss) return null;
+  const afterTrades=afterIdx.map(i=>trades[i]);
+  const decided=trades.filter(t=>t.result==='win'||t.result==='loss');
+  const afterDec=afterTrades.filter(t=>t.result==='win'||t.result==='loss');
+  const avgAll=paAvg(decided.map(t=>ctx.amtPct(t)));
+  const avgAfter=paAvg(afterDec.map(t=>ctx.amtPct(t)));
+  if(avgAll===null||avgAfter===null)return null;
+  const diff=avgAll-avgAfter;
+  if(diff<=0.05) return null;
+  const emoTags=['Frustración','Ansiedad','Impulsividad','Miedo','Culpa','Euforia'];
+  const revengeBeh=['Operar por venganza','Sobreoperar','No respetar el riesgo','Forzar operaciones','Aumentar el lotaje'];
+  let emoHits=0, behHits=0;
+  afterTrades.forEach(t=>{const s=paSignals(t,ctx);if([...s.emo].some(e=>emoTags.includes(e)))emoHits++;if([...s.neg].some(b=>revengeBeh.includes(b)))behHits++;});
+  const strong=afterIdx.length>=PA_MIN.afterLossStrong;
+  const severity=(diff>=0.3&&strong)?'high':'watch';
+  const journalLink=(emoHits+behHits)>=PA_MIN.journalEmo;
+  const score=(severity==='high'?100:60)+Math.min(diff*40,40)+Math.min(afterIdx.length*1.5,25)+(journalLink?20:0);
+  return {kind:'afterLoss',severity,score,sample:afterIdx.length,avgAll,avgAfter,diff,emoHits,behHits,journalLink,strong,wrAll:paWR(decided),wrAfter:paWR(afterDec)};
+}
+function paDetectSessions(trades, ctx){
+  const names=['Londres','New York','Asia'];
+  const stats=names.map(n=>{const st=trades.filter(t=>t.session===n);const dec=st.filter(t=>t.result==='win'||t.result==='loss');return {name:n,count:st.length,avgPct:paAvg(dec.map(t=>ctx.amtPct(t))),pnl:st.reduce((s,t)=>s+ctx.amt(t),0),wr:paWR(dec)};}).filter(s=>s.count>0&&s.avgPct!==null);
+  if(stats.length<2)return null;
+  const best=stats.reduce((a,b)=>b.avgPct>a.avgPct?b:a);
+  const worst=stats.reduce((a,b)=>b.avgPct<a.avgPct?b:a);
+  if(best.name===worst.name)return null;
+  const gap=best.avgPct-worst.avgPct;
+  if(gap<0.15)return null;
+  const enough=best.count>=PA_MIN.session&&worst.count>=PA_MIN.session;
+  const severity=(enough&&gap>=0.4)?'high':'watch';
+  const score=(severity==='high'?90:55)+Math.min(gap*30,30)+Math.min((best.count+worst.count),20)+(enough?10:0);
+  return {kind:'sessions',severity,score,stats,best,worst,gap,enough};
+}
+function paDetectPlan(trades, ctx){
+  const plan=ctx.plan||{};
+  const rules=(ctx.norm?ctx.norm([plan.entryConfirm,plan.entryPatterns,plan.setups,plan.entryInvalid].filter(Boolean).join(' . ')):'').toString();
+  const wantsConfirmation=/confirmac|retest|cierre de vela|estructura|rompimiento|ruptura/.test(rules);
+  if(!wantsConfirmation)return null;
+  const tech=trades.filter(t=>paSignals(t,ctx).has);
+  if(tech.length<PA_MIN.planTech)return null;
+  let violations=0;
+  tech.forEach(t=>{const s=paSignals(t,ctx);if([...s.neg].some(b=>['No esperar confirmación','Entrar demasiado pronto','Forzar operaciones','Setup poco claro'].includes(b)))violations++;});
+  const compliance=Math.round((tech.length-violations)/tech.length*100);
+  if(compliance>=80)return {kind:'planStrength',severity:'strength',score:70+Math.min(tech.length,20),compliance,violations,total:tech.length};
+  const severity=compliance<60?'high':'watch';
+  const score=(severity==='high'?95:58)+(80-compliance)+Math.min(tech.length,15)+15;
+  return {kind:'plan',severity,score,compliance,violations,total:tech.length};
+}
+function paDetectResultExec(trades, ctx){
+  let winBad=0, lossGood=0;
+  trades.forEach(t=>{const s=paSignals(t,ctx);if(!s.has)return;const hasNeg=s.neg.size>0;const cleanPos=s.pos.size>0&&s.neg.size===0;if(t.result==='win'&&hasNeg)winBad++;if(t.result==='loss'&&cleanPos)lossGood++;});
+  const out=[];
+  if(winBad>=3)out.push({kind:'winBadExec',severity:'watch',score:50+winBad*4,count:winBad});
+  if(lossGood>=3)out.push({kind:'lossGoodExec',severity:'strength',score:55+lossGood*4,count:lossGood});
+  return out;
+}
+function paDetectStreak(trades){
+  let cur=0;for(let i=trades.length-1;i>=0;i--){const r=trades[i].result;if(r==='loss')cur++;else if(r==='be')continue;else break;}
+  if(cur>=4)return {kind:'lossStreak',severity:'watch',score:45+cur*5,streak:cur};
+  return null;
+}
+function paDetectStrengths(trades, ctx){
+  const out=[];
+  const riskVals=trades.map(t=>Number(t.risk_pct)).filter(v=>!isNaN(v));
+  if(riskVals.length>=6){const m=paAvg(riskVals),sd=paStd(riskVals);if(m>0&&sd!==null&&(sd/m)<=0.35)out.push({kind:'riskStable',severity:'strength',score:60+Math.min(riskVals.length,20),mean:m,sd,n:riskVals.length});}
+  return out;
+}
+function paActiveAreas(trades, prevTrades, ctx, plan){
+  const NEG=['No esperar confirmación','Entrar demasiado pronto','Operar por venganza','Sobreoperar','No respetar el riesgo','Mover el stop','Cerrar antes de tiempo','Operar por FOMO','Forzar operaciones','Aumentar el lotaje','Saltarse el plan'];
+  const LABEL={'No esperar confirmación':'Esperar confirmación antes de entrar','Entrar demasiado pronto':'Esperar confirmación antes de entrar','Operar por venganza':'Operaciones después de una pérdida','Sobreoperar':'Reducir la sobreoperación','No respetar el riesgo':'Mantener el riesgo definido','Mover el stop':'Respetar el stop inicial','Cerrar antes de tiempo':'Dejar correr las operaciones','Operar por FOMO':'Evitar entradas por FOMO','Forzar operaciones':'No forzar operaciones','Aumentar el lotaje':'Mantener el riesgo definido','Saltarse el plan':'Cumplir tu propio plan'};
+  function countBeh(arr){const tot=arr.filter(t=>paSignals(t,ctx).has).length;const cnt={};arr.forEach(t=>{const s=paSignals(t,ctx);[...s.neg].forEach(b=>{if(NEG.includes(b))cnt[b]=(cnt[b]||0)+1;});});return {cnt,tot};}
+  const cur=countBeh(trades), prev=countBeh(prevTrades);
+  const byLabel={};
+  Object.keys(cur.cnt).forEach(b=>{const L=LABEL[b];byLabel[L]=byLabel[L]||{cur:0,prev:0};byLabel[L].cur+=cur.cnt[b];});
+  Object.keys(prev.cnt).forEach(b=>{const L=LABEL[b];byLabel[L]=byLabel[L]||{cur:0,prev:0};byLabel[L].prev+=prev.cnt[b];});
+  const areas=Object.keys(byLabel).map(L=>{
+    const c=byLabel[L].cur, p=byLabel[L].prev;
+    const curPct=cur.tot?Math.round(c/cur.tot*100):null;
+    const prevPct=prev.tot?Math.round(p/prev.tot*100):null;
+    let trend='insufficient';
+    if(prev.tot>=PA_MIN.prevMin&&curPct!==null&&prevPct!==null){
+      if(curPct<=prevPct-8)trend='improving';
+      else if(curPct>=prevPct+8)trend='worsening';
+      else trend='stable';
+    }
+    return {label:L, cur:c, prev:p, curPct, prevPct, trend, measurable:cur.tot>0, sample:cur.tot};
+  }).filter(a=>a.cur>=PA_MIN.area||a.prev>=PA_MIN.area).sort((a,b)=>Math.max(b.cur,b.prev)-Math.max(a.cur,a.prev)).slice(0,3);
+  return areas;
+}
+function computePerfAnalysis(periodKey, ctx){
+  const range=paRange(periodKey, ctx.now);
+  const allT=[...ctx.trades].filter(t=>t.date).sort(paByDateId);
+  const trades=range.days?allT.filter(t=>paIn(t.date,range.start,range.end)):allT;
+  const prevTrades=range.days?allT.filter(t=>paIn(t.date,range.prevStart,range.prevEnd)):[];
+  const journals=(ctx.journals||[]).filter(j=>!range.days||paIn(j.date,range.start,range.end));
+  const decided=trades.filter(t=>t.result==='win'||t.result==='loss');
+  const journaledCount=journals.length+trades.filter(t=>(t.notes||'').trim()||(t.technical_tags||[]).length).length;
+  const base={period:periodKey, totalTrades:trades.length, decidedTrades:decided.length, journaledCount, hasJournalData:journaledCount>0};
+  if(trades.length<PA_MIN.trades){
+    return Object.assign(base,{level:'building', need:PA_MIN.trades, remaining:Math.max(0,PA_MIN.trades-trades.length)});
+  }
+  const cands=[];
+  const al=paDetectAfterLoss(trades,ctx); if(al)cands.push(al);
+  const se=paDetectSessions(trades,ctx); if(se)cands.push(se);
+  const pl=paDetectPlan(trades,ctx); if(pl)cands.push(pl);
+  paDetectResultExec(trades,ctx).forEach(c=>cands.push(c));
+  const stk=paDetectStreak(trades); if(stk)cands.push(stk);
+  paDetectStrengths(trades,ctx).forEach(c=>cands.push(c));
+  const sorted=[...cands].sort((a,b)=>b.score-a.score);
+  const highs=sorted.filter(c=>c.severity==='high');
+  const strengths=sorted.filter(c=>c.severity==='strength');
+  const high=highs.length?highs[0]:null;
+  const demoted=highs.slice(1).map(c=>Object.assign({},c,{severity:'watch'}));
+  const watches=[...sorted.filter(c=>c.severity==='watch'), ...demoted].sort((a,b)=>b.score-a.score).slice(0,2);
+  const strength=strengths.length?strengths[0]:null;
+  const activeAreas=paActiveAreas(trades,prevTrades,ctx,ctx.plan||{});
+  const findingsCount=(high?1:0)+watches.length+(strength?1:0);
+  return Object.assign(base,{level:'ok', high, watches, strength, activeAreas, findingsCount, range:{days:range.days}});
+}
+/*PA-END*/
+
+/* ── Wrapper de navegador + renderer DOM ── */
+let paPeriod='all';
+function paBuildCtx(){
+  return {
+    trades:allTrades||[], journals:allJournals||[],
+    plan:currentPlan?(currentPlan.data||{}):{},
+    now:new Date(),
+    analyze:(txt)=>analyzeJournalText(txt,'pa:'+normText(txt).slice(0,50)),
+    synth:synthesizeTechTagPhrases, norm:normText, amt:mxAmt, amtPct:mxAmtPct
+  };
+}
+function paSetPeriod(p){
+  paPeriod=p;
+  document.querySelectorAll('#pa-period-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+  renderPerfAnalysis();
+}
+function paPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';return(n>=0?'+':'')+Number(n).toFixed(dec===undefined?1:dec)+'%';}
+function paPlainPct(n){if(n===null||n===undefined||isNaN(n))return'—';return Math.round(n)+'%';}
+function paValClass(n){return n>0?'pos':n<0?'neg':'neutral';}
+const PA_SEV={high:{cls:'high',badge:'🔴 Prioridad alta',obs:'Qué observar'},watch:{cls:'watch',badge:'🟠 A vigilar',obs:'Qué observar'},strength:{cls:'strength',badge:'🟢 Fortaleza',obs:'Para tener en cuenta'}};
+// Genera título/explicación/observación/visual para cada tipo de hallazgo (tono cercano, no moralizante).
+function paFindingContent(f){
+  const sev=f.severity;
+  if(f.kind==='afterLoss'){
+    let expl=`Tu rendimiento medio general es ${paPct(f.avgAll)}, pero en las operaciones que haces justo después de una pérdida baja a ${paPct(f.avgAfter)}. Se ha repetido en ${f.sample} ocasiones`+(f.strong?'':' (muestra todavía moderada)')+`.`;
+    if(f.journalLink)expl+=` En varios de esos registros aparecen frustración o ganas de recuperar, lo que apunta a que el cambio no está solo en la entrada, sino en cómo operas después de asumir la pérdida.`;
+    return {title:'Operaciones después de una pérdida',expl,
+      obs:'Puede ser interesante observar qué ocurre entre la pérdida y la siguiente entrada. Si sueles volver al mercado sin una pausa o con intención de recuperar, ese momento podría pesar más que la propia operación.',
+      viz:`<div class="pa-compare"><div class="pa-compare-item"><div class="pa-compare-label">Tu media general</div><div class="pa-compare-val ${paValClass(f.avgAll)}">${paPct(f.avgAll)}</div></div><div class="pa-compare-arrow">→</div><div class="pa-compare-item"><div class="pa-compare-label">Después de una pérdida</div><div class="pa-compare-val ${paValClass(f.avgAfter)}">${paPct(f.avgAfter)}</div></div></div>`};
+  }
+  if(f.kind==='sessions'){
+    const conf=f.enough?' La muestra ya es suficientemente amplia para tenerla en cuenta.':` La muestra de ${esc(f.worst.name)} todavía es limitada, así que conviene interpretarlo como una tendencia a vigilar y no como una conclusión definitiva.`;
+    const max=Math.max(...f.stats.map(s=>Math.abs(s.avgPct)),0.01);
+    const bars=f.stats.map(s=>`<div class="pa-bar-row"><span class="pa-bar-name">${esc(s.name)}</span><div class="pa-bar-track"><div class="pa-bar-fill ${paValClass(s.avgPct)}" style="width:${Math.round(Math.abs(s.avgPct)/max*100)}%"></div></div><span class="pa-bar-val ${paValClass(s.avgPct)}">${paPct(s.avgPct)}</span><span class="pa-bar-n">${s.count} op.</span></div>`).join('');
+    return {title:'Rendimiento por sesión',
+      expl:`Tu rendimiento varía entre sesiones. ${esc(f.best.name)} concentra tus mejores resultados (${paPct(f.best.avgPct)} de media, ${f.best.count} op.), mientras que ${esc(f.worst.name)} queda por debajo (${paPct(f.worst.avgPct)}, ${f.worst.count} op.).`+conf,
+      obs:'Antes de descartar una sesión, puede merecer la pena observar si cambian tus condiciones de entrada o tu comportamiento entre una y otra.',
+      viz:`<div class="pa-bars">${bars}</div>`};
+  }
+  if(f.kind==='plan'){
+    return {title:'Plan vs realidad',
+      expl:`Tu principal condición de entrada se está cumpliendo en aproximadamente el ${f.compliance}% de las operaciones con datos registrados (${f.total-f.violations}/${f.total}). El incumplimiento parece concentrarse en las entradas anticipadas.`,
+      obs:'Podría ser interesante revisar en qué situaciones concretas te adelantas: identificar ese momento suele ayudar más que recordarte la regla.',
+      viz:paProgressBar(f.compliance,'Cumplimiento de tu condición de entrada')};
+  }
+  if(f.kind==='planStrength'){
+    return {title:'Buena ejecución del Plan',
+      expl:`En las operaciones recientes con datos registrados mantienes un ${f.compliance}% de cumplimiento de tu condición de entrada. Es un nivel alto.`,
+      obs:'No todo necesita corregirse. Mantener este comportamiento mientras trabajas otras áreas también forma parte de mejorar.',
+      viz:paProgressBar(f.compliance,'Cumplimiento de tu condición de entrada')};
+  }
+  if(f.kind==='winBadExec'){
+    return {title:'Buen resultado, ejecución a vigilar',
+      expl:`En ${f.count} operaciones ganadoras aparecen excepciones respecto a tu proceso (entradas sin confirmar, ajustes de riesgo…). El resultado fue positivo, pero conviene vigilar que el buen resultado no refuerce decisiones que no quieres repetir.`,
+      obs:'Separar el resultado de la calidad de la decisión ayuda a que una buena racha no consolide hábitos que en otro contexto saldrían caros.',viz:''};
+  }
+  if(f.kind==='lossGoodExec'){
+    return {title:'Proceso sólido pese al resultado',
+      expl:`En ${f.count} operaciones con resultado negativo, los datos de ejecución no muestran un problema claro: seguiste tu proceso.`,
+      obs:'Puede ser importante no modificar algo que estás respetando únicamente por una mala racha de resultados.',viz:''};
+  }
+  if(f.kind==='lossStreak'){
+    return {title:'Racha de pérdidas reciente',
+      expl:`Encadenas ${f.streak} operaciones perdedoras seguidas en este periodo.`,
+      obs:'Más que forzar la siguiente entrada, puede merecer la pena revisar si el contexto de mercado o tu estado han cambiado respecto a cuando operabas mejor.',viz:''};
+  }
+  if(f.kind==='riskStable'){
+    return {title:'Buena consistencia en el riesgo',
+      expl:`El tamaño de riesgo se ha mantenido estable en la mayoría de tus operaciones recientes (media ${f.mean.toFixed(2)}%).`,
+      obs:'Mantener el riesgo constante es de lo más difícil de sostener; conviene conservar este comportamiento.',viz:''};
+  }
+  return {title:'Patrón detectado',expl:'',obs:'',viz:''};
+}
+function paProgressBar(pct,label){
+  const cls=pct>=75?'pos':pct>=50?'neutral':'neg';
+  return `<div class="pa-prog"><div class="pa-prog-top"><span>${esc(label)}</span><span class="pa-bar-val ${cls}">${pct}%</span></div><div class="pa-bar-track"><div class="pa-bar-fill ${cls}" style="width:${Math.max(0,Math.min(100,pct))}%"></div></div></div>`;
+}
+function paFindingCardHTML(f){
+  const sev=PA_SEV[f.severity]||PA_SEV.watch;
+  const c=paFindingContent(f);
+  return `<div class="pa-card pa-${sev.cls}">
+    <div class="pa-card-head"><span class="pa-badge pa-badge-${sev.cls}">${sev.badge}</span></div>
+    <div class="pa-card-title">${c.title}</div>
+    <div class="pa-card-text">${c.expl}</div>
+    ${c.viz||''}
+    <div class="pa-observe"><span class="pa-observe-label">${sev.obs}</span> ${c.obs}</div>
+  </div>`;
+}
+const PA_TREND={improving:{cls:'improving',label:'🟢 Mejorando'},stable:{cls:'stable',label:'🟡 Sin cambios claros'},worsening:{cls:'worsening',label:'🔴 Empeorando'},insufficient:{cls:'insufficient',label:'⚪ Datos insuficientes'}};
+function paActiveAreaHTML(a){
+  const tr=PA_TREND[a.trend]||PA_TREND.insufficient;
+  let body='';
+  if(a.trend==='insufficient'||a.prevPct===null){
+    body=`<div class="pa-area-hint">Aparece en el ${a.curPct===null?'—':a.curPct+'%'} de tus operaciones con datos este periodo. Todavía no hay suficiente historial anterior para evaluar su evolución.</div>`;
+  } else {
+    const dir=a.trend==='improving'?'Ha bajado respecto al periodo anterior.':a.trend==='worsening'?'Ha subido respecto al periodo anterior.':'Se mantiene en niveles parecidos.';
+    body=`<div class="pa-area-prog"><div class="pa-area-prog-row"><span class="pa-area-prog-lbl">Este periodo</span><div class="pa-bar-track"><div class="pa-bar-fill ${a.trend==='worsening'?'neg':'pos'}" style="width:${Math.min(100,a.curPct)}%"></div></div><span class="pa-bar-val">${a.curPct}%</span></div><div class="pa-area-prog-row"><span class="pa-area-prog-lbl">Anterior</span><div class="pa-bar-track"><div class="pa-bar-fill neutral" style="width:${Math.min(100,a.prevPct)}%"></div></div><span class="pa-bar-val">${a.prevPct}%</span></div><div class="pa-area-hint">${dir}</div></div>`;
+  }
+  return `<div class="pa-area"><div class="pa-area-top"><span class="pa-area-name">${esc(a.label)}</span><span class="pa-trend pa-trend-${tr.cls}">${tr.label}</span></div>${body}</div>`;
+}
+function renderPerfAnalysis(){
+  const body=document.getElementById('pa-body');
+  if(!body)return;
+  let r;
+  try{ r=computePerfAnalysis(paPeriod, paBuildCtx()); }
+  catch(e){ console.error('perf analysis error',e); body.innerHTML='<div class="pa-empty">No se pudo calcular el análisis en este momento.</div>'; return; }
+  // Estado inicial / datos insuficientes
+  if(r.level==='building'){
+    body.innerHTML=`<div class="pa-building">
+      <div class="pa-building-icon">🌱</div>
+      <div class="pa-building-title">Aún estamos conociendo tu forma de operar</div>
+      <div class="pa-building-text">Registra más operaciones y completa tus journals para que TradeDay pueda empezar a detectar patrones, fortalezas y áreas de mejora fiables.</div>
+      <div class="pa-building-prog"><div class="pa-bar-track"><div class="pa-bar-fill pos" style="width:${Math.round(r.totalTrades/r.need*100)}%"></div></div><span class="pa-bar-val">${r.totalTrades}/${r.need}</span></div>
+      <div class="pa-building-hint">Necesitas al menos ${r.need} operaciones en este periodo para un primer análisis${r.remaining>0?` — te faltan ${r.remaining}`:''}.${!r.hasJournalData?' Añadir notas o journal permitirá conectar tus datos con cómo te sentiste.':''}</div>
+    </div>`;
+    return;
+  }
+  const premium=(typeof isPremiumUser==='function')?isPremiumUser():true;
+  const n=r.findingsCount;
+  const summary=`<div class="pa-summary">Hemos analizado tus datos y ${n>0?`hemos encontrado <b>${n} aspecto${n===1?'':'s'} relevante${n===1?'':'s'}</b> en tu rendimiento actual`:'de momento no destaca ningún patrón fuerte'}. Primero la interpretación; debajo tienes las métricas y gráficos que la respaldan.</div>`;
+  const cards=[];
+  if(r.high)cards.push({sev:'high',html:paFindingCardHTML(r.high)});
+  (r.watches||[]).forEach(w=>cards.push({sev:'watch',html:paFindingCardHTML(w)}));
+  if(r.strength)cards.push({sev:'strength',html:paFindingCardHTML(r.strength)});
+
+  let html=summary;
+  if(!cards.length&&!(r.activeAreas||[]).length){
+    html+=`<div class="pa-empty">Con los datos de este periodo no aparece ningún patrón lo bastante claro como para destacarlo sin arriesgar una conclusión falsa. Sigue registrando y volveremos a mirarlo.</div>`;
+    body.innerHTML=html; return;
+  }
+  if(premium){
+    html+='<div class="pa-cards">'+cards.map(c=>c.html).join('')+'</div>';
+    if((r.activeAreas||[]).length){
+      html+=`<div class="pa-areas-block"><div class="pa-areas-title">🎯 En lo que estás trabajando</div>${r.activeAreas.map(paActiveAreaHTML).join('')}</div>`;
+    }
+  } else {
+    // Free: resumen + primer hallazgo completo + resto bloqueado
+    const first=cards[0];
+    if(first)html+='<div class="pa-cards">'+first.html+'</div>';
+    const restCount=(cards.length-1)+((r.activeAreas||[]).length?1:0);
+    html+=`<div class="pa-locked">
+      <div class="pa-locked-icon">👑</div>
+      <div class="pa-locked-title">Análisis completo — TradeDay Premium</div>
+      <div class="pa-locked-desc">Desbloquea el resto del análisis${restCount>0?` (${restCount} bloque${restCount===1?'':'s'} más)`:''}: todas las prioridades y fortalezas, el bloque «En lo que estás trabajando» con tu evolución, y las conexiones con tu Journal, tu Plan y tu Índice de Disciplina.</div>
+      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Análisis de rendimiento')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+    </div>`;
+  }
+  body.innerHTML=html;
+}
+
 function renderMetricsPage(){
   const panel=document.getElementById('view-metrics');
   if(!panel)return;
   const m=computeFullMetrics();
   mxLastMetrics=m;
+  renderPerfAnalysis();
   mxRenderSummary(m);
   mxRenderDuration(m);
   mxRenderEquityChart(m);
@@ -8019,12 +8402,8 @@ function abandonPlanWizard(){
   }
 }
 function cycleLang(){
-  lang=lang==='es'?'en':'es';
-  ['home','login','signup','app','foot'].forEach(s=>{
-    const f=document.getElementById('lf-'+s);const l=document.getElementById('ll-'+s);
-    if(f)f.textContent=lang==='es'?'🇪🇸':'🇬🇧';if(l)l.textContent=lang==='es'?'ES':'EN';
-  });
-  renderAll();
+  // Idioma fijado en español: el selector ya no cambia a inglés.
+  lang='es';
 }
 
 (async()=>{
