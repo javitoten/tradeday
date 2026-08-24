@@ -560,8 +560,27 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .account-dot.evaluation{background:var(--amber)}
 .account-dot.demo{background:var(--text3)}
 .account-dot.custom{background:var(--blue)}
-.account-chip-name{font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-chip-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.account-chip-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-chip-status{font-size:10px;font-weight:600;line-height:1.1;color:var(--text3)}
+.account-chip-status.acc-status-active{color:var(--green)}
+.account-chip-status.acc-status-suspended{color:var(--red)}
+.account-chip-status.acc-status-passed{color:var(--green)}
+.account-chip-status.acc-status-closed{color:var(--text3)}
+.account-chip.is-inactive{opacity:.62}
+.account-chip.is-inactive .account-dot{opacity:.5}
 .account-chip-capital{font-size:11px;color:var(--text3)}
+.account-group-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);padding:8px 10px 3px}
+/* Badges de estado de cuenta (Balance / Configuración) */
+.acc-badge{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;line-height:1.4}
+.acc-badge-active{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.acc-badge-suspended{color:var(--red);background:var(--red-bg);border:1px solid var(--red-border)}
+.acc-badge-passed{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.acc-badge-closed{color:var(--text2);background:var(--bg4);border:1px solid var(--border2)}
+.acc-suspend-btn{color:var(--text2)}
+.acc-suspend-btn:hover{color:var(--red)}
+.entry-row.is-inactive-row{opacity:.82}
+.acc-reason{font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:5px;margin-top:2px}
 .add-account-btn{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:var(--radius);color:var(--text3);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;margin:2px 0}
 .add-account-btn:hover{color:var(--accent);background:var(--bg3)}
 
@@ -2773,6 +2792,45 @@ function initLandingFX(){
   </div>
 </div>
 
+<!-- CUENTAS: confirmar suspensión -->
+<div class="modal-overlay" id="modal-suspend-account" style="display:none" onclick="if(event.target===this)closeModal('modal-suspend-account')">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title">¿Quieres suspender esta cuenta?</div><button class="modal-close" onclick="closeModal('modal-suspend-account')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.6;margin:0 0 12px">Vas a marcar <strong id="suspend-acc-name" style="color:var(--text)">esta cuenta</strong> como suspendida. Dejará de estar disponible para registrar nuevas operaciones.</p>
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.6;margin:0 0 14px">Tus operaciones, journal, métricas y balance <strong style="color:var(--text)">no se eliminarán</strong> y podrás seguir consultándolos. Si vas a continuar operando con una nueva cuenta, puedes crearla desde “Añadir cuenta”.</p>
+      <div class="form-group"><label class="form-label">¿Por qué la suspendes? <span style="color:var(--text3);font-weight:400">(opcional)</span></label>
+        <select class="form-select" id="suspend-reason">
+          <option value="">Prefiero no indicarlo</option>
+          <option value="challenge_failed">No superé el challenge</option>
+          <option value="account_lost">Perdí la cuenta</option>
+          <option value="stopped_using">Dejé de utilizarla</option>
+          <option value="cycle_finished">Finalicé el ciclo</option>
+          <option value="other">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-suspend-account')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmSuspendAccount()"><i class="ti ti-player-pause"></i>Suspender cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUENTAS: aviso al intentar operar en una cuenta no activa -->
+<div class="modal-overlay" id="modal-account-suspended" style="display:none" onclick="if(event.target===this)closeModal('modal-account-suspended')">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title" id="suspwarn-title">🔴 Esta cuenta está suspendida</div><button class="modal-close" onclick="closeModal('modal-account-suspended')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <p id="suspwarn-desc" style="font-size:13.5px;color:var(--text2);line-height:1.6;margin:0"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="suspwarnPickAccount()">Seleccionar otra cuenta</button>
+      <button class="btn btn-primary" onclick="suspwarnCreateAccount()"><i class="ti ti-plus"></i>Crear nueva cuenta</button>
+    </div>
+  </div>
+</div>
+
 <!-- BALANCE: añadir/editar movimiento -->
 <div class="modal-overlay" id="modal-balance-event" style="display:none" onclick="if(event.target===this)closeModal('modal-balance-event')">
   <div class="modal" style="max-width:440px">
@@ -3118,12 +3176,38 @@ function selectAccountType(prefix,type){
 }
 const ACCOUNT_STATUSES=[
   {key:'active',label:'Activa'},
+  {key:'suspended',label:'Suspendida'},
   {key:'passed',label:'Aprobada'},
   {key:'failed',label:'Fallida'},
   {key:'lost',label:'Perdida'},
   {key:'closed',label:'Cerrada'},
 ];
 function accountStatusLabel(status){const s=ACCOUNT_STATUSES.find(x=>x.key===status);return s?s.label:'Activa';}
+// Motivos opcionales al suspender (estructura preparada para estadísticas futuras).
+const ACCOUNT_SUSPEND_REASONS=[
+  {key:'challenge_failed',label:'No superé el challenge'},
+  {key:'account_lost',label:'Perdí la cuenta'},
+  {key:'stopped_using',label:'Dejé de utilizarla'},
+  {key:'cycle_finished',label:'Finalicé el ciclo'},
+  {key:'other',label:'Otro'},
+];
+function accountSuspendReasonLabel(key){const r=ACCOUNT_SUSPEND_REASONS.find(x=>x.key===key);return r?r.label:'';}
+// Metadatos visuales por estado. "active" = puede registrar nuevas entradas.
+// Cualquier estado que no sea "active" (o vacío) bloquea nuevas operaciones/journal,
+// pero NUNCA elimina datos: el historial se conserva siempre.
+function accountStatusMeta(status){
+  switch(status){
+    case 'suspended': return {emoji:'🔴',label:'Suspendida',cls:'suspended',active:false};
+    case 'failed':    return {emoji:'🔴',label:'Fallida',cls:'suspended',active:false};
+    case 'lost':      return {emoji:'🔴',label:'Perdida',cls:'suspended',active:false};
+    case 'closed':    return {emoji:'⚪',label:'Cerrada',cls:'closed',active:false};
+    case 'passed':    return {emoji:'✅',label:'Aprobada',cls:'passed',active:false};
+    default:          return {emoji:'🟢',label:'Activa',cls:'active',active:true};
+  }
+}
+// Una cuenta está "activa para nuevas entradas" si su estado es active (o vacío en filas antiguas).
+function isAccountActive(acc){return !!(acc && accountStatusMeta(acc.status).active);}
+function accountStatusBadgeHTML(status){const m=accountStatusMeta(status);return `<span class="acc-badge acc-badge-${m.cls}">${m.emoji} ${m.label}</span>`;}
 function initAccountTypeGrids(){
   const ob=document.getElementById('ob-type-grid');
   if(ob&&!ob.dataset.built){ob.innerHTML=accountTypeGridHTML('ob','real');ob.dataset.built='1';}
@@ -3152,7 +3236,7 @@ async function obFinish(){
   const name=document.getElementById('ob-account-name').value.trim().slice(0,60);
   const btn=document.getElementById('ob-finish-btn');
   btn.disabled=true;btn.textContent='Creando...';
-  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:obAccountType,capital}).select().single();
+  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:obAccountType,capital,status:'active'}).select().single();
   if(error){toast(friendlyDbError(error));btn.disabled=false;btn.innerHTML='Empezar a operar <i class="ti ti-check"></i>';return;}
   allAccounts=[data];currentAccountId=data.id;
   await loadData();
@@ -3166,15 +3250,36 @@ async function loadAccounts(){
   allAccounts=data||[];
   renderAccountsSidebar();
 }
+// Orden y etiquetas de los grupos del sidebar (barra diferenciadora por tipo de cuenta).
+const ACCOUNT_GROUP_ORDER=[
+  {types:['funded'],label:'Fondeadas'},
+  {types:['evaluation'],label:'En evaluación'},
+  {types:['real'],label:'Propias'},
+  {types:['demo'],label:'Demo'},
+  {types:['custom'],label:'Otras'},
+];
 function renderAccountsSidebar(){
   const list=document.getElementById('accounts-list');
-  if(!list)return;
-  list.innerHTML=allAccounts.map(a=>`
-    <div class="account-chip ${a.id===currentAccountId?'active-account':''}" onclick="switchAccount('${a.id}')">
-      <div class="account-dot ${a.type}"></div>
-      <div class="account-chip-name">${esc(a.name)}</div>
-      <div class="account-chip-capital">${fmtMoney(a.capital)}</div>
-    </div>`).join('');
+  if(list){
+    let html='';
+    ACCOUNT_GROUP_ORDER.forEach(group=>{
+      const accs=allAccounts.filter(a=>group.types.includes(a.type));
+      if(!accs.length)return;
+      html+=`<div class="account-group-label">${esc(group.label)}</div>`;
+      html+=accs.map(a=>{
+        const m=accountStatusMeta(a.status);
+        return `<div class="account-chip ${a.id===currentAccountId?'active-account':''} ${m.active?'':'is-inactive'}" onclick="switchAccount('${a.id}')" title="${esc(a.name)} — ${esc(m.label)}">
+          <div class="account-dot ${a.type}"></div>
+          <div class="account-chip-main">
+            <div class="account-chip-name">${esc(a.name)}</div>
+            <div class="account-chip-status acc-status-${m.cls}">${m.emoji} ${esc(m.label)}</div>
+          </div>
+          <div class="account-chip-capital">${fmtMoney(a.capital)}</div>
+        </div>`;
+      }).join('');
+    });
+    list.innerHTML=html;
+  }
   // Config accounts list
   const cfgList=document.getElementById('config-accounts-list');
   if(cfgList){
@@ -3182,7 +3287,7 @@ function renderAccountsSidebar(){
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:8px">
           <div class="account-dot ${a.type}"></div>
-          <div><div style="font-size:13px;font-weight:600">${esc(a.name)}</div><div style="font-size:11px;color:var(--text3)">${accountTypeLabel(a.type)} · ${fmtMoney(a.capital)}</div></div>
+          <div><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px">${esc(a.name)} ${accountStatusBadgeHTML(a.status)}</div><div style="font-size:11px;color:var(--text3)">${accountTypeLabel(a.type)} · ${fmtMoney(a.capital)}</div></div>
         </div>
         <button class="icon-btn danger" onclick="deleteAccount('${a.id}')"><i class="ti ti-trash"></i></button>
       </div>`).join('');
@@ -3199,7 +3304,7 @@ async function saveNewAccount(){
   const name=document.getElementById('new-acc-name').value.trim().slice(0,60);
   const capital=parseFloat(document.getElementById('new-acc-capital').value);
   if(!name||!Number.isFinite(capital)||capital<=0||capital>100000000){toast('Rellena nombre y un capital válido');return;}
-  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:newAccType_val,capital}).select().single();
+  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:newAccType_val,capital,status:'active'}).select().single();
   if(error){toast(friendlyDbError(error));return;}
   allAccounts.push(data);
   currentAccountId=data.id;
@@ -3358,6 +3463,64 @@ async function promoteAccountToFunded(accountId){
   await renderBalancePage();
 }
 
+/* ── CICLO DE VIDA DE LA CUENTA: suspender / reactivar (conserva TODO el historial) ── */
+let pendingSuspendAccountId=null;
+// Abre el modal de confirmación antes de suspender (nunca se suspende sin confirmar).
+function openSuspendAccount(id){
+  const acc=allAccounts.find(a=>a.id===id); if(!acc)return;
+  pendingSuspendAccountId=id;
+  const nameEl=document.getElementById('suspend-acc-name'); if(nameEl)nameEl.textContent=acc.name;
+  const sel=document.getElementById('suspend-reason'); if(sel)sel.value='';
+  openModal('modal-suspend-account');
+}
+async function confirmSuspendAccount(){
+  if(!pendingSuspendAccountId)return;
+  const id=pendingSuspendAccountId;
+  const sel=document.getElementById('suspend-reason');
+  const reason=(sel&&sel.value)?sel.value:null;
+  const patch={status:'suspended',suspension_reason:reason,suspended_at:new Date().toISOString()};
+  const{error}=await sb.from('accounts').update(patch).eq('id',id);
+  if(error){toast(friendlyDbError(error));return;}
+  const acc=allAccounts.find(a=>a.id===id);
+  if(acc){acc.status='suspended';acc.suspension_reason=reason;acc.suspended_at=patch.suspended_at;}
+  pendingSuspendAccountId=null;
+  closeModal('modal-suspend-account');
+  toast('Cuenta suspendida. Tu historial se conserva.');
+  renderAccountsSidebar();
+  if(document.getElementById('view-balance')?.style.display!=='none')await renderBalancePage();
+}
+async function reactivateAccount(id){
+  const acc=allAccounts.find(a=>a.id===id); if(!acc)return;
+  const{error}=await sb.from('accounts').update({status:'active',suspension_reason:null}).eq('id',id);
+  if(error){toast(friendlyDbError(error));return;}
+  acc.status='active';acc.suspension_reason=null;
+  toast('Cuenta reactivada ✓');
+  renderAccountsSidebar();
+  await renderBalancePage();
+}
+// Si la cuenta activa (seleccionada) no admite nuevas entradas, devuelve la cuenta; si no, null.
+function accountBlockedForEntries(){
+  const acc=currentAccount();
+  return (acc&&!isAccountActive(acc))?acc:null;
+}
+function showAccountSuspendedWarning(acc){
+  const m=accountStatusMeta(acc.status);
+  const t=document.getElementById('suspwarn-title');
+  const d=document.getElementById('suspwarn-desc');
+  if(t)t.textContent=`${m.emoji} Esta cuenta está ${m.label.toLowerCase()}`;
+  if(d)d.textContent='Esta cuenta ya no está activa para registrar nuevas operaciones. Tu historial (operaciones, journal, métricas y balance) se conserva intacto y puedes seguir consultándolo. Si has comenzado a operar con una nueva cuenta, selecciona una cuenta activa o crea una nueva.';
+  openModal('modal-account-suspended');
+}
+function suspwarnPickAccount(){
+  closeModal('modal-account-suspended');
+  if(typeof openMobileSidebar==='function')openMobileSidebar();
+  toast('Selecciona una cuenta activa 🟢 en tu panel de cuentas');
+}
+function suspwarnCreateAccount(){
+  closeModal('modal-account-suspended');
+  handleAddAccountClick();
+}
+
 // Calcula todo lo necesario para pintar Balance: por cuenta y agregados globales.
 // Ninguna cifra de "invertido/recuperado" para cuentas de fondeo depende del P&L de
 // trading (que es virtual hasta que se cobra un payout) — solo de movimientos de
@@ -3489,24 +3652,35 @@ async function renderBalancePage(){
           </div>`;
         }
         const promoteBtn=acc.type==='evaluation'?`<button class="btn btn-ghost btn-sm" onclick="promoteAccountToFunded('${acc.id}')" title="Marcar como aprobada y pasar a cuenta fondeada"><i class="ti ti-arrow-up-circle"></i>Pasar a fondeada</button>`:'';
-        return `<div class="entry-row" style="flex-direction:column;align-items:stretch;gap:8px;padding:12px">
+        const suspendBtn=isAccountActive(acc)
+          ? `<button class="btn btn-ghost btn-sm acc-suspend-btn" onclick="openSuspendAccount('${acc.id}')" title="Suspender esta cuenta (conserva el historial)"><i class="ti ti-player-pause"></i>Suspender</button>`
+          : `<button class="btn btn-ghost btn-sm" onclick="reactivateAccount('${acc.id}')" title="Reactivar esta cuenta para volver a operar"><i class="ti ti-player-play"></i>Reactivar</button>`;
+        const reasonHTML=(acc.status==='suspended'&&acc.suspension_reason)?`<div class="acc-reason"><i class="ti ti-info-circle"></i> Motivo: ${esc(accountSuspendReasonLabel(acc.suspension_reason))}</div>`:'';
+        return `<div class="entry-row ${isAccountActive(acc)?'':'is-inactive-row'}" style="flex-direction:column;align-items:stretch;gap:8px;padding:12px">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:8px">
               <span style="font-size:16px">${accountTypeIcon(acc.type)}</span>
               <strong>${esc(acc.name)}</strong>
               <span style="font-size:11.5px;color:var(--text3)">${esc(accountTypeLabel(acc.type))}</span>
+              ${accountStatusBadgeHTML(acc.status)}
             </div>
             <div style="display:flex;align-items:center;gap:8px">
               ${isDemo?'':`<select class="form-select bal-status-select" data-account-id="${acc.id}" style="padding:4px 8px;font-size:12px;width:auto">${statOpts}</select>`}
+              ${suspendBtn}
               <button class="btn btn-ghost btn-sm" onclick="openBalanceEventForm('${acc.id}')"><i class="ti ti-plus"></i>Movimiento</button>
               ${promoteBtn}
             </div>
           </div>
           ${statsHTML}
+          ${reasonHTML}
         </div>`;
       }).join('');
       accWrap.querySelectorAll('select.bal-status-select').forEach(sel=>{
-        sel.onchange=()=>updateAccountStatus(sel.dataset.accountId,sel.value);
+        // Suspender desde el dropdown también pasa por la confirmación con motivo.
+        sel.onchange=()=>{
+          if(sel.value==='suspended'){sel.value=(allAccounts.find(a=>a.id===sel.dataset.accountId)||{}).status||'active';openSuspendAccount(sel.dataset.accountId);return;}
+          updateAccountStatus(sel.dataset.accountId,sel.value);
+        };
       });
     }
   }
@@ -3849,6 +4023,7 @@ async function loadData(){
 /* ── SAVE TRADE ── */
 async function saveTrade(){
   if(!currentUser||!currentAccountId)return;
+  if(!editingTradeId&&accountBlockedForEntries()){closeModal('modal-trade');showAccountSuspendedWarning(currentAccount());return;}
   const btn=document.getElementById('t-save-btn');
   const pair=document.getElementById('t-pair').value.trim().slice(0,40);
   const date=document.getElementById('t-date').value;
@@ -4206,6 +4381,7 @@ function getTradeCoverUrl(t){
 /* ── SAVE JOURNAL ── */
 async function saveJournal(){
   if(!currentUser||!currentAccountId)return;
+  if(!editingJournalId&&accountBlockedForEntries()){closeModal('modal-journal');showAccountSuspendedWarning(currentAccount());return;}
   const date=document.getElementById('j-date').value;
   const reason=document.getElementById('j-reason').value.trim().slice(0,60);
   const content=document.getElementById('j-content').value.trim().slice(0,4000);
@@ -6793,7 +6969,11 @@ function closeMobileSidebar(){
 
 function openModal(id){document.getElementById(id).style.display='flex';}
 function closeModal(id){document.getElementById(id).style.display='none';}
-function openChoice(){closeModal('modal-trade');closeModal('modal-journal');closeMobileSidebar();openModal('modal-choice');}
+function openChoice(){
+  const blocked=accountBlockedForEntries();
+  if(blocked){closeMobileSidebar();showAccountSuspendedWarning(blocked);return;}
+  closeModal('modal-trade');closeModal('modal-journal');closeMobileSidebar();openModal('modal-choice');
+}
 function openTradeForm(){
   closeModal('modal-choice');
   editingTradeId=null;
