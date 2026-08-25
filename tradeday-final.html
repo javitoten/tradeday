@@ -581,6 +581,20 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .acc-suspend-btn:hover{color:var(--red)}
 .entry-row.is-inactive-row{opacity:.82}
 .acc-reason{font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:5px;margin-top:2px}
+/* Luz de estado (LED) — sustituye a los emojis, más pequeña y profesional */
+.acc-led{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;position:relative;background:var(--text3)}
+.acc-led-active{background:#2FE07A;box-shadow:0 0 0 1px #2fe07a33,0 0 6px 1px #22c55e88}
+.acc-led-suspended{background:#FF5C5C;box-shadow:0 0 0 1px #ff5c5c33,0 0 6px 1px #ef444488}
+.acc-led-passed{background:#2FE07A;box-shadow:0 0 0 1px #2fe07a33,0 0 6px 1px #22c55e88}
+.acc-led-closed{background:#6B7280;box-shadow:none}
+.acc-badge .acc-led{width:7px;height:7px;margin-right:5px}
+/* Asa de arrastre + estados de reordenación */
+.account-chip{position:relative}
+.account-chip .acc-grip{color:var(--text3);opacity:.35;font-size:15px;flex-shrink:0;cursor:grab;transition:opacity .15s;margin-left:2px;padding:4px 2px;touch-action:none;-webkit-user-select:none;user-select:none}
+.account-chip:hover .acc-grip{opacity:.75}
+.account-chip .acc-grip:active{cursor:grabbing}
+.account-chip.acc-dragging{opacity:.45}
+.account-chip.acc-drop-target{border-color:var(--accent);box-shadow:inset 0 2px 0 -1px var(--accent)}
 .add-account-btn{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:var(--radius);color:var(--text3);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;margin:2px 0}
 .add-account-btn:hover{color:var(--accent);background:var(--bg3)}
 
@@ -3207,7 +3221,9 @@ function accountStatusMeta(status){
 }
 // Una cuenta está "activa para nuevas entradas" si su estado es active (o vacío en filas antiguas).
 function isAccountActive(acc){return !!(acc && accountStatusMeta(acc.status).active);}
-function accountStatusBadgeHTML(status){const m=accountStatusMeta(status);return `<span class="acc-badge acc-badge-${m.cls}">${m.emoji} ${m.label}</span>`;}
+// Indicador de estado como "luz" (LED con brillo), profesional y pequeño — en lugar de emojis.
+function accountLedHTML(status){return `<span class="acc-led acc-led-${accountStatusMeta(status).cls}"></span>`;}
+function accountStatusBadgeHTML(status){const m=accountStatusMeta(status);return `<span class="acc-badge acc-badge-${m.cls}">${accountLedHTML(status)}${m.label}</span>`;}
 function initAccountTypeGrids(){
   const ob=document.getElementById('ob-type-grid');
   if(ob&&!ob.dataset.built){ob.innerHTML=accountTypeGridHTML('ob','real');ob.dataset.built='1';}
@@ -3236,7 +3252,7 @@ async function obFinish(){
   const name=document.getElementById('ob-account-name').value.trim().slice(0,60);
   const btn=document.getElementById('ob-finish-btn');
   btn.disabled=true;btn.textContent='Creando...';
-  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:obAccountType,capital,status:'active'}).select().single();
+  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:obAccountType,capital,status:'active',position:0}).select().single();
   if(error){toast(friendlyDbError(error));btn.disabled=false;btn.innerHTML='Empezar a operar <i class="ti ti-check"></i>';return;}
   allAccounts=[data];currentAccountId=data.id;
   await loadData();
@@ -3258,23 +3274,37 @@ const ACCOUNT_GROUP_ORDER=[
   {types:['demo'],label:'Demo'},
   {types:['custom'],label:'Otras'},
 ];
+// Orden dentro de un grupo: primero las activas, luego las inactivas (suspendidas, etc.),
+// y dentro de cada bloque por 'position' manual (arrastrable) y, en su defecto, por antigüedad.
+function sortedGroupAccounts(types){
+  return allAccounts.filter(a=>types.includes(a.type)).sort((a,b)=>{
+    const aa=isAccountActive(a)?0:1, ba=isAccountActive(b)?0:1;
+    if(aa!==ba)return aa-ba;
+    const ap=(a.position??null), bp=(b.position??null);
+    if(ap!==null&&bp!==null&&ap!==bp)return ap-bp;
+    if(ap!==null&&bp===null)return -1;
+    if(ap===null&&bp!==null)return 1;
+    return String(a.created_at||'').localeCompare(String(b.created_at||''));
+  });
+}
 function renderAccountsSidebar(){
   const list=document.getElementById('accounts-list');
   if(list){
     let html='';
     ACCOUNT_GROUP_ORDER.forEach(group=>{
-      const accs=allAccounts.filter(a=>group.types.includes(a.type));
+      const accs=sortedGroupAccounts(group.types);
       if(!accs.length)return;
       html+=`<div class="account-group-label">${esc(group.label)}</div>`;
       html+=accs.map(a=>{
         const m=accountStatusMeta(a.status);
-        return `<div class="account-chip ${a.id===currentAccountId?'active-account':''} ${m.active?'':'is-inactive'}" onclick="switchAccount('${a.id}')" title="${esc(a.name)} — ${esc(m.label)}">
-          <div class="account-dot ${a.type}"></div>
+        return `<div class="account-chip ${a.id===currentAccountId?'active-account':''} ${m.active?'':'is-inactive'}" data-acc-id="${a.id}" data-acc-type="${a.type}" onclick="switchAccount('${a.id}')" title="${esc(a.name)} — ${esc(m.label)}">
+          <span class="acc-led acc-led-${m.cls}"></span>
           <div class="account-chip-main">
             <div class="account-chip-name">${esc(a.name)}</div>
-            <div class="account-chip-status acc-status-${m.cls}">${m.emoji} ${esc(m.label)}</div>
+            <div class="account-chip-status acc-status-${m.cls}">${esc(m.label)}</div>
           </div>
           <div class="account-chip-capital">${fmtMoney(a.capital)}</div>
+          <i class="ti ti-grip-vertical acc-grip" onpointerdown="accGripDown(event,'${a.id}')" title="Arrastra para reordenar"></i>
         </div>`;
       }).join('');
     });
@@ -3293,6 +3323,56 @@ function renderAccountsSidebar(){
       </div>`).join('');
   }
 }
+/* ── Reordenar cuentas por arrastre con PUNTERO (ratón + táctil), dentro del mismo grupo.
+   Se usa pointer events en lugar de HTML5 drag&drop: funciona en móvil y en entornos
+   (previews/iframes) donde el drag nativo puede estar desactivado. El asa ⋮⋮ inicia el
+   arrastre; el resto del chip sigue sirviendo para seleccionar la cuenta. ── */
+let _accDrag=null; // {id, type, chip, moved}
+function accGripDown(e,id){
+  if(e.button!==undefined&&e.button!==0)return; // solo botón principal
+  e.preventDefault(); e.stopPropagation();
+  const acc=allAccounts.find(a=>a.id===id); if(!acc)return;
+  const chip=(e.target&&e.target.closest)?e.target.closest('.account-chip'):null;
+  _accDrag={id,type:acc.type,chip,moved:false};
+  window.addEventListener('pointermove',accPointerMove);
+  window.addEventListener('pointerup',accPointerUp,{once:true});
+  window.addEventListener('pointercancel',accPointerUp,{once:true});
+}
+function accChipUnder(x,y){
+  const el=document.elementFromPoint(x,y);
+  return (el&&el.closest)?el.closest('.account-chip'):null;
+}
+function accPointerMove(e){
+  if(!_accDrag)return;
+  _accDrag.moved=true;
+  if(_accDrag.chip)_accDrag.chip.classList.add('acc-dragging');
+  document.querySelectorAll('.acc-drop-target').forEach(x=>x.classList.remove('acc-drop-target'));
+  const tchip=accChipUnder(e.clientX,e.clientY);
+  if(tchip&&tchip!==_accDrag.chip){
+    const t=allAccounts.find(a=>a.id===tchip.getAttribute('data-acc-id'));
+    if(t&&t.type===_accDrag.type)tchip.classList.add('acc-drop-target');
+  }
+}
+async function accPointerUp(e){
+  window.removeEventListener('pointermove',accPointerMove);
+  const pd=_accDrag; _accDrag=null;
+  document.querySelectorAll('.acc-dragging,.acc-drop-target').forEach(x=>x.classList.remove('acc-dragging','acc-drop-target'));
+  if(!pd||!pd.moved)return;
+  const tchip=accChipUnder(e.clientX,e.clientY);
+  if(!tchip)return;
+  const tid=tchip.getAttribute('data-acc-id');
+  if(!tid||tid===pd.id)return;
+  const drag=allAccounts.find(a=>a.id===pd.id), tgt=allAccounts.find(a=>a.id===tid);
+  if(!drag||!tgt||drag.type!==tgt.type)return;
+  const groupList=sortedGroupAccounts([drag.type]);
+  const from=groupList.findIndex(a=>a.id===pd.id), to=groupList.findIndex(a=>a.id===tid);
+  if(from<0||to<0)return;
+  groupList.splice(to,0,groupList.splice(from,1)[0]);
+  groupList.forEach((a,i)=>{a.position=i;});
+  renderAccountsSidebar();
+  try{await Promise.all(groupList.map(a=>sb.from('accounts').update({position:a.position}).eq('id',a.id)));}
+  catch(err){console.error('reorder persist',err);}
+}
 async function switchAccount(id){
   currentAccountId=id;
   await loadData();
@@ -3304,7 +3384,7 @@ async function saveNewAccount(){
   const name=document.getElementById('new-acc-name').value.trim().slice(0,60);
   const capital=parseFloat(document.getElementById('new-acc-capital').value);
   if(!name||!Number.isFinite(capital)||capital<=0||capital>100000000){toast('Rellena nombre y un capital válido');return;}
-  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:newAccType_val,capital,status:'active'}).select().single();
+  const{data,error}=await sb.from('accounts').insert({user_id:currentUser.id,name,type:newAccType_val,capital,status:'active',position:allAccounts.filter(a=>a.type===newAccType_val).length}).select().single();
   if(error){toast(friendlyDbError(error));return;}
   allAccounts.push(data);
   currentAccountId=data.id;
