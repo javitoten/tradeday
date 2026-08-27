@@ -3399,10 +3399,17 @@ async function deleteAccount(id){
     return;
   }
   if(!confirm('¿Eliminar esta cuenta y todos sus datos?'))return;
+  // Recopila las fotos de todos los trades de la cuenta ANTES de borrar, para limpiarlas del Storage.
+  let imgPaths=[];
+  try{
+    const{data:accTrades}=await sb.from('trades').select('images,image_url').eq('account_id',id);
+    (accTrades||[]).forEach(t=>tradeAllImageUrls(t).forEach(u=>{const p=tradeImageStoragePath(u);if(p)imgPaths.push(p);}));
+  }catch(_){}
   await sb.from('trades').delete().eq('account_id',id);
   await sb.from('journals').delete().eq('account_id',id);
   await sb.from('balance_events').delete().eq('account_id',id);
   await sb.from('accounts').delete().eq('id',id);
+  try{if(imgPaths.length)await sb.storage.from('trade-images').remove(imgPaths);}catch(_){}
   allAccounts=allAccounts.filter(a=>a.id!==id);
   if(currentAccountId===id)currentAccountId=allAccounts[0]?.id||null;
   await loadData();
@@ -4191,9 +4198,11 @@ async function saveTrade(){
       btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
       return;
     }
-    const safeExt=IMAGE_MIME_EXT[img.file.type]||'jpg';
+    let uploadFile=img.file;
+    try{uploadFile=await compressImageFile(img.file);}catch(_){uploadFile=img.file;}
+    const safeExt=IMAGE_MIME_EXT[uploadFile.type]||'jpg';
     const fileName=`${currentUser.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${safeExt}`;
-    const{error:uploadErr}=await sb.storage.from('trade-images').upload(fileName,img.file,{upsert:false,contentType:img.file.type});
+    const{error:uploadErr}=await sb.storage.from('trade-images').upload(fileName,uploadFile,{upsert:false,contentType:uploadFile.type});
     if(uploadErr){
       toast('Error subiendo una imagen. Inténtalo de nuevo.');
       console.error('[Storage error]',uploadErr);
@@ -4267,6 +4276,34 @@ function tradeImageStoragePath(url){
   const idx=url.indexOf(marker);
   if(idx===-1)return null;
   return url.slice(idx+marker.length).split('?')[0];
+}
+// Todas las URLs de imagen asociadas a un trade (modelo nuevo `images[]` + `image_url` antiguo), sin duplicados.
+function tradeAllImageUrls(t){
+  const urls=[];
+  if(t&&Array.isArray(t.images))t.images.forEach(i=>{if(i&&i.url)urls.push(i.url);});
+  if(t&&t.image_url)urls.push(t.image_url);
+  return [...new Set(urls)];
+}
+// Compresión/redimensionado en el navegador ANTES de subir. Transparente para el usuario:
+// sube igual que hoy, solo que el archivo pesa mucho menos (menos almacenamiento y descarga).
+// Los GIF (y cualquier tipo no rasterizable a JPEG con seguridad) se dejan intactos para no
+// romper animaciones. Si el resultado no fuera más pequeño, se conserva el original.
+const TIMG_MAX_DIM=1920, TIMG_QUALITY=0.82;
+async function compressImageFile(file){
+  if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type||''))return file;
+  let bitmap=null;
+  try{bitmap=await createImageBitmap(file);}catch(_){return file;}
+  if(!bitmap)return file;
+  const scale=Math.min(1,TIMG_MAX_DIM/Math.max(bitmap.width,bitmap.height));
+  const w=Math.max(1,Math.round(bitmap.width*scale)), h=Math.max(1,Math.round(bitmap.height*scale));
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h); // fondo blanco por si la imagen tiene transparencia
+  ctx.drawImage(bitmap,0,0,w,h);
+  if(bitmap.close)bitmap.close();
+  const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',TIMG_QUALITY));
+  if(!blob||blob.size>=file.size)return file;
+  return new File([blob],(file.name||'trade').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
 }
 
 /* ── URLs firmadas para el bucket privado 'trade-images' ──
@@ -4499,7 +4536,12 @@ async function saveJournal(){
   });
 }
 
-async function deleteTrade(id){if(!requirePremium('Eliminar operaciones'))return;if(!confirm('¿Eliminar?'))return;await sb.from('trades').delete().eq('id',id);toast('Trade eliminado');await loadData();}
+async function deleteTrade(id){if(!requirePremium('Eliminar operaciones'))return;if(!confirm('¿Eliminar?'))return;
+  const t=allTrades.find(x=>x.id===id);
+  await sb.from('trades').delete().eq('id',id);
+  // Limpieza best-effort en Storage: borra las fotos del trade para no dejar archivos huérfanos.
+  try{const paths=tradeAllImageUrls(t).map(tradeImageStoragePath).filter(Boolean);if(paths.length)await sb.storage.from('trade-images').remove(paths);}catch(_){}
+  toast('Trade eliminado');await loadData();}
 async function deleteJournal(id){if(!requirePremium('Eliminar entradas del Journal'))return;if(!confirm('¿Eliminar?'))return;await sb.from('journals').delete().eq('id',id);toast('Entrada eliminada');await loadData();}
 
 async function saveConfig(){
