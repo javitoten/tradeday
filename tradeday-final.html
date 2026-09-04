@@ -2335,68 +2335,175 @@ function initLandingFX(){
       <!-- RESUMEN GLOBAL (todas las cuentas juntas) -->
       <div id="view-global" style="display:none;flex-direction:column;gap:18px">
         <div class="welcome-bar">
-          <div><div class="section-title" style="font-size:17px">Resumen global</div><div class="section-sub">Cómo te va haciendo trading sumando todas tus cuentas, estés en el journal que estés</div></div>
-        </div>
-        <div class="card mx-section-block">
-          <div class="mx-card-title"><i class="ti ti-world"></i>Rendimiento global</div>
-          <div class="mx-card-sub" id="gl-scope-sub">—</div>
-          <div class="metric-grid" id="gl-kpis" style="margin-top:14px"></div>
-        </div>
-        <div class="card mx-section-block">
-          <div class="mx-card-title"><i class="ti ti-chart-line"></i>P&amp;L acumulado — todas las cuentas</div>
-          <div class="mx-card-sub">Suma de resultados de todas tus operaciones a lo largo del tiempo</div>
-          <div class="mx-chart-wrap" style="height:260px;margin-top:12px"><canvas id="gl-chart-cum"></canvas></div>
-        </div>
-        <div class="card mx-section-block">
-          <div class="mx-card-title"><i class="ti ti-wallet"></i>Por cuenta</div>
-          <div class="mx-card-sub">Cuánto aporta cada cuenta a tu resultado global</div>
-          <div id="gl-accounts" style="margin-top:12px"></div>
-        </div>
-        <div class="card mx-section-block">
-          <div class="mx-card-title"><i class="ti ti-flame"></i>Rachas y extremos</div>
-          <div class="metric-grid" id="gl-streaks" style="margin-top:10px"></div>
+          <div><div class="section-title" style="font-size:17px">Resumen global</div><div class="section-sub">Tu trading sumando todas tus cuentas — <span id="gl-scope-sub">—</span></div></div>
         </div>
 
-        <!-- AVANZADO (Premium): mismo patrón que Métricas — datos reales difuminados + CTA Premium encima si no está suscrito -->
-        <div class="mx-blur-wrap">
-        <div id="gl-advanced-content" style="display:flex;flex-direction:column;gap:18px">
-          <div class="card mx-section-block">
-            <div class="mx-card-title"><i class="ti ti-clipboard-data"></i>Información resumida</div>
-            <div class="mx-card-sub">Medias, drawdown, riesgo, duración y consistencia — agregado de todas las cuentas</div>
-            <div class="metric-grid" id="gl-info" style="margin-top:12px"></div>
+        <!-- Selector de alcance: Todas / por tipo de cuenta -->
+        <div class="card mx-section-block" style="padding:13px 16px">
+          <div class="mx-card-head" style="margin-bottom:0;align-items:center">
+            <div><div class="mx-card-title"><i class="ti ti-filter"></i>Ver métricas de</div><div class="mx-card-sub" id="gl-scope-note">Todas tus cuentas juntas. Cambia para ver por tipo (fondeadas, evaluación, propias…).</div></div>
+            <div class="mx-toggle-group" id="gl-scope-toggle"></div>
           </div>
-          <div class="mx-two-col">
-            <div class="card mx-section-block">
-              <div class="mx-card-title"><i class="ti ti-clock"></i>Por sesión</div>
-              <div id="gl-sessions" style="margin-top:10px"></div>
+        </div>
+
+        <!-- 1. EVOLUCIÓN DEL CAPITAL -->
+        <div class="card mx-section-block">
+          <div class="mx-card-title"><i class="ti ti-chart-line"></i>Evolución del capital</div>
+          <div class="mx-card-sub">Capital de las cuentas seleccionadas + P&amp;L acumulado a lo largo del tiempo</div>
+          <div class="mx-chart-wrap" style="height:260px;margin-top:12px"><canvas id="gl-chart-equity"></canvas></div>
+          <div class="mx-chip-row" id="gl-equity-chips"></div>
+        </div>
+
+        <!-- 1B. GANANCIAS Y PÉRDIDAS -->
+        <div class="card mx-section-block">
+          <div class="mx-card-title"><i class="ti ti-coins"></i>Ganancias y pérdidas</div>
+          <div class="mx-card-sub">Desglose de tus beneficios y pérdidas</div>
+          <div class="mx-chip-row" id="gl-pnl-chips"></div>
+        </div>
+
+        <!-- 2. DISTRIBUCIÓN + BUY VS SELL -->
+        <div class="mx-two-col">
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-chart-donut-2"></i>Distribución de operaciones</div>
+            <div class="mx-chart-wrap" style="height:190px"><canvas id="gl-chart-results"></canvas></div>
+            <div class="mx-chip-row" id="gl-results-chips"></div>
+          </div>
+          <div class="card mx-section-block">
+            <div class="mx-locked-panel mx-locked-inline" id="gl-buysell-locked">
+              <div class="mx-locked-icon">👑</div>
+              <div class="mx-locked-title">Buy vs Sell — función Premium</div>
+              <div class="mx-locked-desc">Compara tu rendimiento comprando frente a vendiendo, con TradeDay Premium.</div>
+              <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Buy vs Sell')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
             </div>
-            <div class="card mx-section-block">
+            <div id="gl-buysell-content" style="display:none">
               <div class="mx-card-title"><i class="ti ti-arrows-up-down"></i>Buy vs Sell</div>
-              <div id="gl-directions" style="margin-top:10px"></div>
+              <div class="mx-chart-wrap" style="height:190px"><canvas id="gl-chart-buysell"></canvas></div>
+              <div class="mx-chip-row" id="gl-buysell-chips"></div>
             </div>
           </div>
+        </div>
+
+        <!-- 2C. RATIOS / RACHAS / MEJOR-PEOR -->
+        <div class="mx-three-col">
+          <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-percentage"></i>Ratios de acierto</div><div class="mx-chip-row" id="gl-results-rates-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
+          <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-flame"></i>Rachas</div><div class="mx-chip-row" id="gl-results-streaks-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
+          <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-trophy"></i>Mejor y peor operación</div><div class="mx-chip-row" id="gl-results-besttrade-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
+        </div>
+
+        <!-- INFORMACIÓN RESUMIDA (edge, free) -->
+        <div class="card mx-section-block">
+          <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-list-details"></i>Información resumida</div>
+          <div class="mx-kpi-grid">
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-scale"></i></div><div class="metric-label">Profit Factor</div><div class="metric-value" id="gl-pf">—</div><div class="metric-delta neutral">Ganancia bruta ÷ Pérdida bruta</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-target-arrow"></i></div><div class="metric-label">Expectancy</div><div class="metric-value" id="gl-exp">—</div><div class="metric-delta neutral">Beneficio neto ÷ Nº operaciones</div></div>
+            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-arrows-up-down"></i></div><div class="metric-label">R:R medio</div><div class="metric-value" id="gl-rr">—</div><div class="metric-delta neutral">Ganancia media ÷ Pérdida media</div></div>
+          </div>
+        </div>
+
+        <!-- INFORMACIÓN RESUMIDA AVANZADA (Premium, difuminada) -->
+        <div class="mx-blur-wrap" style="margin-top:2px">
+        <div id="gl-summary-locked" class="mx-locked-panel" style="margin-top:2px">
+          <div class="mx-locked-icon">👑</div>
+          <div class="mx-locked-title">Drawdown, Recovery Factor y Riesgo — función Premium</div>
+          <div class="mx-locked-desc">Desbloquea el resto de información resumida con TradeDay Premium.</div>
+          <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La información resumida global')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+        </div>
+        <div id="gl-summary-content" style="display:none;flex-direction:column;gap:18px">
           <div class="mx-two-col">
             <div class="card mx-section-block">
-              <div class="mx-card-title"><i class="ti ti-coins"></i>Por activo</div>
-              <div id="gl-assets" style="margin-top:10px"></div>
+              <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-trending-down"></i>Drawdown y Recovery</div>
+              <div class="mx-kpi-grid">
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-trending-down"></i></div><div class="metric-label">Drawdown máximo</div><div class="metric-value neg" id="gl-dd-max">—</div><div class="metric-delta neg" id="gl-dd-max-pct">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-activity"></i></div><div class="metric-label">Drawdown actual</div><div class="metric-value" id="gl-dd-current">—</div><div class="metric-delta" id="gl-dd-current-pct">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-rotate-clockwise"></i></div><div class="metric-label">Recovery Factor</div><div class="metric-value" id="gl-recovery">—</div><div class="metric-delta neutral">Beneficio neto ÷ Drawdown máximo</div></div>
+              </div>
             </div>
             <div class="card mx-section-block">
-              <div class="mx-card-title"><i class="ti ti-calendar"></i>Por día de la semana</div>
-              <div id="gl-weekday" style="margin-top:10px"></div>
+              <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-shield"></i>Riesgo</div>
+              <div class="mx-kpi-grid">
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield"></i></div><div class="metric-label">Riesgo medio</div><div class="metric-value" id="gl-risk-avg">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-x"></i></div><div class="metric-label">Riesgo máximo</div><div class="metric-value" id="gl-risk-max">—</div></div>
+                <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-check"></i></div><div class="metric-label">Riesgo mínimo</div><div class="metric-value" id="gl-risk-min">—</div></div>
+              </div>
+              <div id="gl-risk-hint" class="mx-empty-hint" style="display:none;margin-top:12px">Añade el % de riesgo al crear o editar tus operaciones para ver el Riesgo medio/máximo/mínimo.</div>
             </div>
           </div>
-          <div class="card mx-section-block">
-            <div class="mx-card-title"><i class="ti ti-chart-bar"></i>Evolución mensual</div>
-            <div class="mx-card-sub">Resultado de cada mes sumando todas tus cuentas</div>
-            <div id="gl-monthly" style="margin-top:10px"></div>
+          <div class="mx-three-col">
+            <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-percentage"></i>Resultado medio (%)</div><div class="mx-chip-row" id="gl-summary-avgpct-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
+            <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Actividad</div><div class="mx-chip-row" id="gl-summary-activity-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
+            <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-flame"></i>Consistencia de rachas</div><div class="mx-chip-row" id="gl-summary-streaks-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
           </div>
         </div>
-        <div id="gl-advanced-locked" class="mx-locked-panel" style="display:none">
-          <div class="mx-locked-icon">👑</div>
-          <div class="mx-locked-title">Análisis global avanzado — función Premium</div>
-          <div class="mx-locked-desc">Medias, drawdown y recovery, riesgo, duración, rendimiento por sesión, activo y día, evolución mensual y consistencia — de todas tus cuentas juntas, con TradeDay Premium.</div>
-          <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Resumen global avanzado')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
         </div>
+
+        <!-- POR SESIÓN (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="gl-session-locked">
+            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Rendimiento por sesión — función Premium</div>
+            <div class="mx-locked-desc">Beneficio y win rate por sesión (Londres, New York, Asia), con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por sesión')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="gl-session-content" style="display:none">
+            <div class="mx-card-title"><i class="ti ti-clock"></i>Rendimiento por sesión</div>
+            <div class="mx-card-sub" style="margin-bottom:14px">Beneficio por sesión, sumando las cuentas seleccionadas</div>
+            <div class="mx-chart-wrap" style="height:240px"><canvas id="gl-chart-session"></canvas></div>
+            <div class="mx-chip-row" id="gl-session-chips"></div>
+          </div>
+        </div>
+
+        <!-- POR ACTIVO (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="gl-asset-locked">
+            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Rendimiento por activo — función Premium</div>
+            <div class="mx-locked-desc">Beneficio y número de operaciones por cada par que operas, con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por activo')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="gl-asset-content" style="display:none">
+            <div class="mx-card-title"><i class="ti ti-coin"></i>Rendimiento por activo</div>
+            <div class="mx-card-sub" style="margin-bottom:14px">Beneficio total por par</div>
+            <div class="mx-chart-wrap" style="height:240px"><canvas id="gl-chart-asset"></canvas></div>
+            <div class="mx-chip-row" id="gl-asset-chips"></div>
+          </div>
+        </div>
+
+        <!-- POR DÍA DE LA SEMANA (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="gl-weekday-locked">
+            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Rendimiento por día de la semana — función Premium</div>
+            <div class="mx-locked-desc">Identifica tus mejores y peores días de la semana para operar, con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por día de la semana')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="gl-weekday-content" style="display:none">
+            <div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Rendimiento por día de la semana</div>
+            <div class="mx-chart-wrap" style="height:230px;margin-top:14px"><canvas id="gl-chart-weekday"></canvas></div>
+          </div>
+        </div>
+
+        <!-- EVOLUCIÓN MENSUAL (Premium) -->
+        <div class="card mx-section-block">
+          <div class="mx-locked-panel" id="gl-monthly-locked">
+            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Evolución mensual — función Premium</div>
+            <div class="mx-locked-desc">Beneficio o pérdida de cada mes de tu historial, con TradeDay Premium.</div>
+            <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La evolución mensual')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          </div>
+          <div id="gl-monthly-content" style="display:none">
+            <div class="mx-card-title"><i class="ti ti-calendar-event"></i>Evolución mensual</div>
+            <div class="mx-chart-wrap" style="height:230px;margin-top:14px"><canvas id="gl-chart-monthly"></canvas></div>
+            <div class="mx-chip-row" id="gl-monthly-chips"></div>
+          </div>
+        </div>
+
+        <!-- DURACIÓN MEDIA -->
+        <div class="card mx-section-block">
+          <div class="mx-duration-card">
+            <div class="mx-duration-icon"><i class="ti ti-clock-hour-4"></i></div>
+            <div class="mx-duration-info">
+              <div class="metric-label">Duración media de la operación</div>
+              <div class="mx-duration-value" id="gl-duration-avg">—</div>
+              <div class="metric-delta neutral" id="gl-duration-sub">Tiempo medio que mantienes abierta una operación</div>
+            </div>
+          </div>
+          <div id="gl-duration-hint" class="mx-empty-hint" style="display:none;margin-top:14px">Añade la duración (en minutos) al crear o editar tus operaciones para ver esta métrica.</div>
         </div>
       </div>
 
@@ -3067,6 +3174,7 @@ let mxCalYear=new Date().getFullYear(), mxCalMonth=new Date().getMonth();
 let metricsOpen=false, abandonTarget=null, inactivityTimer=null;
 let dashMetricsOpen=false, annualYear=new Date().getFullYear();
 let allTrades=[], allJournals=[], allAccounts=[];
+let _glTrades=null, glScope='all'; // caché de todos los trades (Resumen global) + alcance por tipo
 let currentAccountId=null;
 /* Imágenes del trade que se está creando/editando en el modal.
    Cada elemento: {localId, url (ya subida, o null si aún es un File pendiente),
@@ -4229,6 +4337,7 @@ async function loadData(){
   const{data:trades}=await sb.from('trades').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   const{data:journals}=await sb.from('journals').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   allTrades=trades||[];allJournals=journals||[];
+  _glTrades=null; // invalida la caché del Resumen global
   normalizeTradeAmounts();
   renderAll();
 }
@@ -8582,72 +8691,151 @@ function computeGlobalMetrics(trades, accounts){
   T.forEach(t=>{const iso=(typeof mxWeekISOKey==='function')?mxWeekISOKey(t.date):t.date;weekMap.set(iso,(weekMap.get(iso)||0)+mxAmt(t));});
   const weeksArr=[...weekMap.values()];
   const consistenciaSemanal=weeksArr.length?Math.round(weeksArr.filter(p=>p>0).length/weeksArr.length*100):null;
+  // ── Extras para clonar la vista de Métricas (mismos campos que computeFullMetrics) ──
+  const grossProfit=gp, grossLoss=gl;
+  const netProfitPct=capitalBase>0?(net/capitalBase*100):0;
+  const lossRate=dec>0?Math.round(losses.length/dec*100):0;
+  const beRate=T.length?Math.round(bes.length/T.length*100):0;
+  const currentDD=peak-eq, currentDDPct=peak>0?(currentDD/peak*100):0;
+  let curType=null,curLen=0;
+  for(let i=T.length-1;i>=0;i--){const r=T[i].result;if(curType===null){if(r==='be')break;curType=r;curLen=1;}else if(r===curType)curLen++;else break;}
+  const sessWithData=sessions.filter(s=>s.count>0);
+  const bestSession=sessWithData.length?sessWithData.reduce((a,b)=>b.pnl>a.pnl?b:a):null;
+  const worstSession=sessWithData.length?sessWithData.reduce((a,b)=>b.pnl<a.pnl?b:a):null;
+  const bestAsset=assets.length?assets[0]:null, worstAsset=assets.length?assets[assets.length-1]:null;
+  const dayMap=new Map(); T.forEach(t=>dayMap.set(t.date,(dayMap.get(t.date)||0)+mxAmt(t)));
+  let greenDays=0,redDays=0,beDays=0; dayMap.forEach(p=>{if(p>0)greenDays++;else if(p<0)redDays++;else beDays++;});
+  const distinctSess=sessWithData.length;
+  const opsPerDay=dayMap.size?T.length/dayMap.size:0, opsPerWeek=weekMap.size?T.length/weekMap.size:0, opsPerMonth=monthYears.length?T.length/monthYears.length:0, opsPerSession=distinctSess?T.length/distinctSess:0;
+  let avgDaysBetween=null;
+  if(T.length>1){let sum=0,pairs=0;for(let i=1;i<T.length;i++){const diff=(mxDate(T[i].date)-mxDate(T[i-1].date))/86400000;if(diff>=0){sum+=diff;pairs++;}}avgDaysBetween=pairs?sum/pairs:null;}
+  const pctMaxWinStreak=T.length?Math.round(mw/T.length*100):0, pctMaxLossStreak=T.length?Math.round(ml/T.length*100):0;
   return {total:T.length,decided:dec,wins:wins.length,losses:losses.length,bes:bes.length,net,winRate,pf,expectancy,avgWin,avgLoss,avgRR,
     maxWinStreak:mw,maxLossStreak:ml,bestTrade:best,worstTrade:worst,perAccount,sessions,directions,assets,cum,accountsWithData:perAccount.length,
     avgWinPct,avgLossPct,capitalBase,maxDD,maxDDPct,recoveryFactor,riskAvg,riskMax,riskMin,riskTradesCount:riskVals.length,avgDuration,durationTradesCount:durVals.length,
-    beWin,beLoss,weekdayStats,monthlyEvolution,consistenciaMensual,consistenciaSemanal};
+    beWin,beLoss,weekdayStats,monthlyEvolution,consistenciaMensual,consistenciaSemanal,
+    grossProfit,grossLoss,netProfitPct,lossRate,beRate,currentDD,currentDDPct,currentStreakType:curType,currentStreakLen:curLen,
+    bestSession,worstSession,bestAsset,worstAsset,greenDays,redDays,beDays,journalOnlyDays:0,
+    opsPerDay,opsPerWeek,opsPerMonth,opsPerSession,avgDaysBetween,pctMaxWinStreak,pctMaxLossStreak};
 }
 /*GL-END*/
 async function renderGlobalPage(){
   if(!currentUser)return;
-  let trades=[];
-  try{const{data}=await sb.from('trades').select('*').eq('user_id',currentUser.id);trades=data||[];}catch(e){console.error('global fetch',e);}
-  const m=computeGlobalMetrics(trades, allAccounts);
-  const sub=document.getElementById('gl-scope-sub');
-  if(sub)sub.textContent=m.total?`${m.total} operaciones registradas en ${m.accountsWithData} cuenta${m.accountsWithData===1?'':'s'}`:'Aún no hay operaciones registradas en ninguna cuenta';
-  const kpiEl=document.getElementById('gl-kpis');
-  if(kpiEl){
-    const pfTxt=m.pf===null?'—':(m.pf===Infinity?'∞':m.pf.toFixed(2));
-    const rrTxt=m.avgRR===null?'—':(m.avgRR===Infinity?'∞':m.avgRR.toFixed(2));
-    const cls=(n)=>n>0?'pos':n<0?'neg':'neutral';
-    kpiEl.innerHTML=[
-      ['P&L neto total',(m.net>=0?'+':'')+fmtMoney(m.net),cls(m.net)],
-      ['Win rate',m.winRate===null?'—':m.winRate+'%',(m.winRate!==null&&m.winRate>=50)?'pos':(m.winRate===null?'':'neg')],
-      ['Operaciones',String(m.total),''],
-      ['Profit Factor',pfTxt,''],
-      ['Expectancy',(m.expectancy>=0?'+':'')+fmtMoney(m.expectancy),cls(m.expectancy)],
-      ['R:R medio',rrTxt,''],
-    ].map(([l,v,c])=>`<div class="metric-card"><div class="metric-label">${l}</div><div class="metric-value ${c}">${v}</div></div>`).join('');
+  if(_glTrades===null){ try{const{data}=await sb.from('trades').select('*').eq('user_id',currentUser.id);_glTrades=data||[];}catch(e){console.error('global fetch',e);_glTrades=[];} }
+  glRenderScopeToggle();
+  glRenderCurrent();
+}
+function glSetScope(sc){ glScope=sc; glRenderScopeToggle(); glRenderCurrent(); }
+function glRenderScopeToggle(){
+  const el=document.getElementById('gl-scope-toggle'); if(!el)return;
+  const present=ACCOUNT_GROUP_ORDER.filter(g=>allAccounts.some(a=>g.types.includes(a.type)));
+  if(glScope!=='all' && !present.some(g=>g.types.join(',')===glScope))glScope='all';
+  let html=`<button class="mx-toggle ${glScope==='all'?'active':''}" onclick="glSetScope('all')">Todas</button>`;
+  present.forEach(g=>{const key=g.types.join(','); html+=`<button class="mx-toggle ${glScope===key?'active':''}" onclick="glSetScope('${key}')">${esc(g.label)}</button>`;});
+  el.innerHTML=html;
+}
+function glRenderCurrent(){
+  let accs=allAccounts, trades=_glTrades||[], scopeLabel='Todas las cuentas ('+allAccounts.length+')';
+  if(glScope!=='all'){
+    const types=glScope.split(',');
+    accs=allAccounts.filter(a=>types.includes(a.type));
+    const ids=new Set(accs.map(a=>a.id));
+    trades=trades.filter(t=>ids.has(t.account_id));
+    const g=ACCOUNT_GROUP_ORDER.find(x=>x.types.join(',')===glScope);
+    scopeLabel=(g?g.label:'')+' ('+accs.length+' cuenta'+(accs.length===1?'':'s')+')';
   }
-  if(m.cum.length){
-    const line=mxCssVar('--accent')||'#22C55E';
-    mxMakeChart('gl-chart-cum',{type:'line',data:{labels:m.cum.map(p=>mxFmtShortDate(p.date)),datasets:[{data:m.cum.map(p=>Math.round(p.cum)),borderColor:line,backgroundColor:mxHexAlpha(line,0.12),borderWidth:2,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...mxTooltipBase(),callbacks:{label:c=>fmtMoney(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),maxTicksLimit:8}},y:{grid:{color:mxCssVar('--border2')},ticks:{color:mxCssVar('--text3'),callback:v=>fmtMoney(v)}}}}});
-  } else { mxDestroyChart('gl-chart-cum'); }
-  const set=(id,html)=>{const e=document.getElementById(id);if(e)e.innerHTML=html;};
-  const cards=(rows)=>rows.map(([l,v,c])=>`<div class="metric-card"><div class="metric-label">${l}</div><div class="metric-value ${c||''}">${v}</div></div>`).join('');
-  const cls=(n)=>n>0?'pos':n<0?'neg':'neutral';
-  // ── Bloques básicos (siempre visibles) ──
-  set('gl-accounts',mxRowsHTML(m.perAccount,{sortByPnl:true}));
-  set('gl-streaks',cards([
-    ['Racha máx. ganadora',String(m.maxWinStreak),m.maxWinStreak>0?'pos':''],
-    ['Racha máx. perdedora',String(m.maxLossStreak),m.maxLossStreak>0?'neg':''],
-    ['Mejor operación',m.bestTrade?mxFmtMoney(mxAmt(m.bestTrade)):'—',m.bestTrade?cls(mxAmt(m.bestTrade)):''],
-    ['Peor operación',m.worstTrade?mxFmtMoney(mxAmt(m.worstTrade)):'—',m.worstTrade?cls(mxAmt(m.worstTrade)):''],
-  ]));
-  // ── Sección avanzada: mismo patrón visual que Métricas — datos reales difuminados + CTA Premium encima ──
+  const m=computeGlobalMetrics(trades, accs);
+  const sub=document.getElementById('gl-scope-sub'); if(sub)sub.textContent=(m.total?m.total+' operaciones':'Sin operaciones')+' · '+scopeLabel;
+  const note=document.getElementById('gl-scope-note'); if(note)note.textContent=glScope==='all'?'Todas tus cuentas juntas. Cambia para ver por tipo (fondeadas, evaluación, propias…).':('Solo cuentas de tipo: '+scopeLabel);
+  glRenderEquity(m); glRenderPnl(m); glRenderResults(m); glRenderBuySell(m); glRenderSummary(m); glRenderSession(m); glRenderAsset(m); glRenderWeekday(m); glRenderMonthly(m); glRenderDuration(m);
+}
+function glLock(lockedId,contentId,disp){
   const premium=(typeof isPremiumUser==='function')?isPremiumUser():true;
-  const advL=document.getElementById('gl-advanced-locked'), advC=document.getElementById('gl-advanced-content');
-  if(advL){advL.style.display=premium?'none':'flex';advL.classList.toggle('mx-blur-overlay',!premium);}
-  if(advC)advC.classList.toggle('mx-blur-preview',!premium);
-  {
-    set('gl-info',cards([
-      ['Ganancia media',mxFmtMoney(m.avgWin),m.avgWin>0?'pos':''],
-      ['Pérdida media',m.avgLoss>0?('-'+fmtMoney(m.avgLoss)):'—',m.avgLoss>0?'neg':''],
-      ['Ganancia media %',(m.avgWinPct>0?'+':'')+m.avgWinPct.toFixed(2)+'%',m.avgWinPct>0?'pos':''],
-      ['Pérdida media %',m.avgLossPct>0?('-'+m.avgLossPct.toFixed(2)+'%'):'—',m.avgLossPct>0?'neg':''],
-      ['Drawdown máx.',m.maxDD>0?('-'+fmtMoney(m.maxDD)+(m.maxDDPct?' ('+m.maxDDPct.toFixed(1)+'%)':'')):'—',m.maxDD>0?'neg':''],
-      ['Recovery Factor',m.recoveryFactor===null?'—':(m.recoveryFactor===Infinity?'∞':m.recoveryFactor.toFixed(2)),''],
-      ['Riesgo medio',m.riskAvg===null?'—':m.riskAvg.toFixed(2)+'%',''],
-      ['Duración media',m.avgDuration===null?'—':mxFmtDuration(m.avgDuration),''],
-      ['Consistencia semanal',m.consistenciaSemanal===null?'—':m.consistenciaSemanal+'%',''],
-      ['Consistencia mensual',m.consistenciaMensual===null?'—':m.consistenciaMensual+'%',''],
-    ]));
-    set('gl-sessions',mxRowsHTML(m.sessions));
-    set('gl-directions',mxRowsHTML(m.directions));
-    set('gl-assets',mxRowsHTML(m.assets,{sortByPnl:true}));
-    set('gl-weekday',mxRowsHTML(m.weekdayStats));
-    set('gl-monthly',mxRowsHTML(m.monthlyEvolution));
-  }
+  const locked=document.getElementById(lockedId),content=document.getElementById(contentId);
+  if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
+  if(content){content.style.display=disp||'block';content.classList.toggle('mx-blur-preview',!premium);}
+}
+function glRenderEquity(m){
+  const capActual=m.capitalBase+m.net;
+  const ch=document.getElementById('gl-equity-chips');
+  if(ch)ch.innerHTML=`<div class="mx-chip">Capital inicial <strong>${fmtMoney(m.capitalBase)}</strong></div><div class="mx-chip ${capActual>=m.capitalBase?'pos':'neg'}">Capital actual <strong>${fmtMoney(capActual)}</strong></div><div class="mx-chip ${m.net>=0?'pos':'neg'}">Beneficio neto <strong>${mxFmtMoney(m.net)}</strong> (${mxFmtPct(m.netProfitPct)})</div>`;
+  const pts=m.cum;
+  if(!pts.length){mxDestroyChart('gl-chart-equity');return;}
+  const line=m.net>=0?mxCssVar('--green'):mxCssVar('--red');
+  mxMakeChart('gl-chart-equity',{type:'line',data:{labels:pts.map(p=>p.date?mxFmtShortDate(p.date):''),datasets:[{data:pts.map(p=>m.capitalBase+p.cum),borderColor:line,backgroundColor:mxHexAlpha(line,.12),borderWidth:2,fill:true,tension:.3,pointRadius:0,pointHoverRadius:5,pointHitRadius:14,pointBackgroundColor:line,pointBorderColor:mxCssVar('--bg')||'#fff',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{title:items=>items&&items.length?items[0].label:'',label:c=>'Capital: '+fmtMoney(c.parsed.y)}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:8}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}});
+}
+function glRenderPnl(m){
+  const el=document.getElementById('gl-pnl-chips');
+  if(el)el.innerHTML=`<div class="mx-chip pos">Ganancia bruta <strong>+${fmtMoney(m.grossProfit)}</strong></div><div class="mx-chip neg">Pérdida bruta <strong>-${fmtMoney(m.grossLoss)}</strong></div><div class="mx-chip pos">Ganancia media/op. <strong>${mxFmtMoney(m.avgWin)}</strong></div><div class="mx-chip neg">Pérdida media/op. <strong>${mxFmtMoney(-m.avgLoss)}</strong></div>`;
+}
+function glRenderResults(m){
+  const cats=[{label:'Ganadoras',count:m.wins,color:mxCssVar('--green')},{label:'Perdedoras',count:m.losses,color:mxCssVar('--red')},{label:'Break Even',count:m.bes,color:mxCssVar('--text3')}].filter(c=>c.count>0);
+  const total=cats.reduce((s,c)=>s+c.count,0);
+  const set=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
+  if(total)mxMakeChart('gl-chart-results',{type:'doughnut',data:{labels:cats.map(c=>c.label),datasets:[{data:cats.map(c=>c.count),backgroundColor:cats.map(c=>c.color),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const pct=total?Math.round(c.parsed/total*100):0;return `${c.label}: ${c.parsed} (${pct}%)`;}},displayColors:true},mxTooltipBase())}}}); else mxDestroyChart('gl-chart-results');
+  if(!total){['gl-results-chips','gl-results-rates-chips','gl-results-streaks-chips','gl-results-besttrade-chips'].forEach(id=>set(id,'<div class="mx-chip">Sin operaciones todavía</div>'));return;}
+  set('gl-results-chips',cats.map(c=>`<div class="mx-chip"><span style="width:8px;height:8px;border-radius:50%;background:${c.color};display:inline-block"></span>${c.label} <strong>${c.count}</strong> (${Math.round(c.count/total*100)}%)</div>`).join(''));
+  set('gl-results-rates-chips',`<div class="mx-chip">Win Rate <strong>${Math.round(m.winRate||0)}%</strong></div><div class="mx-chip">Loss Rate <strong>${Math.round(m.lossRate)}%</strong></div><div class="mx-chip">BE Rate <strong>${Math.round(m.beRate)}%</strong> (${m.beWin} BE Win · ${m.beLoss} BE Loss)</div>`);
+  set('gl-results-streaks-chips',`<div class="mx-chip">Racha actual <strong>${m.currentStreakType?m.currentStreakLen+' '+(m.currentStreakType==='win'?'ganadoras':'perdedoras'):'—'}</strong></div><div class="mx-chip pos">Racha máx. ganadora <strong>${m.maxWinStreak}</strong></div><div class="mx-chip neg">Racha máx. perdedora <strong>${m.maxLossStreak}</strong></div>`);
+  let bh=''; if(m.bestTrade)bh+=`<div class="mx-chip pos">Mejor operación <strong>${esc(m.bestTrade.pair||'')} ${mxFmtMoney(mxAmt(m.bestTrade))}</strong></div>`; if(m.worstTrade)bh+=`<div class="mx-chip neg">Peor operación <strong>${esc(m.worstTrade.pair||'')} ${mxFmtMoney(mxAmt(m.worstTrade))}</strong></div>`;
+  set('gl-results-besttrade-chips',bh||'<div class="mx-row-empty">Sin datos todavía</div>');
+}
+function glRenderBuySell(m){
+  glLock('gl-buysell-locked','gl-buysell-content','block');
+  const b=m.directions[0],s=m.directions[1],total=b.count+s.count;
+  if(total)mxMakeChart('gl-chart-buysell',{type:'doughnut',data:{labels:['Buy','Sell'],datasets:[{data:[b.count,s.count],backgroundColor:[mxCssVar('--green'),mxCssVar('--red')],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const pct=total?Math.round(c.parsed/total*100):0;return `${c.label}: ${c.parsed} (${pct}%)`;}},displayColors:true},mxTooltipBase())}}}); else mxDestroyChart('gl-chart-buysell');
+  const el=document.getElementById('gl-buysell-chips'); if(el)el.innerHTML=total?`<div class="mx-chip ${b.pnl>=0?'pos':'neg'}">Buy <strong>${b.count}</strong> · WR ${b.wr===null?'—':b.wr+'%'} · <strong>${mxFmtMoney(b.pnl)}</strong></div><div class="mx-chip ${s.pnl>=0?'pos':'neg'}">Sell <strong>${s.count}</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`:'<div class="mx-chip">Sin operaciones todavía</div>';
+}
+function glRenderSummary(m){
+  setText('gl-pf',mxFmtRatio(m.pf)); mxSetClass('gl-pf','metric-value '+(m.pf===null?'':m.pf>=1?'pos':'neg'));
+  setText('gl-exp',mxFmtMoney(m.expectancy)); mxSetClass('gl-exp','metric-value '+(m.expectancy>=0?'pos':'neg'));
+  setText('gl-rr',mxFmtRatio(m.avgRR));
+  glLock('gl-summary-locked','gl-summary-content','flex');
+  setText('gl-dd-max',m.maxDD>0?('-'+fmtMoney(m.maxDD)):'0$');
+  setText('gl-dd-max-pct',(m.maxDD>0?'-':'')+m.maxDDPct.toFixed(1)+'%');
+  setText('gl-dd-current',m.currentDD>0?('-'+fmtMoney(m.currentDD)):'0$'); mxSetClass('gl-dd-current','metric-value '+(m.currentDD>0?'neg':'neutral'));
+  const ddc=document.getElementById('gl-dd-current-pct'); if(ddc){ddc.textContent=(m.currentDD>0?'-':'')+m.currentDDPct.toFixed(1)+'% desde el máximo';ddc.className='metric-delta '+(m.currentDD>0?'neg':'neutral');}
+  setText('gl-recovery',mxFmtRatio(m.recoveryFactor));
+  const hasRisk=m.riskTradesCount>0; const rh=document.getElementById('gl-risk-hint'); if(rh)rh.style.display=hasRisk?'none':'block';
+  setText('gl-risk-avg',hasRisk?mxFmtPlainPct(m.riskAvg):'—'); setText('gl-risk-max',hasRisk?mxFmtPlainPct(m.riskMax):'—'); setText('gl-risk-min',hasRisk?mxFmtPlainPct(m.riskMin):'—');
+  const set=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
+  set('gl-summary-avgpct-chips',`<div class="mx-chip pos">Ganancia media (%) <strong>${mxFmtPlainPct(m.avgWinPct)}</strong></div><div class="mx-chip neg">Pérdida media (%) <strong>${mxFmtPlainPct(m.avgLossPct)}</strong></div>`);
+  set('gl-summary-activity-chips',`<div class="mx-chip">Ops/día <strong>${mxFmtCount(m.opsPerDay)}</strong></div><div class="mx-chip">Ops/semana <strong>${mxFmtCount(m.opsPerWeek)}</strong></div><div class="mx-chip">Ops/mes <strong>${mxFmtCount(m.opsPerMonth)}</strong></div><div class="mx-chip">Ops/sesión <strong>${mxFmtCount(m.opsPerSession)}</strong></div><div class="mx-chip">Días entre ops. <strong>${mxFmtDays(m.avgDaysBetween)}</strong></div>`);
+  set('gl-summary-streaks-chips',`<div class="mx-chip pos">% en racha ganadora máx. <strong>${m.total?m.pctMaxWinStreak+'%':'—'}</strong></div><div class="mx-chip neg">% en racha perdedora máx. <strong>${m.total?m.pctMaxLossStreak+'%':'—'}</strong></div>`);
+}
+function glRenderSession(m){
+  glLock('gl-session-locked','gl-session-content','block');
+  const st=m.sessions;
+  mxMakeChart('gl-chart-session',{type:'bar',data:{labels:st.map(s=>s.name),datasets:[{data:st.map(s=>s.pnl),backgroundColor:st.map(s=>s.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:6,maxBarThickness:70}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return `${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}});
+  const el=document.getElementById('gl-session-chips'); if(!el)return;
+  const wd=st.filter(s=>s.count>0);
+  if(!wd.length){el.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
+  let html=wd.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${esc(s.name)} <strong>${s.count} op.</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
+  if(m.bestSession)html+=`<div class="mx-chip pos">Mejor sesión <strong>${esc(m.bestSession.name)}</strong></div>`;
+  if(m.worstSession)html+=`<div class="mx-chip neg">Peor sesión <strong>${esc(m.worstSession.name)}</strong></div>`;
+  el.innerHTML=html;
+}
+function glRenderAsset(m){
+  glLock('gl-asset-locked','gl-asset-content','block');
+  const st=[...m.assets].sort((a,b)=>b.pnl-a.pnl);
+  if(st.length)mxMakeChart('gl-chart-asset',{type:'bar',data:{labels:st.map(s=>s.name),datasets:[{data:st.map(s=>s.pnl),backgroundColor:st.map(s=>s.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:6,maxBarThickness:56}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return[`${mxFmtMoney(s.pnl)}`,`${s.count} operaciones · WR ${s.wr===null?'—':s.wr+'%'}`];}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:11,weight:'600'}}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}}); else mxDestroyChart('gl-chart-asset');
+  const el=document.getElementById('gl-asset-chips'); if(el)el.innerHTML=st.length?`${m.bestAsset?`<div class="mx-chip pos">Mejor activo <strong>${esc(m.bestAsset.name)}</strong> ${mxFmtMoney(m.bestAsset.pnl)}</div>`:''}${m.worstAsset&&(!m.bestAsset||m.worstAsset.name!==m.bestAsset.name)?`<div class="mx-chip neg">Peor activo <strong>${esc(m.worstAsset.name)}</strong> ${mxFmtMoney(m.worstAsset.pnl)}</div>`:''}`:'<div class="mx-chip">Sin operaciones todavía</div>';
+}
+function glRenderWeekday(m){
+  glLock('gl-weekday-locked','gl-weekday-content','block');
+  const st=[1,2,3,4,5].map(i=>m.weekdayStats[i]);
+  mxMakeChart('gl-chart-weekday',{type:'bar',data:{labels:st.map(s=>s.name.slice(0,3)),datasets:[{data:st.map(s=>s.pnl),backgroundColor:st.map(s=>s.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:6,maxBarThickness:56}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return `${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}});
+}
+function glRenderMonthly(m){
+  glLock('gl-monthly-locked','gl-monthly-content','block');
+  const evo=m.monthlyEvolution;
+  if(evo.length)mxMakeChart('gl-chart-monthly',{type:'bar',data:{labels:evo.map(e=>e.name),datasets:[{data:evo.map(e=>e.pnl),backgroundColor:evo.map(e=>e.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:5,maxBarThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const e=evo[c.dataIndex];return[`${mxFmtMoney(e.pnl)}`,`${e.count} operaciones`];}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:12}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}}); else mxDestroyChart('gl-chart-monthly');
+  const el=document.getElementById('gl-monthly-chips'); if(el)el.innerHTML=`<div class="mx-chip">Consistencia mensual <strong>${m.consistenciaMensual===null?'—':m.consistenciaMensual+'%'}</strong></div><div class="mx-chip">Consistencia semanal <strong>${m.consistenciaSemanal===null?'—':m.consistenciaSemanal+'%'}</strong></div><div class="mx-chip pos">Días verdes <strong>${m.greenDays}</strong></div><div class="mx-chip neg">Días rojos <strong>${m.redDays}</strong></div><div class="mx-chip">Días BE <strong>${m.beDays}</strong></div>`;
+}
+function glRenderDuration(m){
+  const has=m.durationTradesCount>0; const hint=document.getElementById('gl-duration-hint'); if(hint)hint.style.display=has?'none':'block';
+  setText('gl-duration-avg',has?mxFmtDuration(m.avgDuration):'—');
+  const sub=document.getElementById('gl-duration-sub'); if(sub)sub.textContent=has?`Basado en ${m.durationTradesCount} operación${m.durationTradesCount===1?'':'es'} con duración registrada`:'Tiempo medio que mantienes abierta una operación';
 }
 
 function renderMetricsPage(){
