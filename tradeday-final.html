@@ -572,7 +572,13 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .account-chip.is-inactive{opacity:.62}
 .account-chip.is-inactive .account-dot{opacity:.5}
 .account-chip-capital{font-size:11px;color:var(--text3)}
-.account-group-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);padding:8px 10px 3px}
+.account-group-head{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px 4px;cursor:pointer;user-select:none;border-radius:var(--radius)}
+.account-group-head:hover{background:var(--bg3)}
+.account-group-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)}
+.acc-group-right{display:flex;align-items:center;gap:6px;color:var(--text3)}
+.acc-group-count{font-size:10px;font-weight:700;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:0 6px;line-height:16px;min-width:18px;text-align:center}
+.acc-group-chev{font-size:14px;transition:transform .18s}
+.account-group-head.collapsed .acc-group-chev{transform:rotate(-90deg)}
 /* Badges de estado de cuenta (Balance / Configuración) */
 .acc-badge{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;line-height:1.4}
 .acc-badge-active{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
@@ -1695,6 +1701,7 @@ function initLandingFX(){
         <div class="sidebar-item" onclick="gotoView('ops')" id="si-ops"><i class="ti ti-list"></i>Mis operaciones</div>
         <div class="sidebar-item" onclick="gotoView('metrics')" id="si-metrics"><i class="ti ti-chart-bar"></i>Métricas</div>
         <div class="sidebar-item" onclick="gotoView('balance')" id="si-balance"><i class="ti ti-wallet"></i>Balance</div>
+        <div class="sidebar-item" onclick="gotoView('global')" id="si-global"><i class="ti ti-world"></i>Resumen global</div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-item" onclick="gotoView('plan')" id="si-plan"><i class="ti ti-target"></i>Mi plan</div>
         <div class="sidebar-item" onclick="gotoView('routine')" id="si-routine"><i class="ti ti-sun"></i>Mi rutina</div>
@@ -2325,6 +2332,74 @@ function initLandingFX(){
         </div>
       </div>
 
+      <!-- RESUMEN GLOBAL (todas las cuentas juntas) -->
+      <div id="view-global" style="display:none;flex-direction:column;gap:18px">
+        <div class="welcome-bar">
+          <div><div class="section-title" style="font-size:17px">Resumen global</div><div class="section-sub">Cómo te va haciendo trading sumando todas tus cuentas, estés en el journal que estés</div></div>
+        </div>
+        <div class="card mx-section-block">
+          <div class="mx-card-title"><i class="ti ti-world"></i>Rendimiento global</div>
+          <div class="mx-card-sub" id="gl-scope-sub">—</div>
+          <div class="metric-grid" id="gl-kpis" style="margin-top:14px"></div>
+        </div>
+        <div class="card mx-section-block">
+          <div class="mx-card-title"><i class="ti ti-chart-line"></i>P&amp;L acumulado — todas las cuentas</div>
+          <div class="mx-card-sub">Suma de resultados de todas tus operaciones a lo largo del tiempo</div>
+          <div class="mx-chart-wrap" style="height:260px;margin-top:12px"><canvas id="gl-chart-cum"></canvas></div>
+        </div>
+        <div class="card mx-section-block">
+          <div class="mx-card-title"><i class="ti ti-wallet"></i>Por cuenta</div>
+          <div class="mx-card-sub">Cuánto aporta cada cuenta a tu resultado global</div>
+          <div id="gl-accounts" style="margin-top:12px"></div>
+        </div>
+        <div class="card mx-section-block">
+          <div class="mx-card-title"><i class="ti ti-flame"></i>Rachas y extremos</div>
+          <div class="metric-grid" id="gl-streaks" style="margin-top:10px"></div>
+        </div>
+
+        <!-- AVANZADO (Premium): mismo patrón que Métricas — datos reales difuminados + CTA Premium encima si no está suscrito -->
+        <div class="mx-blur-wrap">
+        <div id="gl-advanced-content" style="display:flex;flex-direction:column;gap:18px">
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-clipboard-data"></i>Información resumida</div>
+            <div class="mx-card-sub">Medias, drawdown, riesgo, duración y consistencia — agregado de todas las cuentas</div>
+            <div class="metric-grid" id="gl-info" style="margin-top:12px"></div>
+          </div>
+          <div class="mx-two-col">
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-clock"></i>Por sesión</div>
+              <div id="gl-sessions" style="margin-top:10px"></div>
+            </div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-arrows-up-down"></i>Buy vs Sell</div>
+              <div id="gl-directions" style="margin-top:10px"></div>
+            </div>
+          </div>
+          <div class="mx-two-col">
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-coins"></i>Por activo</div>
+              <div id="gl-assets" style="margin-top:10px"></div>
+            </div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-calendar"></i>Por día de la semana</div>
+              <div id="gl-weekday" style="margin-top:10px"></div>
+            </div>
+          </div>
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-chart-bar"></i>Evolución mensual</div>
+            <div class="mx-card-sub">Resultado de cada mes sumando todas tus cuentas</div>
+            <div id="gl-monthly" style="margin-top:10px"></div>
+          </div>
+        </div>
+        <div id="gl-advanced-locked" class="mx-locked-panel" style="display:none">
+          <div class="mx-locked-icon">👑</div>
+          <div class="mx-locked-title">Análisis global avanzado — función Premium</div>
+          <div class="mx-locked-desc">Medias, drawdown y recovery, riesgo, duración, rendimiento por sesión, activo y día, evolución mensual y consistencia — de todas tus cuentas juntas, con TradeDay Premium.</div>
+          <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Resumen global avanzado')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+        </div>
+        </div>
+      </div>
+
       <!-- PLAN -->
       <div id="view-plan" style="display:none;flex-direction:column;gap:20px">
 
@@ -2847,6 +2922,26 @@ function initLandingFX(){
   </div>
 </div>
 
+<!-- CUENTAS: confirmar ELIMINACIÓN (destructivo, pierde métricas/datos) -->
+<div class="modal-overlay" id="modal-delete-account" style="display:none" onclick="if(event.target===this)closeModal('modal-delete-account')">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title">Eliminar cuenta</div><button class="modal-close" onclick="closeModal('modal-delete-account')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--text2);line-height:1.6;margin:0 0 12px">Vas a eliminar <strong id="deleteacc-name" style="color:var(--text)">esta cuenta</strong>. Esta acción <strong style="color:var(--red)">no se puede deshacer</strong>.</p>
+      <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+        <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">Se perderán <strong>permanentemente</strong> todos los datos de esta cuenta:</p>
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:6px 0 0">operaciones · journal · <strong>métricas</strong> · balance e historial de movimientos.</p>
+      </div>
+      <p style="font-size:12.5px;color:var(--text3);line-height:1.6;margin:0">Si solo quieres dejar de operar con ella pero conservar el historial, mejor <strong style="color:var(--text2)">suspéndela desde Balance</strong> en lugar de eliminarla. Puedes ir directamente con el botón de abajo.</p>
+    </div>
+    <div class="modal-footer" style="flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="closeModal('modal-delete-account')">Cancelar</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-delete-account');gotoView('balance')"><i class="ti ti-player-pause"></i>Ir a Balance a suspender</button>
+      <button class="btn btn-danger" onclick="confirmDeleteAccount()"><i class="ti ti-trash"></i>Eliminar definitivamente</button>
+    </div>
+  </div>
+</div>
+
 <!-- BALANCE: añadir/editar movimiento -->
 <div class="modal-overlay" id="modal-balance-event" style="display:none" onclick="if(event.target===this)closeModal('modal-balance-event')">
   <div class="modal" style="max-width:440px">
@@ -3276,6 +3371,14 @@ const ACCOUNT_GROUP_ORDER=[
   {types:['demo'],label:'Demo'},
   {types:['custom'],label:'Otras'},
 ];
+// Estado plegado/desplegado de cada grupo del sidebar (persistido en el navegador del usuario).
+function accountGroupCollapsed(){try{return new Set(JSON.parse(localStorage.getItem('td_acc_collapsed')||'[]'));}catch(_){return new Set();}}
+function toggleAccountGroup(label){
+  const s=accountGroupCollapsed();
+  if(s.has(label))s.delete(label);else s.add(label);
+  try{localStorage.setItem('td_acc_collapsed',JSON.stringify([...s]));}catch(_){}
+  renderAccountsSidebar();
+}
 // Orden dentro de un grupo: primero las activas, luego las inactivas (suspendidas, etc.),
 // y dentro de cada bloque por 'position' manual (arrastrable) y, en su defecto, por antigüedad.
 function sortedGroupAccounts(types){
@@ -3293,10 +3396,16 @@ function renderAccountsSidebar(){
   const list=document.getElementById('accounts-list');
   if(list){
     let html='';
+    const collapsed=accountGroupCollapsed();
     ACCOUNT_GROUP_ORDER.forEach(group=>{
       const accs=sortedGroupAccounts(group.types);
       if(!accs.length)return;
-      html+=`<div class="account-group-label">${esc(group.label)}</div>`;
+      const isCol=collapsed.has(group.label);
+      html+=`<div class="account-group-head ${isCol?'collapsed':''}" onclick="toggleAccountGroup('${group.label.replace(/'/g,"\\'")}')" title="Plegar/desplegar">
+        <span class="account-group-label">${esc(group.label)}</span>
+        <span class="acc-group-right"><span class="acc-group-count">${accs.length}</span><i class="ti ti-chevron-down acc-group-chev"></i></span>
+      </div>`;
+      html+=`<div class="account-group-body" ${isCol?'style="display:none"':''}>`;
       html+=accs.map(a=>{
         const m=accountStatusMeta(a.status);
         return `<div class="account-chip ${a.id===currentAccountId?'active-account':''} ${m.active?'':'is-inactive'}" data-acc-id="${a.id}" data-acc-type="${a.type}" onclick="switchAccount('${a.id}')" title="${esc(a.name)} — ${esc(m.label)}">
@@ -3309,6 +3418,7 @@ function renderAccountsSidebar(){
           <i class="ti ti-grip-vertical acc-grip" onpointerdown="accGripDown(event,'${a.id}')" title="Arrastra para reordenar"></i>
         </div>`;
       }).join('');
+      html+='</div>';
     });
     list.innerHTML=html;
   }
@@ -3395,12 +3505,26 @@ async function saveNewAccount(){
   renderAccountsSidebar();
   toast('Cuenta creada ✓');
 }
-async function deleteAccount(id){
+// Eliminar cuenta = acción DESTRUCTIVA (borra operaciones, journal, métricas y balance de esa cuenta,
+// sin posibilidad de deshacer). Por eso se confirma con un modal claro, no con un confirm() genérico.
+// Si el usuario solo quiere dejar de usarla conservando el historial, debe usar "Suspender".
+let pendingDeleteAccountId=null;
+function deleteAccount(id){
   if(allAccounts.length<=1){
     toast('No puedes eliminar tu única cuenta. Crea otra antes de borrar esta.');
     return;
   }
-  if(!confirm('¿Eliminar esta cuenta y todos sus datos?'))return;
+  const acc=allAccounts.find(a=>a.id===id);
+  if(!acc)return;
+  pendingDeleteAccountId=id;
+  const n=document.getElementById('deleteacc-name');if(n)n.textContent=acc.name;
+  openModal('modal-delete-account');
+}
+async function confirmDeleteAccount(){
+  const id=pendingDeleteAccountId;
+  if(!id)return;
+  pendingDeleteAccountId=null;
+  closeModal('modal-delete-account');
   // Recopila las fotos de todos los trades de la cuenta ANTES de borrar, para limpiarlas del Storage.
   let imgPaths=[];
   try{
@@ -7062,7 +7186,7 @@ async function getRoutineComplianceForWeek(offset){
 
 function gotoView(v){
   currentView=v;
-  ['dashboard','journal','calendar','ops','metrics','balance','plan','routine','config'].forEach(view=>{
+  ['dashboard','journal','calendar','ops','metrics','balance','global','plan','routine','config'].forEach(view=>{
     const el=document.getElementById('view-'+view);if(el)el.style.display=view===v?'flex':'none';
     const si=document.getElementById('si-'+view);if(si)si.classList.toggle('active',view===v);
   });
@@ -7076,6 +7200,7 @@ function gotoView(v){
   if(v==='ops'){renderOpsList();renderMetrics();}
   if(v==='metrics'){const ms=document.getElementById('metrics-account-sub');const accM=currentAccount();if(ms&&accM)ms.textContent=accM.name;renderMetricsPage();}
   if(v==='balance')renderBalancePage();
+  if(v==='global')renderGlobalPage();
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
   if(v==='plan')loadPlan();
   if(v==='routine')loadRoutine();
@@ -8398,6 +8523,131 @@ function renderPerfAnalysis(){
     </div>`;
   }
   body.innerHTML=html;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   RESUMEN GLOBAL — métricas agregadas de TODAS las cuentas del usuario,
+   independientemente de la cuenta/journal seleccionado. Motor puro (testable)
+   + renderer que hace un fetch de todos los trades del usuario.
+   ══════════════════════════════════════════════════════════════════════ */
+/*GL-START*/
+function computeGlobalMetrics(trades, accounts){
+  const T=[...(trades||[])].filter(t=>t.date).sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):String(a.id).localeCompare(String(b.id)));
+  const wins=T.filter(t=>t.result==='win'), losses=T.filter(t=>t.result==='loss'), bes=T.filter(t=>t.result==='be');
+  const dec=wins.length+losses.length;
+  const gp=wins.reduce((s,t)=>s+mxAmt(t),0), gl=losses.reduce((s,t)=>s+Math.abs(mxAmt(t)),0);
+  const net=gp-gl;
+  const winRate=dec>0?Math.round(wins.length/dec*100):null;
+  const pf=gl>0?gp/gl:(gp>0?Infinity:null);
+  const expectancy=T.length?net/T.length:0;
+  const avgWin=wins.length?gp/wins.length:0, avgLoss=losses.length?gl/losses.length:0;
+  const avgRR=avgLoss>0?avgWin/avgLoss:(avgWin>0?Infinity:null);
+  let cw=0,mw=0,cl=0,ml=0,best=null,worst=null;
+  T.forEach(t=>{
+    if(t.result==='win'){cw++;cl=0;if(cw>mw)mw=cw;}
+    else if(t.result==='loss'){cl++;cw=0;if(cl>ml)ml=cl;}
+    else{cw=0;cl=0;}
+    if(t.result!=='be'){const a=mxAmt(t);if(!best||a>mxAmt(best))best=t;if(!worst||a<mxAmt(worst))worst=t;}
+  });
+  const grp=(arr)=>{const w=arr.filter(t=>t.result==='win').length,l=arr.filter(t=>t.result==='loss').length;return{count:arr.length,wr:(w+l)>0?Math.round(w/(w+l)*100):null,pnl:arr.reduce((s,t)=>s+mxAmt(t),0)};};
+  const perAccount=(accounts||[]).map(a=>{const st=T.filter(t=>t.account_id===a.id);const g=grp(st);return{name:a.name,count:g.count,wr:g.wr,pnl:g.pnl};}).filter(r=>r.count>0);
+  const sessions=['Londres','New York','Asia'].map(n=>{const g=grp(T.filter(t=>t.session===n));return{name:n,count:g.count,wr:g.wr,pnl:g.pnl};});
+  const directions=['Buy','Sell'].map(n=>{const g=grp(T.filter(t=>t.direction===n));return{name:n,count:g.count,wr:g.wr,pnl:g.pnl};});
+  const assetNames=[...new Set(T.map(t=>t.pair).filter(Boolean))];
+  const assets=assetNames.map(n=>{const g=grp(T.filter(t=>t.pair===n));return{name:n,count:g.count,wr:g.wr,pnl:g.pnl};}).sort((a,b)=>b.pnl-a.pnl);
+  let run=0;const cum=T.map(t=>{run+=mxAmt(t);return{date:t.date,cum:run};});
+  // ── Métricas avanzadas agregadas (Premium) ──
+  const avgWinPct=wins.length?wins.reduce((s,t)=>s+mxAmtPct(t),0)/wins.length:0;
+  const avgLossPct=losses.length?Math.abs(losses.reduce((s,t)=>s+mxAmtPct(t),0)/losses.length):0;
+  // Equity/Drawdown global: base = suma de capitales de todas las cuentas + P&L acumulado.
+  const capitalBase=(accounts||[]).reduce((s,a)=>s+(Number(a.capital)||0),0);
+  let eq=capitalBase,peak=capitalBase,maxDD=0,maxDDPct=0;
+  T.forEach(t=>{eq+=mxAmt(t);if(eq>peak)peak=eq;const dd=peak-eq;const ddp=peak>0?dd/peak*100:0;if(dd>maxDD)maxDD=dd;if(ddp>maxDDPct)maxDDPct=ddp;});
+  const recoveryFactor=maxDD>0?net/maxDD:(net>0?Infinity:null);
+  const riskVals=T.map(t=>Number(t.risk_pct)).filter(v=>!isNaN(v));
+  const riskAvg=riskVals.length?riskVals.reduce((a,b)=>a+b,0)/riskVals.length:null;
+  const riskMax=riskVals.length?Math.max(...riskVals):null;
+  const riskMin=riskVals.length?Math.min(...riskVals):null;
+  const durVals=T.map(t=>Number(t.duration_minutes)).filter(v=>!isNaN(v));
+  const avgDuration=durVals.length?durVals.reduce((a,b)=>a+b,0)/durVals.length:null;
+  const beWin=bes.filter(t=>t.be_type==='be_win').length, beLoss=bes.filter(t=>t.be_type==='be_loss').length;
+  const wdNames=(typeof gD==='function')?gD():['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const weekdayStats=wdNames.map((name,idx)=>{const g=grp(T.filter(t=>mxDate(t.date).getDay()===idx));return{name,count:g.count,wr:g.wr,pnl:g.pnl};});
+  const monthYearMap=new Map();
+  T.forEach(t=>{const dd=mxDate(t.date);const key=dd.getFullYear()+'-'+String(dd.getMonth()).padStart(2,'0');if(!monthYearMap.has(key))monthYearMap.set(key,{year:dd.getFullYear(),month:dd.getMonth()});});
+  const monthYears=[...monthYearMap.entries()].sort((a,b)=>a[0]<b[0]?-1:1);
+  const monthlyEvolution=monthYears.map(([k,v])=>{const g=grp(T.filter(t=>{const d=mxDate(t.date);return d.getFullYear()===v.year&&d.getMonth()===v.month;}));return{name:(typeof gM==='function'?gM()[v.month].slice(0,3):('M'+(v.month+1)))+' '+v.year,count:g.count,wr:g.wr,pnl:g.pnl};});
+  const consistenciaMensual=monthlyEvolution.length?Math.round(monthlyEvolution.filter(x=>x.pnl>0).length/monthlyEvolution.length*100):null;
+  const weekMap=new Map();
+  T.forEach(t=>{const iso=(typeof mxWeekISOKey==='function')?mxWeekISOKey(t.date):t.date;weekMap.set(iso,(weekMap.get(iso)||0)+mxAmt(t));});
+  const weeksArr=[...weekMap.values()];
+  const consistenciaSemanal=weeksArr.length?Math.round(weeksArr.filter(p=>p>0).length/weeksArr.length*100):null;
+  return {total:T.length,decided:dec,wins:wins.length,losses:losses.length,bes:bes.length,net,winRate,pf,expectancy,avgWin,avgLoss,avgRR,
+    maxWinStreak:mw,maxLossStreak:ml,bestTrade:best,worstTrade:worst,perAccount,sessions,directions,assets,cum,accountsWithData:perAccount.length,
+    avgWinPct,avgLossPct,capitalBase,maxDD,maxDDPct,recoveryFactor,riskAvg,riskMax,riskMin,riskTradesCount:riskVals.length,avgDuration,durationTradesCount:durVals.length,
+    beWin,beLoss,weekdayStats,monthlyEvolution,consistenciaMensual,consistenciaSemanal};
+}
+/*GL-END*/
+async function renderGlobalPage(){
+  if(!currentUser)return;
+  let trades=[];
+  try{const{data}=await sb.from('trades').select('*').eq('user_id',currentUser.id);trades=data||[];}catch(e){console.error('global fetch',e);}
+  const m=computeGlobalMetrics(trades, allAccounts);
+  const sub=document.getElementById('gl-scope-sub');
+  if(sub)sub.textContent=m.total?`${m.total} operaciones registradas en ${m.accountsWithData} cuenta${m.accountsWithData===1?'':'s'}`:'Aún no hay operaciones registradas en ninguna cuenta';
+  const kpiEl=document.getElementById('gl-kpis');
+  if(kpiEl){
+    const pfTxt=m.pf===null?'—':(m.pf===Infinity?'∞':m.pf.toFixed(2));
+    const rrTxt=m.avgRR===null?'—':(m.avgRR===Infinity?'∞':m.avgRR.toFixed(2));
+    const cls=(n)=>n>0?'pos':n<0?'neg':'neutral';
+    kpiEl.innerHTML=[
+      ['P&L neto total',(m.net>=0?'+':'')+fmtMoney(m.net),cls(m.net)],
+      ['Win rate',m.winRate===null?'—':m.winRate+'%',(m.winRate!==null&&m.winRate>=50)?'pos':(m.winRate===null?'':'neg')],
+      ['Operaciones',String(m.total),''],
+      ['Profit Factor',pfTxt,''],
+      ['Expectancy',(m.expectancy>=0?'+':'')+fmtMoney(m.expectancy),cls(m.expectancy)],
+      ['R:R medio',rrTxt,''],
+    ].map(([l,v,c])=>`<div class="metric-card"><div class="metric-label">${l}</div><div class="metric-value ${c}">${v}</div></div>`).join('');
+  }
+  if(m.cum.length){
+    const line=mxCssVar('--accent')||'#22C55E';
+    mxMakeChart('gl-chart-cum',{type:'line',data:{labels:m.cum.map(p=>mxFmtShortDate(p.date)),datasets:[{data:m.cum.map(p=>Math.round(p.cum)),borderColor:line,backgroundColor:mxHexAlpha(line,0.12),borderWidth:2,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...mxTooltipBase(),callbacks:{label:c=>fmtMoney(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),maxTicksLimit:8}},y:{grid:{color:mxCssVar('--border2')},ticks:{color:mxCssVar('--text3'),callback:v=>fmtMoney(v)}}}}});
+  } else { mxDestroyChart('gl-chart-cum'); }
+  const set=(id,html)=>{const e=document.getElementById(id);if(e)e.innerHTML=html;};
+  const cards=(rows)=>rows.map(([l,v,c])=>`<div class="metric-card"><div class="metric-label">${l}</div><div class="metric-value ${c||''}">${v}</div></div>`).join('');
+  const cls=(n)=>n>0?'pos':n<0?'neg':'neutral';
+  // ── Bloques básicos (siempre visibles) ──
+  set('gl-accounts',mxRowsHTML(m.perAccount,{sortByPnl:true}));
+  set('gl-streaks',cards([
+    ['Racha máx. ganadora',String(m.maxWinStreak),m.maxWinStreak>0?'pos':''],
+    ['Racha máx. perdedora',String(m.maxLossStreak),m.maxLossStreak>0?'neg':''],
+    ['Mejor operación',m.bestTrade?mxFmtMoney(mxAmt(m.bestTrade)):'—',m.bestTrade?cls(mxAmt(m.bestTrade)):''],
+    ['Peor operación',m.worstTrade?mxFmtMoney(mxAmt(m.worstTrade)):'—',m.worstTrade?cls(mxAmt(m.worstTrade)):''],
+  ]));
+  // ── Sección avanzada: mismo patrón visual que Métricas — datos reales difuminados + CTA Premium encima ──
+  const premium=(typeof isPremiumUser==='function')?isPremiumUser():true;
+  const advL=document.getElementById('gl-advanced-locked'), advC=document.getElementById('gl-advanced-content');
+  if(advL){advL.style.display=premium?'none':'flex';advL.classList.toggle('mx-blur-overlay',!premium);}
+  if(advC)advC.classList.toggle('mx-blur-preview',!premium);
+  {
+    set('gl-info',cards([
+      ['Ganancia media',mxFmtMoney(m.avgWin),m.avgWin>0?'pos':''],
+      ['Pérdida media',m.avgLoss>0?('-'+fmtMoney(m.avgLoss)):'—',m.avgLoss>0?'neg':''],
+      ['Ganancia media %',(m.avgWinPct>0?'+':'')+m.avgWinPct.toFixed(2)+'%',m.avgWinPct>0?'pos':''],
+      ['Pérdida media %',m.avgLossPct>0?('-'+m.avgLossPct.toFixed(2)+'%'):'—',m.avgLossPct>0?'neg':''],
+      ['Drawdown máx.',m.maxDD>0?('-'+fmtMoney(m.maxDD)+(m.maxDDPct?' ('+m.maxDDPct.toFixed(1)+'%)':'')):'—',m.maxDD>0?'neg':''],
+      ['Recovery Factor',m.recoveryFactor===null?'—':(m.recoveryFactor===Infinity?'∞':m.recoveryFactor.toFixed(2)),''],
+      ['Riesgo medio',m.riskAvg===null?'—':m.riskAvg.toFixed(2)+'%',''],
+      ['Duración media',m.avgDuration===null?'—':mxFmtDuration(m.avgDuration),''],
+      ['Consistencia semanal',m.consistenciaSemanal===null?'—':m.consistenciaSemanal+'%',''],
+      ['Consistencia mensual',m.consistenciaMensual===null?'—':m.consistenciaMensual+'%',''],
+    ]));
+    set('gl-sessions',mxRowsHTML(m.sessions));
+    set('gl-directions',mxRowsHTML(m.directions));
+    set('gl-assets',mxRowsHTML(m.assets,{sortByPnl:true}));
+    set('gl-weekday',mxRowsHTML(m.weekdayStats));
+    set('gl-monthly',mxRowsHTML(m.monthlyEvolution));
+  }
 }
 
 function renderMetricsPage(){
