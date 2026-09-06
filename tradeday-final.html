@@ -579,6 +579,13 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .acc-group-count{font-size:10px;font-weight:700;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:0 6px;line-height:16px;min-width:18px;text-align:center}
 .acc-group-chev{font-size:14px;transition:transform .18s}
 .account-group-head.collapsed .acc-group-chev{transform:rotate(-90deg)}
+/* Toggle switch (Configuración) */
+.tgl{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0;position:absolute;margin:0}
+.tgl-track{position:absolute;inset:0;background:var(--border3);border-radius:999px;transition:.2s;cursor:pointer}
+.tgl-track::before{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}
+.tgl input:checked+.tgl-track{background:var(--green)}
+.tgl input:checked+.tgl-track::before{transform:translateX(18px)}
 /* Badges de estado de cuenta (Balance / Configuración) */
 .acc-badge{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;line-height:1.4}
 .acc-badge-active{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
@@ -2818,6 +2825,13 @@ function initLandingFX(){
           <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveConfig()">Guardar cambios</button></div>
         </div>
         <div class="card">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Notificaciones</div>
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer">
+            <div><div style="font-size:13px;font-weight:600">Recordatorio diario por email</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Un aviso para registrar tu día si aún no lo has hecho. Puedes desactivarlo cuando quieras.</div></div>
+            <span class="tgl"><input type="checkbox" id="cfg-reminder" onchange="toggleDailyReminder(this.checked)"><span class="tgl-track"></span></span>
+          </label>
+        </div>
+        <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:14px">Mis cuentas</div>
           <div id="config-accounts-list" style="margin-bottom:12px"></div>
           <button class="btn btn-ghost btn-sm" onclick="handleAddAccountClick()"><i class="ti ti-plus"></i>Añadir cuenta</button>
@@ -4788,6 +4802,15 @@ async function saveConfig(){
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=username[0].toUpperCase();
   const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${username} 👋`;
   toast('Guardado ✓');
+}
+
+async function toggleDailyReminder(on){
+  if(!currentUser)return;
+  const val=!!on;
+  const{error}=await sb.from('profiles').upsert({id:currentUser.id,daily_reminder_enabled:val});
+  if(error){toast('No se pudo guardar');const el=document.getElementById('cfg-reminder');if(el)el.checked=!val;return;}
+  userProfile.daily_reminder_enabled=val;
+  toast(val?'Recordatorio activado ✓':'Recordatorio desactivado');
 }
 
 /* ── RENDER ── */
@@ -7313,7 +7336,7 @@ function gotoView(v){
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
   if(v==='plan')loadPlan();
   if(v==='routine')loadRoutine();
-  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';renderAccountsSidebar();updateSubscriptionUI();}
+  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';const rm=document.getElementById('cfg-reminder');if(rm)rm.checked=(userProfile.daily_reminder_enabled!==false);renderAccountsSidebar();updateSubscriptionUI();}
 }
 
 function toggleMobileSidebar(){
