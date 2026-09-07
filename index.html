@@ -3135,6 +3135,7 @@ function initLandingFX(){
       <!-- PANTALLA 2: PRECIO + OFERTA + CTA -->
       <div id="pp-screen-plans" style="display:none">
         <div class="pp-back" onclick="showPricingScreen(1)"><i class="ti ti-arrow-left"></i>Volver</div>
+        <div id="pp-trial-banner" style="display:none;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin-bottom:14px"><i class="ti ti-gift" style="color:var(--green);font-size:18px"></i><div style="font-size:12.5px;color:var(--text2);line-height:1.45"><strong style="color:var(--text)">7 días gratis.</strong> No se te cobra hasta el día 7. Cancela antes y no pagas nada.</div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
             <div class="pricing-card-title">Plan Mensual</div>
@@ -4177,11 +4178,17 @@ function handleAddAccountClick(){
 
 /* ── MODAL DE PRECIOS Y CHECKOUT (paywall de 2 pantallas + última oportunidad) ── */
 let selectedPricingPlan='annual';
+let trialOffer=false; // true solo si el usuario llegó por el enlace del email de win-back (?trial=1): activa 7 días gratis exclusivos
 let pricingExitShown=false; // controla que la pantalla de "última oportunidad" solo salga una vez por apertura del paywall
 // Punto de entrada único para abrir el paywall: siempre arranca en la pantalla de valor
 // y reactiva la posibilidad de mostrar la pantalla de última oportunidad si el usuario intenta cerrar.
 function openPricingModal(){
   pricingExitShown=false;
+  // Cue del trial solo para quien llegó por el enlace del email (trialOffer): el resto ve el CTA normal.
+  const cbtn=document.getElementById('pp-checkout-btn');
+  if(cbtn)cbtn.innerHTML=trialOffer?'<i class="ti ti-gift"></i>Empezar 7 días gratis':'<i class="ti ti-crown"></i>Continuar con Premium';
+  const tb=document.getElementById('pp-trial-banner');
+  if(tb)tb.style.display=trialOffer?'flex':'none';
   showPricingScreen(1);
   openModal('modal-pricing');
 }
@@ -4289,6 +4296,7 @@ async function startCheckout(){
   try{
     const checkoutBody={plan:selectedPricingPlan};
     if(ppCoupon&&ppCoupon.code&&selectedPricingPlan==='monthly')checkoutBody.code=ppCoupon.code;
+    if(trialOffer)checkoutBody.trial=true; // 7 días gratis exclusivos (solo si llegó por el enlace del email)
     const{data,error}=await sb.functions.invoke('create-checkout-session',{body:checkoutBody});
     if(error||!data||!data.url){
       throw new Error((data&&data.error)||(error&&error.message)||'No se pudo iniciar el pago. Inténtalo de nuevo.');
@@ -4318,6 +4326,9 @@ async function openBillingPortal(){
 }
 function handleCheckoutRedirect(){
   const params=new URLSearchParams(window.location.search);
+  // Enlace del email de win-back: activa el trial exclusivo de 7 días para este usuario.
+  if(params.get('trial')==='1'){trialOffer=true;try{sessionStorage.setItem('td_trial','1');}catch(_){}}
+  else{try{if(sessionStorage.getItem('td_trial')==='1')trialOffer=true;}catch(_){}}
   const checkout=params.get('checkout');
   if(!checkout)return;
   history.replaceState(null,'',window.location.pathname);
