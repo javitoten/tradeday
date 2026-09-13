@@ -1437,6 +1437,26 @@ function initLandingFX(){
   </div>
 
   <!-- CTA -->
+  <!-- ══ TRUSTPILOT: confianza (widget oficial GRATUITO con fallback nativo; sin datos inventados) ══ -->
+  <div class="ld-section" id="ld-trust" style="padding-bottom:0">
+    <div class="ld-section-head ld-reveal">
+      <div class="ld-eyebrow">Confianza</div>
+      <h2 class="ld-h2">¿Qué opinan otros traders?</h2>
+    </div>
+    <div style="max-width:640px;margin:22px auto 0;padding:0 24px">
+      <!-- Widget oficial de Trustpilot (Review Collector, plan GRATUITO). Se activa al poner TRUSTPILOT_BUSINESSUNIT_ID. -->
+      <div id="tp-widget" class="trustpilot-widget" data-locale="es-ES" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="" data-style-height="52px" data-style-width="100%" style="display:none">
+        <a href="https://www.trustpilot.com/review/tradeday.me" target="_blank" rel="noopener">Trustpilot</a>
+      </div>
+      <!-- Fallback nativo (sin puntuaciones ni nº de reviews inventados) mientras no haya widget configurado -->
+      <div id="tp-fallback" class="card ld-reveal ld-reveal-1" style="text-align:center;padding:28px 24px">
+        <div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:8px">Opiniones reales en Trustpilot</div>
+        <p style="font-size:14.5px;color:var(--text2);line-height:1.6;margin:0 0 18px">Descubre las opiniones de personas que utilizan TradeDay. Sin filtros: buenas y malas.</p>
+        <a class="ld-btn ld-btn-secondary" href="https://www.trustpilot.com/review/tradeday.me" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Ver opiniones en Trustpilot</a>
+      </div>
+    </div>
+  </div>
+
   <div class="ld-cta">
     <div class="ld-cta-glow"></div>
     <h2 class="ld-cta-title ld-reveal">Empieza a construir<br>disciplina real hoy</h2>
@@ -1454,6 +1474,7 @@ function initLandingFX(){
       <a href="/plan-de-trading" style="color:var(--text2)">Plan de trading</a>
       <a href="/disciplina-en-trading" style="color:var(--text2)">Disciplina</a>
       <a href="/blog/" style="color:var(--text2)">Blog</a>
+      <a href="https://www.trustpilot.com/review/tradeday.me" target="_blank" rel="noopener" style="color:var(--text2)">Opiniones en Trustpilot</a>
       <a href="/en/" style="color:var(--text2)">English</a>
     </nav>
     <div class="ld-footer-links">
@@ -1764,6 +1785,14 @@ function initLandingFX(){
           <div class="metric-card"><div class="metric-label">Win rate</div><div class="metric-value" id="d-wr">—</div></div>
           <div class="metric-card"><div class="metric-label">Trades mes</div><div class="metric-value" id="d-trades">—</div><div class="metric-delta neutral" id="d-breakdown">—</div></div>
           <div class="metric-card"><div class="metric-label">Días con actividad</div><div class="metric-value" id="d-journals" style="color:var(--blue)">—</div></div>
+        </div>
+
+        <!-- TRUSTPILOT: aparece solo tras suficiente uso (≥3 operaciones y ≥7 días); descartable; wording neutral -->
+        <div class="card" id="d-trustpilot" style="display:none;position:relative;border:1px solid var(--green-border);background:linear-gradient(180deg,var(--green-bg),transparent)">
+          <button onclick="dismissTrustpilotCard()" title="Ocultar" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1"><i class="ti ti-x"></i></button>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">¿Te está ayudando TradeDay?</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.6;margin:0 0 14px;max-width:520px">Si llevas un tiempo usándolo y te resulta útil, nos ayudaría muchísimo que compartieras tu experiencia — sea buena o mala. Así mejoramos.</p>
+          <a class="btn btn-primary btn-sm" href="https://www.trustpilot.com/review/tradeday.me" target="_blank" rel="noopener" onclick="markTrustpilotClicked()"><i class="ti ti-star"></i>Contar mi experiencia</a>
         </div>
 
         <!-- DISCIPLINA SCORE -->
@@ -4825,8 +4854,53 @@ async function toggleDailyReminder(on){
 }
 
 /* ── RENDER ── */
+/* ── TRUSTPILOT (config central; todo con el plan GRATUITO) ──
+   Cuando reclames el perfil, pega aquí el Business Unit ID de tu widget para activar el
+   widget oficial en la landing. Vacío = se muestra el fallback nativo (sin datos falsos). */
+const TRUSTPILOT_BUSINESSUNIT_ID='6aa685fc6431a40960ded120'; // perfil TradeDay en Trustpilot (público)
+const TRUSTPILOT_WIDGET_TEMPLATE_ID='56278e9abfbbba0bdcd568bc'; // Review Collector (gratuito)
+const TRUSTPILOT_PROFILE_URL='https://www.trustpilot.com/review/tradeday.me';
+const TP_MIN_TRADES=3, TP_MIN_DAYS=7; // gate: ≥3 operaciones y ≥7 días de antigüedad
+
+function initTrustpilotLanding(){
+  const w=document.getElementById('tp-widget'), fb=document.getElementById('tp-fallback');
+  if(!w||!fb)return;
+  if(!TRUSTPILOT_BUSINESSUNIT_ID){ w.style.display='none'; fb.style.display=''; return; }
+  // Activa el widget oficial gratuito y oculta el fallback.
+  w.setAttribute('data-businessunit-id',TRUSTPILOT_BUSINESSUNIT_ID);
+  w.setAttribute('data-template-id',TRUSTPILOT_WIDGET_TEMPLATE_ID);
+  w.style.display=''; fb.style.display='none';
+  const load=()=>{ try{ if(window.Trustpilot)window.Trustpilot.loadFromElement(w,true); }catch(_){} };
+  if(window.Trustpilot){ load(); }
+  else{ const s=document.createElement('script'); s.async=true; s.src='//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'; s.onload=load; document.head.appendChild(s); }
+}
+
+function trustpilotAccountAgeDays(){
+  const c=currentUser&&currentUser.created_at?new Date(currentUser.created_at).getTime():null;
+  if(c)return (Date.now()-c)/86400000;
+  // Fallback: antigüedad según la primera operación registrada.
+  if(allTrades&&allTrades.length){ const first=allTrades.map(t=>new Date(t.date).getTime()).filter(n=>!isNaN(n)).sort((a,b)=>a-b)[0]; if(first)return (Date.now()-first)/86400000; }
+  return 0;
+}
+function renderTrustpilotCard(){
+  const card=document.getElementById('d-trustpilot'); if(!card)return;
+  const dismissed=!!(userProfile&&userProfile.trustpilot_dismissed);
+  const eligible=(allTrades&&allTrades.length>=TP_MIN_TRADES)&&(trustpilotAccountAgeDays()>=TP_MIN_DAYS);
+  card.style.display=(eligible&&!dismissed)?'':'none';
+}
+async function markTrustpilotDismissed(){
+  if(userProfile)userProfile.trustpilot_dismissed=true;
+  const card=document.getElementById('d-trustpilot'); if(card)card.style.display='none';
+  if(currentUser){ try{ await sb.from('profiles').upsert({id:currentUser.id,trustpilot_dismissed:true}); }catch(_){} }
+}
+function dismissTrustpilotCard(){ markTrustpilotDismissed(); }
+function markTrustpilotClicked(){ markTrustpilotDismissed(); } // ya no volvemos a pedírselo tras hacer clic
+if(document.readyState!=='loading')initTrustpilotLanding();
+else document.addEventListener('DOMContentLoaded',initTrustpilotLanding);
+
 function renderAll(){
   updateDashboardAccountInfo();
+  renderTrustpilotCard();
   renderDashMetrics();renderMiniCal();renderRecent();renderDaySummary();
   if(currentView==='journal'){renderJournalList();if(weeklyEmotionalOpen)renderWeeklyEmotional();}
   if(currentView==='ops'){renderOpsList();renderMetrics();}
