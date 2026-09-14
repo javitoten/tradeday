@@ -10,6 +10,12 @@ Allow: /*.js$
 Allow: /*.svg$
 Allow: /*.png$
 
+# Endpoints tecnicos: no son contenido y no deben rastrearse.
+# Aparecian como errores 404 en Search Console gastando presupuesto de rastreo.
+Disallow: /qv3f
+Disallow: /functions/
+Disallow: /trade-images/
+
 # La landing de campaña por invitación no debe indexarse.
 # Se deja rastreable a propósito para que Google lea su meta robots noindex.
 # Disallow: /invitacion

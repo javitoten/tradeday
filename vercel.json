@@ -25,6 +25,21 @@
       "source": "/precios",
       "destination": "/#precios",
       "permanent": false
+    },
+    {
+      "source": "/login",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/new-entry",
+      "destination": "/",
+      "permanent": true
     }
   ],
   "rewrites": [
