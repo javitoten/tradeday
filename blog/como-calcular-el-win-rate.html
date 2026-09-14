@@ -3,26 +3,146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cómo calcular el win rate en trading (y por qué engaña) | TradeDay</title>
+<title>Cómo calcular el win rate en trading (y por qué engaña)</title>
 <meta name="description" content="Aprende a calcular el win rate paso a paso con ejemplos, y por qué mirarlo solo puede arruinarte. La relación entre win rate y ratio riesgo/beneficio, explicada.">
-<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="https://tradeday.me/blog/como-calcular-el-win-rate">
 <meta name="theme-color" content="#0A0B0E">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Cómo calcular el win rate (y por qué engaña)">
 <meta property="og:description" content="La fórmula del win rate con ejemplos y por qué no basta para saber si ganas dinero.">
+<meta property="og:image" content="https://tradeday.me/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Cómo calcular el win rate (y por qué engaña)">
 <meta property="og:url" content="https://tradeday.me/blog/como-calcular-el-win-rate">
 <meta property="og:locale" content="es_ES">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2322C55E'/%3E%3Ctext x='50' y='68' font-family='Arial' font-weight='900' font-size='52' fill='%23000' text-anchor='middle'%3ETD%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/blog/blog.css">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[
-{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://tradeday.me/"},{"@type":"ListItem","position":2,"name":"Blog","item":"https://tradeday.me/blog/"},{"@type":"ListItem","position":3,"name":"Cómo calcular el win rate","item":"https://tradeday.me/blog/como-calcular-el-win-rate"}]},
-{"@type":"Article","headline":"Cómo calcular el win rate en trading (y por qué engaña)","inLanguage":"es","author":{"@type":"Organization","name":"TradeDay"},"publisher":{"@type":"Organization","name":"TradeDay","logo":{"@type":"ImageObject","url":"https://tradeday.me/logo.svg"}},"mainEntityOfPage":"https://tradeday.me/blog/como-calcular-el-win-rate"},
-{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cuál es un buen win rate en trading?","acceptedAnswer":{"@type":"Answer","text":"No hay un número universal. Un win rate del 40% puede ser muy rentable con un buen ratio riesgo/beneficio, y uno del 70% puede perder dinero si las perdedoras son grandes. Lo importante es la combinación de win rate y R:R."}}]}
-]}
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Inicio",
+     "item": "https://tradeday.me/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Blog",
+     "item": "https://tradeday.me/blog/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 3,
+     "name": "Cómo calcular el win rate",
+     "item": "https://tradeday.me/blog/como-calcular-el-win-rate"
+    }
+   ]
+  },
+  {
+   "@type": "Article",
+   "headline": "Cómo calcular el win rate en trading (y por qué engaña)",
+   "inLanguage": "es",
+   "author": {
+    "@type": "Organization",
+    "name": "TradeDay",
+    "url": "https://tradeday.me/"
+   },
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   },
+   "mainEntityOfPage": "https://tradeday.me/blog/como-calcular-el-win-rate",
+   "datePublished": "2026-08-11T10:00:00+02:00",
+   "dateModified": "2026-09-14T12:00:00+02:00",
+   "isPartOf": {
+    "@id": "https://tradeday.me/#website"
+   },
+   "image": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/og-image.png",
+    "width": 1200,
+    "height": 630
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "¿Cómo se calcula el win rate en trading?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Win rate = (operaciones ganadoras ÷ operaciones totales) × 100. Con 30 ganadoras sobre 50 operaciones, el win rate es del 60%."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Qué win rate se considera bueno?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Depende enteramente de tu ratio riesgo/beneficio. Con R:R de 1:1 necesitas superar el 50%; con 2:1 empatas en torno al 34%; con 3:1 ya ganas a partir del 25%. Un win rate alto con R:R bajo puede seguir siendo un sistema perdedor."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Cuántas operaciones necesito para calcular mi win rate?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Al menos treinta para que oriente algo, y alrededor de cien para comparar periodos con confianza. Con menos de treinta, una sola operación distorsiona el porcentaje lo suficiente como para llevarte a conclusiones falsas."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Por qué mi win rate es alto y aun así pierdo dinero?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Porque el win rate no mide cuánto ganas al acertar ni cuánto pierdes al fallar. Si tus perdedoras son mayores que tus ganadoras, un 70% de aciertos puede dar pérdidas. La métrica que resuelve esto es la expectativa."
+     }
+    }
+   ],
+   "inLanguage": "es"
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://tradeday.me/#organization",
+   "name": "TradeDay",
+   "alternateName": [
+    "TradeDay Trading Journal",
+    "TradeDay Diario de Trading"
+   ],
+   "url": "https://tradeday.me/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/tradeday-logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "sameAs": [
+    "https://www.trustpilot.com/review/tradeday.me"
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://tradeday.me/#website",
+   "url": "https://tradeday.me/",
+   "name": "TradeDay",
+   "inLanguage": "es",
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   }
+  }
+ ]
+}
 </script>
 </head>
 <body>
@@ -34,6 +154,10 @@
   <p class="meta">Guía práctica · Lectura de 5 min</p>
 </div></header>
 <article class="wrap">
+  <div class="card answer-box">
+    <p style="margin-bottom:0"><strong>Respuesta directa:</strong> el win rate se calcula dividiendo tus operaciones ganadoras entre el total y multiplicando por cien. Con 30 ganadoras de 50 operaciones, tu win rate es del 60%. Pero por sí solo no dice si ganas dinero: hay que leerlo junto al ratio riesgo/beneficio, porque con un R:R de 3:1 un 25% de aciertos ya es rentable, mientras que con 1:1 un 70% puede seguir dando pérdidas.</p>
+  </div>
+
   <p>El <strong>win rate</strong> es la métrica que todo trader mira primero... y la que más lleva a conclusiones equivocadas. Vamos a calcularlo bien y, sobre todo, a entender por qué no basta.</p>
 
   <h2>La fórmula del win rate</h2>
@@ -67,6 +191,18 @@
     <p style="margin-bottom:0">En TradeDay, tu win rate, tu R:R y tu expectativa se calculan solos a medida que registras operaciones en tu <a href="/diario-de-trading">diario</a>. Además los segmenta por sesión y por activo, para que veas dónde tienes ventaja real. Más en <a href="/metricas-de-trading">métricas de trading</a>.</p>
   </div>
 
+  <h2>Cuántas operaciones necesitas antes de fiarte del número</h2>
+  <p>Un win rate calculado sobre diez operaciones no es una métrica, es una anécdota. Con muestras pequeñas, una sola operación cambia el porcentaje varios puntos y las rachas normales parecen tendencias.</p>
+  <p>Como referencia práctica: por debajo de treinta operaciones no tomes ninguna decisión sobre tu sistema; entre treinta y cien el número empieza a orientar; a partir de cien ya puedes comparar periodos con cierta confianza. Este es, de hecho, el error más caro que comete un trader con su propia estadística: abandonar una estrategia rentable tras quince operaciones malas, que es un resultado perfectamente esperable incluso en un sistema con ventaja.</p>
+
+  <h2>Segmenta el win rate o no te dirá nada</h2>
+  <p>Un win rate global del 52% puede esconder realidades opuestas: 68% en la sesión de Londres y 31% en la americana; 60% en tu setup principal y 35% en las entradas improvisadas; 58% los martes y 40% los viernes. El número agregado te dice que vas regular; el segmentado te dice exactamente qué dejar de hacer.</p>
+  <p>Por eso conviene calcularlo por sesión, por activo y por tipo de setup desde el principio. Es la diferencia entre saber que tienes un problema y saber dónde está. Lo mismo aplica al resto de <a href="/metricas-de-trading">métricas de trading</a>.</p>
+
+  <h2>El win rate no mide la calidad de tus decisiones</h2>
+  <p>Una operación puede salir ganadora con una ejecución pésima: entraste sin setup, moviste el stop y el mercado te dio la razón por casualidad. Cuenta como acierto en tu win rate y, sin embargo, es exactamente el comportamiento que te arruinará dentro de veinte operaciones.</p>
+  <p>Por eso el win rate debe leerse junto a una métrica de proceso: el porcentaje de operaciones en las que cumpliste tu plan. Cuando ambos van de la mano, tu resultado es repetible. Cuando el win rate es alto y el cumplimiento bajo, estás cobrando por un comportamiento que el mercado acabará penalizando. Eso es lo que mide el <a href="/disciplina-en-trading">índice de disciplina</a>.</p>
+
   <div class="cta-band">
     <h2>Calcula tu win rate automáticamente</h2>
     <p>Regístrate gratis y deja que TradeDay haga las cuentas.</p>
@@ -79,10 +215,17 @@
     <a href="/metricas-de-trading">Métricas de trading<span>La guía completa</span></a>
     <a href="/blog/errores-comunes-de-los-traders">Errores comunes<span>Y cómo evitarlos</span></a>
   </div>
+
+  <h2>Preguntas frecuentes</h2>
+  <details open><summary>¿Cómo se calcula el win rate en trading?</summary><div class="a">Win rate = (operaciones ganadoras ÷ operaciones totales) × 100. Con 30 ganadoras sobre 50 operaciones, el win rate es del 60%.</div></details>
+  <details><summary>¿Qué win rate se considera bueno?</summary><div class="a">Depende enteramente de tu ratio riesgo/beneficio. Con R:R de 1:1 necesitas superar el 50%; con 2:1 empatas en torno al 34%; con 3:1 ya ganas a partir del 25%. Un win rate alto con R:R bajo puede seguir siendo un sistema perdedor.</div></details>
+  <details><summary>¿Cuántas operaciones necesito para calcular mi win rate?</summary><div class="a">Al menos treinta para que oriente algo, y alrededor de cien para comparar periodos con confianza. Con menos de treinta, una sola operación distorsiona el porcentaje lo suficiente como para llevarte a conclusiones falsas.</div></details>
+  <details><summary>¿Por qué mi win rate es alto y aun así pierdo dinero?</summary><div class="a">Porque el win rate no mide cuánto ganas al acertar ni cuánto pierdes al fallar. Si tus perdedoras son mayores que tus ganadoras, un 70% de aciertos puede dar pérdidas. La métrica que resuelve esto es la expectativa.</div></details>
 </article>
 <footer><div class="wrap">
   <a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a>
-  <div class="foot-links"><a href="/diario-de-trading">Diario de trading</a><a href="/metricas-de-trading">Métricas</a><a href="/calendario-de-trading">Calendario</a><a href="/plan-de-trading">Plan de trading</a><a href="/disciplina-en-trading">Disciplina</a><a href="/blog/">Blog</a></div>
+  <div class="foot-links"><a href="/diario-de-trading">Diario de trading</a><a href="/metricas-de-trading">Métricas</a><a href="/calendario-de-trading">Calendario</a><a href="/plan-de-trading">Plan de trading</a><a href="/disciplina-en-trading">Disciplina</a><a href="/trading-journal-prop-firms">Prop firms</a><a href="/psicologia-del-trading">Psicología</a><a href="/blog/">Blog</a><a href="/sobre-tradeday">Sobre TradeDay</a></div>
+  <div class="foot-links" style="font-size:13px"><a href="/sobre-tradeday">Sobre TradeDay</a><a href="/privacidad">Privacidad</a><a href="/terminos">Términos</a><a href="/cookies">Cookies</a><a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a></div>
   <div class="copy">© 2026 TradeDay · Tu diario de trading online</div>
 </div></footer>
 </body>

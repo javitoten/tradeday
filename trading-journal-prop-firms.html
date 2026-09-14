@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Journal para Prop Firms y Cuentas de Fondeo | TradeDay</title>
+<meta name="description" content="Lleva cada cuenta fondeada por separado: límite diario, drawdown, consistencia y disciplina. Compatible con cualquier prop firm, sin integraciones. Gratis.">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="canonical" href="https://tradeday.me/trading-journal-prop-firms">
+<meta name="theme-color" content="#0A0B0E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TradeDay">
+<meta property="og:title" content="Trading journal para cuentas de fondeo y prop firms">
+<meta property="og:description" content="Controla el límite diario, el drawdown y la consistencia de cada cuenta fondeada por separado. Gratis con TradeDay.">
+<meta property="og:image" content="https://tradeday.me/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Trading journal para cuentas de fondeo y prop firms">
+<meta property="og:url" content="https://tradeday.me/trading-journal-prop-firms">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tradeday.me/og-image.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2322C55E'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-weight='900' font-size='52' fill='%23000' text-anchor='middle'%3ETD%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0B0E;--bg2:#111318;--bg3:#181A20;--border:#ffffff0d;--border2:#ffffff16;--text:#F0F2F5;--text2:#9BA3AF;--text3:#6B7280;--green:#22C55E;--green2:#16A34A;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+a{color:var(--green);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(10,11,14,.85);backdrop-filter:blur(10px)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--text)}
+.logo-mark{width:26px;height:26px;background:var(--green);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#000}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;background:var(--green);color:#000;border:none;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--green2);text-decoration:none}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border2)}
+header.hero{padding:70px 0 40px;text-align:center}
+.eyebrow{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:16px}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-bottom:20px}
+.lead{font-size:18px;color:var(--text2);max-width:640px;margin:0 auto 28px}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+article{padding:20px 0 40px}
+article h2{font-size:clamp(24px,3.4vw,32px);font-weight:800;letter-spacing:-.02em;margin:44px 0 16px}
+article h3{font-size:19px;font-weight:700;margin:28px 0 10px}
+article p{color:var(--text2);margin-bottom:16px}
+article ul{color:var(--text2);margin:0 0 16px 22px}
+article li{margin-bottom:9px}
+article strong{color:var(--text)}
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:22px 24px;margin:22px 0}
+.breadcrumb{font-size:13px;color:var(--text3);padding:18px 0 0}
+.breadcrumb a{color:var(--text3)}
+.related{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:20px 0}
+.related a{display:block;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px 18px;color:var(--text);font-weight:600}
+.related a:hover{border-color:var(--green);text-decoration:none}
+.related a span{display:block;font-size:13px;color:var(--text3);font-weight:400;margin-top:4px}
+details{border-bottom:1px solid var(--border2)}
+details summary{list-style:none;cursor:pointer;padding:18px 0;font-weight:600;font-size:16px;display:flex;justify-content:space-between;gap:14px}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'+';color:var(--text3);font-size:20px}
+details[open] summary::after{content:'−'}
+details .a{padding:0 0 18px;color:var(--text2)}
+.cta-band{text-align:center;background:linear-gradient(180deg,var(--bg2),var(--bg));border:1px solid var(--border2);border-radius:16px;padding:40px 24px;margin:44px 0}
+.cta-band h2{margin:0 0 10px}
+.cta-band p{color:var(--text2);margin-bottom:22px}
+footer{border-top:1px solid var(--border);padding:34px 0;margin-top:20px}
+.foot-links{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;margin:14px 0}
+.foot-links a{color:var(--text2)}
+.copy{font-size:13px;color:var(--text3)}
+</style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Inicio",
+     "item": "https://tradeday.me/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Trading journal para prop firms",
+     "item": "https://tradeday.me/trading-journal-prop-firms"
+    }
+   ]
+  },
+  {
+   "@type": "Article",
+   "@id": "https://tradeday.me/trading-journal-prop-firms#article",
+   "headline": "Trading journal para prop firms y cuentas de fondeo",
+   "inLanguage": "es",
+   "datePublished": "2026-09-14T12:00:00+02:00",
+   "dateModified": "2026-09-14T12:00:00+02:00",
+   "author": {
+    "@type": "Organization",
+    "name": "TradeDay",
+    "url": "https://tradeday.me/"
+   },
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   },
+   "isPartOf": {
+    "@id": "https://tradeday.me/#website"
+   },
+   "mainEntityOfPage": "https://tradeday.me/trading-journal-prop-firms",
+   "description": "Cómo llevar el diario de una cuenta fondeada: qué métricas vigilar, cómo separar cuentas y qué patrones hacen fracasar las evaluaciones.",
+   "image": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/og-image.png",
+    "width": 1200,
+    "height": 630
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://tradeday.me/trading-journal-prop-firms#faq",
+   "inLanguage": "es",
+   "isPartOf": {
+    "@id": "https://tradeday.me/#website"
+   },
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "¿Sirve TradeDay para cuentas de FTMO u otras prop firms?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Sí. TradeDay funciona con cualquier prop firm porque el registro es manual y no depende de integraciones. Creas una cuenta por cada cuenta fondeada y defines sus límites como reglas de tu plan."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Puedo llevar varias cuentas fondeadas a la vez?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Sí. Cada cuenta tiene su propio journal, calendario, métricas e índice de disciplina, sin mezclarse con tu cuenta real ni con tus demos. El plan Free incluye una cuenta; el plan Pro, cuentas ilimitadas."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Qué métricas debo vigilar en una cuenta de fondeo?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Cuatro: el margen que te queda hasta el límite de pérdida diaria, el drawdown desde tu máximo, qué porcentaje de tu beneficio viene de tu mejor día y la estabilidad del tamaño de tus posiciones."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Por qué no debo mezclar mi cuenta fondeada con la demo?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Porque el riesgo, el tamaño y las reglas son distintos. Mezclarlas contamina el win rate, distorsiona el drawdown y hace imposible saber si estás cerca de un límite de la prop firm."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Qué es la regla de consistencia de las prop firms?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Un criterio que limita cuánto puede pesar un solo día en tu resultado total. Si tu mejor jornada aporta una parte demasiado grande del beneficio, se interpreta como un resultado no repetible aunque hayas superado el objetivo."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Necesito conectar la plataforma de la prop firm?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. El registro es manual, lo que permite usar TradeDay con cualquier firma y cualquier plataforma, y mantiene tus datos fuera de terceros."
+     }
+    }
+   ]
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://tradeday.me/#organization",
+   "name": "TradeDay",
+   "alternateName": [
+    "TradeDay Trading Journal",
+    "TradeDay Diario de Trading"
+   ],
+   "url": "https://tradeday.me/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/tradeday-logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "sameAs": [
+    "https://www.trustpilot.com/review/tradeday.me"
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://tradeday.me/#website",
+   "url": "https://tradeday.me/",
+   "name": "TradeDay",
+   "inLanguage": "es",
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a>
+  <a class="btn" href="/">Empezar gratis</a>
+</nav>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Inicio</a> › Trading journal para prop firms</div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Cuentas de fondeo</span>
+    <h1>El journal que tu cuenta fondeada necesita</h1>
+    <p class="lead">En una cuenta propia, un mal día cuesta dinero. En una cuenta fondeada cuesta la cuenta. TradeDay lleva cada cuenta por separado, con sus propias métricas, su calendario y su control de riesgo.</p>
+    <div class="hero-cta">
+      <a class="btn" href="/">Empezar gratis</a>
+      <a class="btn btn-ghost" href="#por-que">Por qué cambia todo</a>
+    </div>
+  </div>
+</header>
+
+<article class="wrap">
+  <div class="card" style="margin-top:0;border-color:var(--green)">
+    <p style="margin-bottom:0"><strong>En una frase:</strong> un journal para cuentas de fondeo no solo registra si ganas, registra cuánto margen te queda antes de tocar los límites de la prop firm. Necesita tres cosas que un diario normal no tiene: separación real entre cuentas, control del límite de pérdida diaria y del drawdown máximo, y una medida de consistencia que demuestre que tu resultado no depende de dos días excepcionales.</p>
+  </div>
+
+  <h2 id="por-que">Por qué una cuenta fondeada exige otro tipo de journal</h2>
+  <p>Las prop firms —FTMO, FundedNext, The Funded Trader, Topstep y las decenas que han aparecido después— no te evalúan por tu beneficio. Te evalúan por si respetas unas reglas que no admiten matices: pérdida máxima diaria, drawdown total, días mínimos de operativa y, cada vez más, criterios de consistencia que penalizan que un solo día represente demasiada parte de tu resultado.</p>
+  <p>Eso cambia qué información necesitas tener delante. En una cuenta propia, saber tu win rate del mes es útil. En una cuenta fondeada, lo urgente es saber cuánto te queda hoy antes del límite, cuánto llevas cedido desde tu máximo y si el tamaño de tus posiciones se está desviando de lo que planeaste. Son datos de riesgo, no de rendimiento, y son los que deciden si la cuenta sobrevive.</p>
+
+  <h2 id="metricas">Las cuatro métricas que deciden tu evaluación</h2>
+  <ul>
+    <li><strong>Margen restante hasta el límite diario.</strong> No es lo mismo llevar −0,8% con un límite del 5% que llevarlo con un límite del 2%. Saber el número exacto antes de abrir la siguiente posición es lo que evita la operación que liquida la cuenta.</li>
+    <li><strong>Drawdown desde máximo.</strong> La distancia entre tu pico de capital y el punto actual. En una cuenta propia es orientativo; aquí es una regla dura con consecuencias inmediatas.</li>
+    <li><strong>Concentración del resultado.</strong> Qué porcentaje de tu beneficio total viene de tu mejor día. Si un solo día aporta más del 30 o 40%, muchas firmas lo interpretan como falta de consistencia aunque hayas superado el objetivo.</li>
+    <li><strong>Tamaño de posición por operación.</strong> Su estabilidad dice más que su valor. Un tamaño que crece justo después de perder es el patrón que revienta más evaluaciones, y solo se ve registrado operación a operación.</li>
+  </ul>
+  <p>Las tres primeras se calculan solas si registras tus operaciones; la cuarta necesita que anotes el tamaño en cada una. Puedes ver cómo se leen en conjunto en la guía de <a href="/metricas-de-trading">métricas de trading</a>.</p>
+
+  <h2 id="separar">Por qué las cuentas no se pueden mezclar</h2>
+  <p>Es el error más común entre quienes llevan varias cuentas: un único diario donde conviven la cuenta real, la demo y una o dos fondeadas. El resultado es un conjunto de métricas que no describe ninguna situación real.</p>
+  <p>El motivo es que cada cuenta tiene un tamaño, un riesgo por operación y unas reglas distintas. Mezclarlas contamina el win rate —porque en demo te permites entradas que en la fondeada no harías—, distorsiona el drawdown y hace imposible saber si estás cerca de un límite. Y el calendario, que es lo que mejor muestra la consistencia, deja de tener sentido cuando un día verde en demo tapa un día rojo en la cuenta que importa.</p>
+  <p>En TradeDay cada cuenta es un espacio independiente: journal, <a href="/calendario-de-trading">calendario</a>, métricas e índice de disciplina propios. Puedes tener la cuenta real, dos fondeadas y una demo sin que ninguna se contamine, y cambiar entre ellas sin perder el contexto.</p>
+
+  <h2 id="patrones">Los tres patrones que hacen fracasar las evaluaciones</h2>
+  <p>Al revisar por qué se pierde una cuenta fondeada, casi siempre aparece uno de estos tres, y los tres son visibles en un diario semanas antes de que ocurra el desastre:</p>
+  <ul>
+    <li><strong>Escalada de tamaño tras una pérdida.</strong> Aumentar el lotaje para recuperar lo perdido. Es <a href="/blog/como-controlar-las-emociones-en-trading">revenge trading</a> con las reglas de la prop firm en contra, y suele consumir el límite diario en dos operaciones.</li>
+    <li><strong>Prisa por el objetivo.</strong> Cuando quedan pocos días del periodo de evaluación, el riesgo por operación se dispara. El trader que había operado tres semanas bien pierde la cuenta en la última.</li>
+    <li><strong>Operar días que no tocaba.</strong> Forzar operativa para cumplir el mínimo de días activos, entrando sin setup. Estos días rara vez son rentables y a menudo abren la puerta a los otros dos patrones.</li>
+  </ul>
+  <p>Ninguno se corrige con más análisis técnico. Se corrigen viéndolos escritos con fecha y hora, que es la función de <a href="/diario-de-trading">un diario de trading</a>, y midiendo el cumplimiento del <a href="/plan-de-trading">plan</a> operación a operación.</p>
+
+  <h2 id="como">Cómo montarlo en TradeDay</h2>
+  <ul>
+    <li><strong>1.</strong> Crea una cuenta en TradeDay por cada cuenta fondeada, indicando su capital y su tipo.</li>
+    <li><strong>2.</strong> Define en el plan de trading los límites de la prop firm como reglas propias: pérdida máxima diaria, riesgo por operación y número máximo de operaciones.</li>
+    <li><strong>3.</strong> Registra cada operación al cerrarla, incluido el tamaño y si respetaste los límites.</li>
+    <li><strong>4.</strong> Marca también los días que no operas: cuentan para la consistencia y para tu <a href="/disciplina-en-trading">índice de disciplina</a>.</li>
+    <li><strong>5.</strong> Revisa cada semana el drawdown, la concentración del resultado y el cumplimiento antes de que sean un problema.</li>
+  </ul>
+  <p>El plan Free incluye una cuenta completa, suficiente para tu primera fondeada. Si llevas varias en paralelo, el plan Pro desbloquea cuentas ilimitadas.</p>
+
+  <div class="cta-band">
+    <h2>Lleva tu cuenta fondeada como un profesional</h2>
+    <p>Gratis para siempre en el plan Free. Sin tarjeta. Listo en 2 minutos.</p>
+    <a class="btn" href="/">Crear cuenta gratis</a>
+  </div>
+
+
+  <h2>Sigue explorando</h2>
+  <div class="related">
+    <a href="/diario-de-trading">Diario de trading<span>Qué es y cómo montarlo</span></a>
+    <a href="/metricas-de-trading">Métricas de trading<span>Drawdown, profit factor y más</span></a>
+    <a href="/disciplina-en-trading">Disciplina en trading<span>Mide plan vs. ejecución</span></a>
+    <a href="/plan-de-trading">Plan de trading<span>Define tus límites por escrito</span></a>
+    <a href="/calendario-de-trading">Calendario de trading<span>Consistencia de un vistazo</span></a>
+  </div>
+
+  <h2>Preguntas frecuentes</h2>
+  <details open><summary>¿Sirve TradeDay para cuentas de FTMO u otras prop firms?</summary><div class="a">Sí. TradeDay funciona con cualquier prop firm porque el registro es manual y no depende de integraciones. Creas una cuenta por cada cuenta fondeada y defines sus límites como reglas de tu plan.</div></details>
+  <details><summary>¿Puedo llevar varias cuentas fondeadas a la vez?</summary><div class="a">Sí. Cada cuenta tiene su propio journal, calendario, métricas e índice de disciplina, sin mezclarse con tu cuenta real ni con tus demos. El plan Free incluye una cuenta; el plan Pro, cuentas ilimitadas.</div></details>
+  <details><summary>¿Qué métricas debo vigilar en una cuenta de fondeo?</summary><div class="a">Cuatro: el margen que te queda hasta el límite de pérdida diaria, el drawdown desde tu máximo, qué porcentaje de tu beneficio viene de tu mejor día y la estabilidad del tamaño de tus posiciones.</div></details>
+  <details><summary>¿Por qué no debo mezclar mi cuenta fondeada con la demo?</summary><div class="a">Porque el riesgo, el tamaño y las reglas son distintos. Mezclarlas contamina el win rate, distorsiona el drawdown y hace imposible saber si estás cerca de un límite de la prop firm.</div></details>
+  <details><summary>¿Qué es la regla de consistencia de las prop firms?</summary><div class="a">Un criterio que limita cuánto puede pesar un solo día en tu resultado total. Si tu mejor jornada aporta una parte demasiado grande del beneficio, se interpreta como un resultado no repetible aunque hayas superado el objetivo.</div></details>
+  <details><summary>¿Necesito conectar la plataforma de la prop firm?</summary><div class="a">No. El registro es manual, lo que permite usar TradeDay con cualquier firma y cualquier plataforma, y mantiene tus datos fuera de terceros.</div></details>
+</article>
+
+<footer><div class="wrap">
+  <a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a>
+  <div class="foot-links"><a href="/diario-de-trading">Diario de trading</a><a href="/metricas-de-trading">Métricas</a><a href="/calendario-de-trading">Calendario</a><a href="/plan-de-trading">Plan de trading</a><a href="/disciplina-en-trading">Disciplina</a><a href="/trading-journal-prop-firms">Prop firms</a><a href="/psicologia-del-trading">Psicología</a><a href="/blog/">Blog</a><a href="/sobre-tradeday">Sobre TradeDay</a></div>
+  <div class="foot-links" style="font-size:13px"><a href="/sobre-tradeday">Sobre TradeDay</a><a href="/privacidad">Privacidad</a><a href="/terminos">Términos</a><a href="/cookies">Cookies</a><a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a></div>
+  <div class="copy">© 2026 TradeDay · Tu diario de trading online</div>
+</div></footer>
+
+</body>
+</html>

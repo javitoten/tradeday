@@ -37,3 +37,12 @@ footer{border-top:1px solid var(--border);padding:32px 0;margin-top:16px}
 .foot-links{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;margin:14px 0}
 .foot-links a{color:var(--text2)}
 .copy{font-size:13px;color:var(--text3)}
+
+/* FAQ de artículo (acordeón nativo, sin JS) */
+details{border-bottom:1px solid var(--border2)}
+details summary{list-style:none;cursor:pointer;padding:17px 0;font-weight:600;font-size:16px;display:flex;justify-content:space-between;gap:14px;color:var(--text)}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'+';color:var(--text3);font-size:20px;line-height:1}
+details[open] summary::after{content:'−'}
+details .a{padding:0 0 17px;color:var(--text2)}
+.answer-box{border-color:var(--green)}

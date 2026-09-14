@@ -3,20 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Métricas de Trading: qué estadísticas debe medir un trader | TradeDay</title>
+<title>Métricas de Trading: qué estadísticas medir | TradeDay</title>
 <meta name="description" content="Win rate, ratio riesgo/beneficio, expectativa, drawdown... Aprende qué métricas de trading importan de verdad y mídelas automáticamente con TradeDay. Gratis.">
-<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="canonical" href="https://tradeday.me/metricas-de-trading">
 <meta name="theme-color" content="#0A0B0E">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="TradeDay">
 <meta property="og:title" content="Métricas de Trading: qué estadísticas debe medir un trader">
 <meta property="og:description" content="Las métricas de trading que separan a los traders consistentes del resto, y cómo medirlas sin fórmulas.">
+<meta property="og:image" content="https://tradeday.me/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Métricas de Trading: qué estadísticas debe medir un trader">
 <meta property="og:url" content="https://tradeday.me/metricas-de-trading">
 <meta property="og:locale" content="es_ES">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tradeday.me/og-image.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2322C55E'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-weight='900' font-size='52' fill='%23000' text-anchor='middle'%3ETD%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0A0B0E;--bg2:#111318;--bg3:#181A20;--border:#ffffff0d;--border2:#ffffff16;--text:#F0F2F5;--text2:#9BA3AF;--text3:#6B7280;--green:#22C55E;--green2:#16A34A;--radius:12px}
@@ -60,15 +66,144 @@ footer{border-top:1px solid var(--border);padding:34px 0;margin-top:20px}
 .copy{font-size:13px;color:var(--text3)}
 </style>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[
-{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"https://tradeday.me/"},{"@type":"ListItem","position":2,"name":"Métricas de trading","item":"https://tradeday.me/metricas-de-trading"}]},
-{"@type":"Article","headline":"Métricas de trading: qué estadísticas debe medir un trader","inLanguage":"es","author":{"@type":"Organization","name":"TradeDay"},"publisher":{"@type":"Organization","name":"TradeDay","logo":{"@type":"ImageObject","url":"https://tradeday.me/logo.svg"}},"mainEntityOfPage":"https://tradeday.me/metricas-de-trading"},
-{"@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"¿Cuál es la métrica de trading más importante?","acceptedAnswer":{"@type":"Answer","text":"No existe una sola. El win rate por sí solo engaña: hay que leerlo junto al ratio riesgo/beneficio y la expectativa. Un sistema con 40% de aciertos puede ser muy rentable si sus ganadoras son mayores que sus perdedoras."}},
-{"@type":"Question","name":"¿Cómo se calcula el win rate?","acceptedAnswer":{"@type":"Answer","text":"El win rate es el porcentaje de operaciones ganadoras sobre el total: (operaciones ganadoras ÷ operaciones totales) × 100. En TradeDay se calcula solo a medida que registras tus trades."}},
-{"@type":"Question","name":"¿Necesito saber estadística para analizar mis métricas?","acceptedAnswer":{"@type":"Answer","text":"No. TradeDay calcula todas tus métricas automáticamente y te las muestra de forma visual, sin fórmulas ni hojas de cálculo."}}
-]}
-]}
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Inicio",
+     "item": "https://tradeday.me/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Métricas de trading",
+     "item": "https://tradeday.me/metricas-de-trading"
+    }
+   ]
+  },
+  {
+   "@type": "Article",
+   "headline": "Métricas de trading: qué estadísticas debe medir un trader",
+   "inLanguage": "es",
+   "author": {
+    "@type": "Organization",
+    "name": "TradeDay",
+    "url": "https://tradeday.me/"
+   },
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   },
+   "mainEntityOfPage": "https://tradeday.me/metricas-de-trading",
+   "datePublished": "2026-08-11T10:00:00+02:00",
+   "dateModified": "2026-09-14T12:00:00+02:00",
+   "isPartOf": {
+    "@id": "https://tradeday.me/#website"
+   },
+   "image": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/og-image.png",
+    "width": 1200,
+    "height": 630
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "¿Cuál es la métrica de trading más importante?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No existe una sola. El win rate por sí solo engaña: hay que leerlo junto al ratio riesgo/beneficio y la expectativa. Un sistema con 40% de aciertos puede ser muy rentable si sus ganadoras son mayores que sus perdedoras."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Cómo se calcula el win rate?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "El win rate es el porcentaje de operaciones ganadoras sobre el total: (operaciones ganadoras ÷ operaciones totales) × 100. En TradeDay se calcula solo a medida que registras tus trades."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Necesito saber estadística para analizar mis métricas?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. TradeDay calcula todas tus métricas automáticamente y te las muestra de forma visual, sin fórmulas ni hojas de cálculo."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Qué es el profit factor y cuál es un buen valor?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "El profit factor es la suma de tus ganancias dividida entre la suma de tus pérdidas. Por debajo de 1 pierdes dinero; entre 1,5 y 2 tienes un sistema sólido. Un valor muy alto con pocas operaciones suele indicar una muestra pequeña, no un sistema excepcional."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Qué es el drawdown y por qué importa tanto?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "El drawdown es la caída porcentual desde tu máximo de capital hasta el mínimo posterior. Importa porque la recuperación no es simétrica: un −40% exige un +67% para volver al punto de partida. Además te anticipa el peor momento que vas a tener que soportar sin abandonar el sistema."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Cuántas operaciones necesito para que mis métricas sean fiables?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Con menos de treinta operaciones cualquier métrica es ruido: una sola operación grande distorsiona el conjunto. A partir de unas cien empiezan a estabilizarse lo suficiente como para tomar decisiones sobre tu sistema."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Qué es la expectativa matemática en trading?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Es lo que te deja de media cada operación: (win rate × ganancia media) − (porcentaje de pérdidas × pérdida media). Si es positiva, repetir tu sistema muchas veces te da beneficio; si es negativa, operar más solo acelera la pérdida."
+     }
+    }
+   ],
+   "inLanguage": "es"
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://tradeday.me/#organization",
+   "name": "TradeDay",
+   "alternateName": [
+    "TradeDay Trading Journal",
+    "TradeDay Diario de Trading"
+   ],
+   "url": "https://tradeday.me/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/tradeday-logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "sameAs": [
+    "https://www.trustpilot.com/review/tradeday.me"
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://tradeday.me/#website",
+   "url": "https://tradeday.me/",
+   "name": "TradeDay",
+   "inLanguage": "es",
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   }
+  }
+ ]
+}
 </script>
 </head>
 <body>
@@ -84,6 +219,10 @@ footer{border-top:1px solid var(--border);padding:34px 0;margin-top:20px}
   <div class="hero-cta"><a class="btn" href="/">Ver mis métricas gratis</a><a class="btn btn-ghost" href="#cuales">Qué métricas medir</a></div>
 </div></header>
 <article class="wrap">
+  <div class="card" style="margin-top:0;border-color:var(--green)">
+    <p style="margin-bottom:0"><strong>Las seis métricas que realmente definen a un trader:</strong> win rate (cuántas aciertas), ratio riesgo/beneficio (cuánto ganas cuando aciertas frente a lo que pierdes cuando fallas), profit factor (euros ganados por cada euro perdido), expectativa (lo que te deja de media cada operación), drawdown máximo (la peor caída desde un máximo) y grado de cumplimiento del plan. Las cinco primeras miden el sistema; la sexta te mide a ti, y suele ser la que explica por qué las otras cinco no cuadran.</p>
+  </div>
+
   <h2 id="cuales">Qué métricas debe analizar un trader</h2>
   <p>Registrar operaciones no sirve de nada si no las mides. Estas son las <strong>métricas de trading</strong> que te dicen si tu operativa funciona y dónde puedes mejorar:</p>
 
@@ -101,6 +240,14 @@ footer{border-top:1px solid var(--border);padding:34px 0;margin-top:20px}
 
   <h3>Rachas y drawdown</h3>
   <p>Tu racha ganadora y perdedora máxima, y cuánto capital llegas a ceder en los peores momentos. Conocer tu drawdown es clave para gestionar el riesgo y la cabeza.</p>
+
+  <h3 id="profit-factor">Profit factor</h3>
+  <p>El <strong>profit factor</strong> es la métrica más honesta de todas porque resume el sistema entero en un número: <strong>suma de todas tus ganancias ÷ suma de todas tus pérdidas</strong>. Si ganaste 4.000€ en total y perdiste 2.500€, tu profit factor es 1,6: por cada euro que arriesgas y pierdes, recuperas 1,60€.</p>
+  <p>Cómo leerlo: por debajo de 1 estás perdiendo dinero, sin matices. Entre 1 y 1,25 eres apenas rentable y las comisiones se comen buena parte del margen. Entre 1,5 y 2 tienes un sistema sólido. Por encima de 3, y con pocas operaciones registradas, lo más probable no es que seas excepcional sino que la muestra sea demasiado pequeña o que una sola operación afortunada esté inflando el número. Conviene mirarlo siempre con al menos treinta o cuarenta operaciones detrás.</p>
+
+  <h3 id="drawdown">Drawdown máximo</h3>
+  <p>El <strong>drawdown</strong> es la caída desde tu pico de capital hasta el punto más bajo antes de recuperarlo, medida en porcentaje. Es la métrica que decide si puedes seguir operando, y por eso importa más que el beneficio: una cuenta con −40% de drawdown necesita un +67% solo para volver al punto de partida.</p>
+  <p>Su verdadero valor es psicológico. El drawdown máximo de tu historial es una estimación bastante fiable del peor momento que vas a volver a vivir, y saber ese número por adelantado es lo que evita que abandones el sistema justo en el punto en que estadísticamente debería recuperarse. En <a href="/trading-journal-prop-firms">cuentas de fondeo</a> deja de ser orientativo y pasa a ser una regla dura: superarlo significa perder la cuenta.</p>
 
   <div class="card">
     <h3 style="margin-top:0">Todo esto, automático en TradeDay</h3>
@@ -128,10 +275,15 @@ footer{border-top:1px solid var(--border);padding:34px 0;margin-top:20px}
   <details open><summary>¿Cuál es la métrica de trading más importante?</summary><div class="a">No existe una sola. El win rate por sí solo engaña: hay que leerlo junto al ratio riesgo/beneficio y la expectativa. Un sistema con 40% de aciertos puede ser muy rentable si sus ganadoras son mayores que sus perdedoras.</div></details>
   <details><summary>¿Cómo se calcula el win rate?</summary><div class="a">El win rate es el porcentaje de operaciones ganadoras sobre el total: (operaciones ganadoras ÷ operaciones totales) × 100. En TradeDay se calcula solo a medida que registras tus trades.</div></details>
   <details><summary>¿Necesito saber estadística para analizar mis métricas?</summary><div class="a">No. TradeDay calcula todas tus métricas automáticamente y te las muestra de forma visual, sin fórmulas ni hojas de cálculo.</div></details>
+  <details><summary>¿Qué es el profit factor y cuál es un buen valor?</summary><div class="a">El profit factor es la suma de tus ganancias dividida entre la suma de tus pérdidas. Por debajo de 1 pierdes dinero; entre 1,5 y 2 tienes un sistema sólido. Un valor muy alto con pocas operaciones suele indicar una muestra pequeña, no un sistema excepcional.</div></details>
+  <details><summary>¿Qué es el drawdown y por qué importa tanto?</summary><div class="a">El drawdown es la caída porcentual desde tu máximo de capital hasta el mínimo posterior. Importa porque la recuperación no es simétrica: un −40% exige un +67% para volver al punto de partida. Además te anticipa el peor momento que vas a tener que soportar sin abandonar el sistema.</div></details>
+  <details><summary>¿Cuántas operaciones necesito para que mis métricas sean fiables?</summary><div class="a">Con menos de treinta operaciones cualquier métrica es ruido: una sola operación grande distorsiona el conjunto. A partir de unas cien empiezan a estabilizarse lo suficiente como para tomar decisiones sobre tu sistema.</div></details>
+  <details><summary>¿Qué es la expectativa matemática en trading?</summary><div class="a">Es lo que te deja de media cada operación: (win rate × ganancia media) − (porcentaje de pérdidas × pérdida media). Si es positiva, repetir tu sistema muchas veces te da beneficio; si es negativa, operar más solo acelera la pérdida.</div></details>
 </article>
 <footer><div class="wrap">
   <a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a>
-  <div class="foot-links"><a href="/diario-de-trading">Diario de trading</a><a href="/metricas-de-trading">Métricas</a><a href="/calendario-de-trading">Calendario</a><a href="/plan-de-trading">Plan de trading</a><a href="/disciplina-en-trading">Disciplina</a><a href="/blog/">Blog</a></div>
+  <div class="foot-links"><a href="/diario-de-trading">Diario de trading</a><a href="/metricas-de-trading">Métricas</a><a href="/calendario-de-trading">Calendario</a><a href="/plan-de-trading">Plan de trading</a><a href="/disciplina-en-trading">Disciplina</a><a href="/trading-journal-prop-firms">Prop firms</a><a href="/psicologia-del-trading">Psicología</a><a href="/blog/">Blog</a><a href="/sobre-tradeday">Sobre TradeDay</a></div>
+  <div class="foot-links" style="font-size:13px"><a href="/sobre-tradeday">Sobre TradeDay</a><a href="/privacidad">Privacidad</a><a href="/terminos">Términos</a><a href="/cookies">Cookies</a><a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a></div>
   <div class="copy">© 2026 TradeDay · Tu diario de trading online</div>
 </div></footer>
 </body>

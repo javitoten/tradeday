@@ -1,5 +1,18 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.tradeday.me" }],
+      "destination": "https://tradeday.me/$1",
+      "permanent": true
+    },
+    { "source": "/tradeday-final", "destination": "/", "permanent": true },
+    { "source": "/index", "destination": "/", "permanent": true },
+    { "source": "/trading-journal", "destination": "/diario-de-trading", "permanent": true },
+    { "source": "/journal", "destination": "/diario-de-trading", "permanent": true },
+    { "source": "/precios", "destination": "/#precios", "permanent": false }
+  ],
   "rewrites": [
     {
       "source": "/qv3f/static/:path(.*)",
@@ -25,6 +38,20 @@
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'self'" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
       ]
+    },
+    {
+      "source": "/(.*)\\.(png|jpg|jpeg|webp|avif|svg|ico|woff2)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
     }
   ]
 }

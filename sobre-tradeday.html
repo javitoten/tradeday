@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sobre TradeDay: qué es, por qué existe y cómo funciona</title>
+<meta name="description" content="Qué es TradeDay, por qué se creó, cómo se financia y qué no hace. Un diario de trading independiente, sin señales, sin cursos y sin promesas de rentabilidad.">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="canonical" href="https://tradeday.me/sobre-tradeday">
+<meta name="theme-color" content="#0A0B0E">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TradeDay">
+<meta property="og:title" content="Sobre TradeDay — un diario de trading, no una promesa de rentabilidad">
+<meta property="og:description" content="Qué es TradeDay, por qué existe, cómo se financia y qué deliberadamente no hace.">
+<meta property="og:image" content="https://tradeday.me/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sobre TradeDay — un diario de trading, no una promesa de rentabilidad">
+<meta property="og:url" content="https://tradeday.me/sobre-tradeday">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tradeday.me/og-image.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2322C55E'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-weight='900' font-size='52' fill='%23000' text-anchor='middle'%3ETD%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0B0E;--bg2:#111318;--bg3:#181A20;--border:#ffffff0d;--border2:#ffffff16;--text:#F0F2F5;--text2:#9BA3AF;--text3:#6B7280;--green:#22C55E;--green2:#16A34A;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+a{color:var(--green);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(10,11,14,.85);backdrop-filter:blur(10px)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--text)}
+.logo-mark{width:26px;height:26px;background:var(--green);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#000}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:9px;font-weight:700;font-size:14px;background:var(--green);color:#000;border:none;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--green2);text-decoration:none}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border2)}
+header.hero{padding:70px 0 40px;text-align:center}
+.eyebrow{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:16px}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-bottom:20px}
+.lead{font-size:18px;color:var(--text2);max-width:640px;margin:0 auto 28px}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+article{padding:20px 0 40px}
+article h2{font-size:clamp(24px,3.4vw,32px);font-weight:800;letter-spacing:-.02em;margin:44px 0 16px}
+article h3{font-size:19px;font-weight:700;margin:28px 0 10px}
+article p{color:var(--text2);margin-bottom:16px}
+article ul{color:var(--text2);margin:0 0 16px 22px}
+article li{margin-bottom:9px}
+article strong{color:var(--text)}
+.card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:22px 24px;margin:22px 0}
+.breadcrumb{font-size:13px;color:var(--text3);padding:18px 0 0}
+.breadcrumb a{color:var(--text3)}
+.related{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:20px 0}
+.related a{display:block;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px 18px;color:var(--text);font-weight:600}
+.related a:hover{border-color:var(--green);text-decoration:none}
+.related a span{display:block;font-size:13px;color:var(--text3);font-weight:400;margin-top:4px}
+details{border-bottom:1px solid var(--border2)}
+details summary{list-style:none;cursor:pointer;padding:18px 0;font-weight:600;font-size:16px;display:flex;justify-content:space-between;gap:14px}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'+';color:var(--text3);font-size:20px}
+details[open] summary::after{content:'−'}
+details .a{padding:0 0 18px;color:var(--text2)}
+.cta-band{text-align:center;background:linear-gradient(180deg,var(--bg2),var(--bg));border:1px solid var(--border2);border-radius:16px;padding:40px 24px;margin:44px 0}
+.cta-band h2{margin:0 0 10px}
+.cta-band p{color:var(--text2);margin-bottom:22px}
+footer{border-top:1px solid var(--border);padding:34px 0;margin-top:20px}
+.foot-links{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;margin:14px 0}
+.foot-links a{color:var(--text2)}
+.copy{font-size:13px;color:var(--text3)}
+</style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "BreadcrumbList",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Inicio",
+     "item": "https://tradeday.me/"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Sobre TradeDay",
+     "item": "https://tradeday.me/sobre-tradeday"
+    }
+   ]
+  },
+  {
+   "@type": "Article",
+   "@id": "https://tradeday.me/sobre-tradeday#article",
+   "headline": "Sobre TradeDay: qué es, por qué existe y cómo funciona",
+   "inLanguage": "es",
+   "datePublished": "2026-09-14T12:00:00+02:00",
+   "dateModified": "2026-09-14T12:00:00+02:00",
+   "author": {
+    "@type": "Organization",
+    "name": "TradeDay",
+    "url": "https://tradeday.me/"
+   },
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   },
+   "isPartOf": {
+    "@id": "https://tradeday.me/#website"
+   },
+   "mainEntityOfPage": "https://tradeday.me/sobre-tradeday",
+   "description": "Información sobre el proyecto TradeDay: qué hace, cómo se financia, qué datos maneja y qué deliberadamente no ofrece.",
+   "image": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/og-image.png",
+    "width": 1200,
+    "height": 630
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://tradeday.me/sobre-tradeday#faq",
+   "inLanguage": "es",
+   "isPartOf": {
+    "@id": "https://tradeday.me/#website"
+   },
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "¿TradeDay da señales o recomendaciones de inversión?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. TradeDay no dice qué operar ni cuándo, y no constituye asesoramiento financiero. Es una herramienta de registro y análisis de tu propia operativa."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Cómo gana dinero TradeDay?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Solo con suscripciones al plan Pro (9,99 € al mes o 69 € al año). No hay publicidad, ni venta de datos, ni comisiones de brókers, ni enlaces de afiliación."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿TradeDay es gratis de verdad?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Sí. El plan Free no caduca, no pide tarjeta e incluye una cuenta de trading completa con journal, calendario y métricas básicas."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Quién puede ver mis operaciones?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Solo tú. El contenido de tu journal, tus notas y tu plan no se comparten con terceros, y puedes eliminar tu cuenta y todos tus datos desde Configuración en cualquier momento."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿TradeDay se conecta a mi bróker?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. El registro es manual, lo que significa que no tenemos acceso a tu cuenta real ni capacidad de operar en tu nombre."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "¿Cómo contacto con TradeDay?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Escribiendo a soporte@tradeday.me, para soporte, sugerencias, errores o cualquier cuestión relacionada con tus datos."
+     }
+    }
+   ]
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://tradeday.me/#organization",
+   "name": "TradeDay",
+   "alternateName": [
+    "TradeDay Trading Journal",
+    "TradeDay Diario de Trading"
+   ],
+   "url": "https://tradeday.me/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://tradeday.me/tradeday-logo-512.png",
+    "width": 512,
+    "height": 512
+   },
+   "sameAs": [
+    "https://www.trustpilot.com/review/tradeday.me"
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://tradeday.me/#website",
+   "url": "https://tradeday.me/",
+   "name": "TradeDay",
+   "inLanguage": "es",
+   "publisher": {
+    "@id": "https://tradeday.me/#organization"
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a>
+  <a class="btn" href="/">Empezar gratis</a>
+</nav>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Inicio</a> › Sobre TradeDay</div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Sobre el proyecto</span>
+    <h1>Una herramienta para medir cómo operas. Nada más.</h1>
+    <p class="lead">TradeDay es un proyecto independiente. No vendemos cursos, no damos señales y no prometemos que vayas a ganar dinero. Hacemos una sola cosa: que puedas ver con datos cómo tomas tus decisiones.</p>
+    <div class="hero-cta">
+      <a class="btn" href="/">Probar gratis</a>
+      <a class="btn btn-ghost" href="#que-es">Qué es TradeDay</a>
+    </div>
+  </div>
+</header>
+
+<article class="wrap">
+  <h2 id="que-es">Qué es TradeDay</h2>
+  <p>TradeDay es una aplicación web de <a href="/diario-de-trading">diario de trading</a>. Registras cada operación —y también los días que decides no operar— con su contexto, su ejecución y la emoción que había detrás, y la aplicación convierte ese registro en métricas, en un calendario de consistencia y en un índice de disciplina que compara tu plan con lo que realmente hiciste.</p>
+  <p>Funciona en el navegador, con cualquier bróker, mercado o instrumento, y sin conectar ninguna cuenta. El registro es manual por decisión de diseño: escribir la operación te obliga a revisar la decisión, que es justamente donde está el valor.</p>
+
+  <h2 id="por-que">Por qué existe</h2>
+  <p>La mayoría de traders que no consiguen ser consistentes no tienen un problema de conocimiento técnico. Saben lo que es un stop, saben calcular un riesgo y podrían explicar su estrategia sin dudar. Lo que no tienen es constancia en la ejecución, y sobre todo no tienen forma de demostrárselo a sí mismos.</p>
+  <p>El mercado da una señal engañosa: una decisión pésima puede acabar en ganancia y una decisión correcta en pérdida. Sin un registro sistemático, esa aleatoriedad enseña exactamente lo contrario de lo que debería. TradeDay existe para romper ese ruido, separando la calidad de la decisión del resultado que tuvo.</p>
+
+  <h2 id="que-no-hace">Qué NO hace TradeDay</h2>
+  <p>Creemos que decir lo que un producto no hace es tan útil como decir lo que hace:</p>
+  <ul>
+    <li><strong>No damos señales ni recomendaciones de inversión.</strong> TradeDay no te dice qué operar ni cuándo. No es asesoramiento financiero de ningún tipo.</li>
+    <li><strong>No prometemos rentabilidad.</strong> Ninguna herramienta puede prometerla, y quien lo haga debería hacerte desconfiar. Registrar tus operaciones no garantiza que ganes dinero; solo garantiza que sepas qué estás haciendo.</li>
+    <li><strong>No vendemos formación ni cursos.</strong> No hay upsells ni comunidades de pago detrás.</li>
+    <li><strong>No trabajamos con brókers ni cobramos comisiones por recomendarlos.</strong> No hay enlaces de afiliación en la aplicación.</li>
+    <li><strong>No vendemos tus datos.</strong> El contenido de tu journal es tuyo y no se comparte con nadie.</li>
+  </ul>
+
+  <h2 id="modelo">Cómo se financia</h2>
+  <p>Con suscripciones, y solo con suscripciones. El plan Free es gratuito de forma indefinida e incluye una cuenta de trading completa con journal, calendario y métricas básicas, sin tarjeta de crédito y sin fecha de caducidad. El plan Pro cuesta 9,99&nbsp;€ al mes o 69&nbsp;€ al año y añade cuentas ilimitadas, análisis avanzado, plan de trading y rutina personalizados y exportación de datos.</p>
+  <p>Ese es todo el modelo de negocio. No hay publicidad, ni datos vendidos, ni comisiones de terceros. Si TradeDay no te resulta útil, cancelas desde Configuración y tu cuenta vuelve al plan Free sin perder nada de lo registrado.</p>
+
+  <h2 id="datos">Qué pasa con tus datos</h2>
+  <p>Tu journal contiene información sensible: cuánto arriesgas, cuánto pierdes y cómo te sientes al hacerlo. Se trata en consecuencia.</p>
+  <ul>
+    <li>Las operaciones, notas y planes que introduces son privados y no se comparten con terceros.</li>
+    <li>No conectamos con tu bróker, así que no tenemos acceso a tu cuenta real ni capacidad de operar en tu nombre.</li>
+    <li>Puedes eliminar tu cuenta y todos tus datos en cualquier momento desde Configuración, sin pedírnoslo.</li>
+    <li>Los detalles completos están en la <a href="/privacidad">política de privacidad</a> y en la <a href="/cookies">política de cookies</a>.</li>
+  </ul>
+
+  <h2 id="contacto">Contacto</h2>
+  <p>Escribe a <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a> para soporte, sugerencias, errores o cualquier cuestión sobre tus datos. Las opiniones públicas de usuarios están en <a href="https://www.trustpilot.com/review/tradeday.me" rel="noopener" target="_blank">Trustpilot</a>, sin filtrar: las buenas y las malas.</p>
+
+  <div class="cta-band">
+    <h2>Pruébalo y juzga tú</h2>
+    <p>Plan Free gratis para siempre. Sin tarjeta. Listo en 2 minutos.</p>
+    <a class="btn" href="/">Crear cuenta gratis</a>
+  </div>
+
+
+  <h2>Sigue explorando</h2>
+  <div class="related">
+    <a href="/diario-de-trading">Diario de trading<span>Qué es y cómo funciona</span></a>
+    <a href="/metricas-de-trading">Métricas de trading<span>Lo que TradeDay calcula</span></a>
+    <a href="/privacidad">Política de privacidad<span>Cómo tratamos tus datos</span></a>
+    <a href="/terminos">Términos y condiciones<span>Planes, pagos y cancelación</span></a>
+    <a href="/blog/">Blog<span>Guías sobre journaling y disciplina</span></a>
+  </div>
+
+  <h2>Preguntas frecuentes</h2>
+  <details open><summary>¿TradeDay da señales o recomendaciones de inversión?</summary><div class="a">No. TradeDay no dice qué operar ni cuándo, y no constituye asesoramiento financiero. Es una herramienta de registro y análisis de tu propia operativa.</div></details>
+  <details><summary>¿Cómo gana dinero TradeDay?</summary><div class="a">Solo con suscripciones al plan Pro (9,99 € al mes o 69 € al año). No hay publicidad, ni venta de datos, ni comisiones de brókers, ni enlaces de afiliación.</div></details>
+  <details><summary>¿TradeDay es gratis de verdad?</summary><div class="a">Sí. El plan Free no caduca, no pide tarjeta e incluye una cuenta de trading completa con journal, calendario y métricas básicas.</div></details>
+  <details><summary>¿Quién puede ver mis operaciones?</summary><div class="a">Solo tú. El contenido de tu journal, tus notas y tu plan no se comparten con terceros, y puedes eliminar tu cuenta y todos tus datos desde Configuración en cualquier momento.</div></details>
+  <details><summary>¿TradeDay se conecta a mi bróker?</summary><div class="a">No. El registro es manual, lo que significa que no tenemos acceso a tu cuenta real ni capacidad de operar en tu nombre.</div></details>
+  <details><summary>¿Cómo contacto con TradeDay?</summary><div class="a">Escribiendo a soporte@tradeday.me, para soporte, sugerencias, errores o cualquier cuestión relacionada con tus datos.</div></details>
+</article>
+
+<footer><div class="wrap">
+  <a class="logo" href="/"><span class="logo-mark">TD</span>TradeDay</a>
+  <div class="foot-links"><a href="/diario-de-trading">Diario de trading</a><a href="/metricas-de-trading">Métricas</a><a href="/calendario-de-trading">Calendario</a><a href="/plan-de-trading">Plan de trading</a><a href="/disciplina-en-trading">Disciplina</a><a href="/trading-journal-prop-firms">Prop firms</a><a href="/psicologia-del-trading">Psicología</a><a href="/blog/">Blog</a></div>
+  <div class="copy">© 2026 TradeDay · Tu diario de trading online</div>
+</div></footer>
+
+</body>
+</html>
