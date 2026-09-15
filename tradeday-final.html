@@ -217,8 +217,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .nav-link{padding:5px 11px;border-radius:var(--radius);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;background:none;border:none;font-family:inherit;font-weight:500}
 .nav-link:hover,.nav-link.active{color:var(--text);background:var(--bg3)}
 .nav-actions{display:flex;align-items:center;gap:8px}
-.lang-btn{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:default;pointer-events:none;font-family:inherit;transition:all .15s}
-.lang-btn:hover{border-color:var(--border3);color:var(--text)}
+.lang-btn{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;pointer-events:auto;user-select:none;font-family:inherit;transition:all .15s}
+.lang-btn:hover{border-color:var(--accent);color:var(--text);background:var(--bg2)}
+.lang-btn:active{transform:scale(.96)}
+.lang-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn{padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;border:none;display:inline-flex;align-items:center;gap:6px}
 .btn-ghost{background:none;border:1px solid var(--border2);color:var(--text2)}
 .btn-ghost:hover{color:var(--text);background:var(--bg3);border-color:var(--border3)}
@@ -1607,7 +1609,7 @@ function initLandingFX(){
     <nav class="ld-nav">
       <div class="nav-logo"><div class="logo-mark">TD</div>TradeDay</div>
       <div class="nav-actions">
-        <div class="lang-btn" onclick="cycleLang()"><span id="lf-home">🇪🇸</span> <span id="ll-home">ES</span></div>
+        <div class="lang-btn" role="button" tabindex="0" onclick="cycleLang()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cycleLang();}"><span id="lf-home">🇪🇸</span> <span id="ll-home">ES</span></div>
         <button class="ld-btn ld-btn-ghost ld-btn-sm" onclick="showScreen('login')">Iniciar sesión</button>
         <button class="ld-btn ld-btn-primary ld-btn-sm" onclick="showScreen('signup')">Empezar gratis</button>
       </div>
@@ -1934,13 +1936,13 @@ function initLandingFX(){
       <a href="/cookies">Cookies</a>
       <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a>
     </div>
-    <div class="lang-btn" onclick="cycleLang()" style="cursor:pointer"><span id="lf-foot">🇪🇸</span> <span id="ll-foot">ES</span></div>
+    <div class="lang-btn" role="button" tabindex="0" onclick="cycleLang()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cycleLang();}"><span id="lf-foot">🇪🇸</span> <span id="ll-foot">ES</span></div>
   </div>
 </div>
 
 <!-- ══ LOGIN ══ -->
 <div class="screen" id="screen-login">
-  <nav><div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer"><div class="logo-mark">TD</div>TradeDay</div><div class="nav-actions"><div class="lang-btn" onclick="cycleLang()"><span id="lf-login">🇪🇸</span> <span id="ll-login">ES</span></div></div></nav>
+  <nav><div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer"><div class="logo-mark">TD</div>TradeDay</div><div class="nav-actions"><div class="lang-btn" role="button" tabindex="0" onclick="cycleLang()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cycleLang();}"><span id="lf-login">🇪🇸</span> <span id="ll-login">ES</span></div></div></nav>
   <div class="auth-wrap">
     <div class="auth-card">
       <h2 class="auth-title">Bienvenido de vuelta</h2>
@@ -1963,7 +1965,7 @@ function initLandingFX(){
 
 <!-- ══ SIGNUP ══ -->
 <div class="screen" id="screen-signup">
-  <nav><div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer"><div class="logo-mark">TD</div>TradeDay</div><div class="nav-actions"><div class="lang-btn" onclick="cycleLang()"><span id="lf-signup">🇪🇸</span> <span id="ll-signup">ES</span></div></div></nav>
+  <nav><div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer"><div class="logo-mark">TD</div>TradeDay</div><div class="nav-actions"><div class="lang-btn" role="button" tabindex="0" onclick="cycleLang()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cycleLang();}"><span id="lf-signup">🇪🇸</span> <span id="ll-signup">ES</span></div></div></nav>
   <div class="auth-wrap">
     <div class="auth-card">
       <h2 class="auth-title">Crea tu cuenta</h2>
@@ -1987,7 +1989,7 @@ function initLandingFX(){
 
 <!-- ══ FORGOT PASSWORD ══ -->
 <div class="screen" id="screen-forgot">
-  <nav><div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer"><div class="logo-mark">TD</div>TradeDay</div><div class="nav-actions"><div class="lang-btn" onclick="cycleLang()"><span id="lf-forgot">🇪🇸</span> <span id="ll-forgot">ES</span></div></div></nav>
+  <nav><div class="nav-logo" onclick="showScreen('home')" style="cursor:pointer"><div class="logo-mark">TD</div>TradeDay</div><div class="nav-actions"><div class="lang-btn" role="button" tabindex="0" onclick="cycleLang()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cycleLang();}"><span id="lf-forgot">🇪🇸</span> <span id="ll-forgot">ES</span></div></div></nav>
   <div class="auth-wrap">
     <div class="auth-card">
       <h2 class="auth-title">Recuperar contraseña</h2>
@@ -2165,7 +2167,7 @@ function initLandingFX(){
       <div class="nav-link" onclick="gotoView('routine')">Mi rutina</div>
     </div>
     <div class="nav-actions">
-      <div class="lang-btn" onclick="cycleLang()"><span id="lf-app">🇪🇸</span> <span id="ll-app">ES</span></div>
+      <div class="lang-btn" role="button" tabindex="0" onclick="cycleLang()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();cycleLang();}"><span id="lf-app">🇪🇸</span> <span id="ll-app">ES</span></div>
       <button class="btn btn-primary btn-sm desktop-only-btn" onclick="openChoice()"><i class="ti ti-plus"></i>Nueva entrada</button>
       <button class="btn btn-ghost btn-sm desktop-only-btn" onclick="doLogout()">Salir</button>
     </div>
