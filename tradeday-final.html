@@ -258,6 +258,110 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .ld-btn-sm{padding:8px 17px;font-size:12.5px}
 
 /* -- floating glass nav -- */
+/* ══ CAPA DE INTERACCIÓN — SOLO LANDING PÚBLICA (#screen-home) ══════════
+   Todo depende de variables CSS que escribe el JS. Sin JS la página se ve
+   igual, solo sin movimiento. Nada de esto afecta a la aplicación privada. */
+
+/* Tilt 3D. El JS escribe --rx/--ry; el reposo es 0 y vuelve con easing. */
+#screen-home [data-tilt]{
+  transform:perspective(1400px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:transform .65s cubic-bezier(.16,1,.3,1);
+  will-change:transform;
+}
+#screen-home [data-tilt].tilting{transition:transform .12s ease-out}
+
+/* Parallax. Desplazamiento pequeño calculado con rAF. */
+#screen-home [data-par]{transform:translate3d(0,var(--par,0px),0);will-change:transform}
+
+/* Spotlight: halo tenue que sigue al cursor. Invisible si no lo buscas. */
+#screen-home .ld-spot{position:relative;isolation:isolate}
+#screen-home .ld-spot::before{
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;
+  transition:opacity .4s ease;border-radius:inherit;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(34,197,94,.09),transparent 60%);
+}
+#screen-home .ld-spot:hover::before{opacity:1}
+#screen-home .ld-spot>*{position:relative;z-index:1}
+
+/* Navbar: compresión al hacer scroll */
+.ld-nav-wrap{transition:padding .35s cubic-bezier(.16,1,.3,1)}
+.ld-nav-wrap.compact{padding-top:10px;padding-bottom:10px}
+.ld-nav{transition:border-color .25s,box-shadow .25s,background .25s,padding .35s cubic-bezier(.16,1,.3,1)}
+.ld-nav.scrolled{padding:6px 8px 6px 19px}
+
+/* Cards de producto y pasos: elevación real, no solo cambio de fondo */
+.ld-feat,.ld-step{transition:background .25s,transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s}
+.ld-feat:hover,.ld-step:hover{transform:translateY(-4px);box-shadow:0 22px 44px -26px rgba(0,0,0,.85)}
+
+/* Pricing: elevación y realce del plan Pro */
+.ld-price-card{transition:transform .4s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .4s}
+.ld-price-card:hover{transform:translateY(-6px);border-color:var(--border3);box-shadow:0 28px 56px -30px rgba(0,0,0,.9)}
+.ld-price-card.pro:hover{border-color:rgba(34,197,94,.45);box-shadow:0 28px 60px -28px rgba(34,197,94,.30)}
+
+/* FAQ: apertura animada (la altura la calcula el JS) */
+.ld-faq-answer{overflow:hidden;transition:height .34s cubic-bezier(.16,1,.3,1)}
+
+/* Links con subrayado animado */
+#screen-home .ld-footer-nav a,#screen-home .ld-footer-links a{
+  position:relative;text-decoration:none;transition:color .2s}
+#screen-home .ld-footer-nav a::after,#screen-home .ld-footer-links a::after{
+  content:'';position:absolute;left:0;right:0;bottom:-3px;height:1px;background:currentColor;
+  transform:scaleX(0);transform-origin:right;transition:transform .32s cubic-bezier(.16,1,.3,1)}
+#screen-home .ld-footer-nav a:hover::after,#screen-home .ld-footer-links a:hover::after{
+  transform:scaleX(1);transform-origin:left}
+
+/* CTA final: fondo ligeramente distinto al resto. Ya tiene su .ld-cta-glow,
+   así que NO añadimos un segundo halo: solo separamos el bloque del fondo. */
+.ld-cta{background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 55%,var(--bg) 100%)}
+.ld-cta .ld-cta-title,.ld-cta .ld-cta-sub,.ld-cta .ld-btn{position:relative;z-index:1}
+
+/* Foco visible en todo lo interactivo de la landing */
+#screen-home a:focus-visible,#screen-home button:focus-visible,#screen-home summary:focus-visible{
+  outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+/* Números que cuentan: sin salto de ancho al animar */
+#screen-home [data-count]{font-variant-numeric:tabular-nums}
+
+/* Filosofía: cada palabra entra por separado */
+.ld-phil-heading .w{display:block;opacity:0;transform:translateY(18px);
+  transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.ld-phil-heading .w.in{opacity:1;transform:none}
+.ld-phil-heading .w:nth-child(2){transition-delay:.13s}
+.ld-phil-heading .w:nth-child(3){transition-delay:.26s}
+
+/* ── Accesibilidad y móvil ────────────────────────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  #screen-home [data-tilt],#screen-home [data-par]{transform:none!important;transition:none!important}
+  #screen-home .ld-spot::before{display:none}
+  .ld-faq-answer{transition:none}
+  .ld-phil-heading .w{opacity:1;transform:none;transition:none}
+  .ld-feat:hover,.ld-step:hover,.ld-price-card:hover{transform:none}
+}
+@media(hover:none),(pointer:coarse){
+  /* En táctil no hay cursor: nada de tilt ni spotlight, y sin hover pegado */
+  #screen-home [data-tilt]{transform:none!important}
+  #screen-home .ld-spot::before{display:none}
+  .ld-feat:hover,.ld-step:hover,.ld-price-card:hover{transform:none;box-shadow:none}
+}
+/* ── Capturas reales del producto ──────────────────────────────────── */
+.ld-mock-img{display:block;width:100%;height:auto;border-top:1px solid var(--border)}
+.ld-shots{max-width:1180px;margin:0 auto;padding:40px 24px 0;display:flex;flex-direction:column;gap:104px}
+.ld-shot{display:grid;grid-template-columns:.82fr 1.18fr;gap:56px;align-items:center}
+.ld-shot.rev .ld-shot-txt{order:2}
+/* Fila apilada: para capturas apaisadas que en columna quedarían ilegibles */
+.ld-shot.stack{grid-template-columns:1fr;gap:30px}
+.ld-shot.stack .ld-shot-txt{max-width:720px}
+.ld-shot-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:13px}
+.ld-shot-title{font-size:clamp(23px,2.6vw,31px);font-weight:800;letter-spacing:-.03em;line-height:1.14;margin-bottom:14px;text-wrap:balance}
+.ld-shot-desc{font-size:15px;color:var(--text2);line-height:1.72}
+.ld-shot-frame{border-radius:14px;border:1px solid var(--border2);overflow:hidden;
+  box-shadow:0 34px 70px -34px rgba(0,0,0,.85);background:var(--bg2)}
+.ld-shot-frame img{display:block;width:100%;height:auto}
+@media(max-width:900px){
+  .ld-shots{gap:64px;padding-top:16px}
+  .ld-shot{grid-template-columns:1fr;gap:26px}
+  .ld-shot.rev .ld-shot-txt{order:0}
+}
 .ld-nav-wrap{position:sticky;top:0;z-index:200;display:flex;justify-content:center;padding:18px 20px;background:linear-gradient(to bottom,var(--bg) 42%,transparent);pointer-events:none}
 .ld-nav-wrap>*{pointer-events:auto}
 .ld-nav{position:static;width:100%;max-width:1120px;height:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:9px 10px 9px 22px;border-radius:999px;border:1px solid var(--border2);background:rgba(15,17,21,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 10px 30px -12px rgba(0,0,0,.5);transition:border-color .25s,box-shadow .25s,background .25s}
@@ -268,7 +372,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .ld-hero-glow{position:absolute;top:-260px;left:50%;transform:translateX(-50%);width:1200px;height:680px;background:radial-gradient(ellipse at center,rgba(34,197,94,.30) 0%,rgba(34,197,94,.12) 35%,transparent 70%);filter:blur(40px);pointer-events:none;z-index:0}
 .ld-badge{position:relative;z-index:1;display:inline-flex;align-items:center;gap:9px;padding:7px 16px 7px 12px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:30px}
 .ld-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);flex-shrink:0}
-.ld-h1{position:relative;z-index:1;font-size:clamp(40px,7.2vw,92px);font-weight:800;line-height:1.03;letter-spacing:-.045em;max-width:920px;margin-bottom:24px}
+.ld-h1{position:relative;z-index:1;font-size:clamp(36px,5.8vw,74px);font-weight:800;line-height:1.05;letter-spacing:-.04em;max-width:1080px;margin-bottom:24px;text-wrap:balance}
 .ld-h1 .accent{color:var(--accent)}
 .ld-sub{position:relative;z-index:1;font-size:clamp(15px,1.6vw,19px);color:var(--text2);line-height:1.65;max-width:580px;margin-bottom:38px}
 .ld-cta-row{position:relative;z-index:1;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:22px}
@@ -276,7 +380,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 
 /* -- product mockup window -- */
 .ld-mock-wrap{position:relative;z-index:1;width:100%;max-width:980px;margin:0 auto;padding:0 20px 40px}
-.ld-mock{border-radius:18px;border:1px solid var(--border2);background:linear-gradient(180deg,var(--bg2),var(--bg));box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.02) inset;overflow:hidden;animation:ldFloat 7s ease-in-out infinite}
+.ld-mock{border-radius:18px;border:1px solid var(--border2);background:linear-gradient(180deg,var(--bg2),var(--bg));box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.02) inset;overflow:hidden}
 @keyframes ldFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 .ld-mock-bar{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--border)}
 .ld-mock-dot{width:9px;height:9px;border-radius:50%;background:var(--border3)}
@@ -339,6 +443,38 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .ld-phil-text{font-size:13.5px;color:var(--text2);line-height:1.75;max-width:440px}
 
 /* -- features grid -- */
+/* ── Argumento diferencial (banda) ─────────────────────────────── */
+.ld-arg{max-width:1100px;margin:0 auto;padding:96px 24px 0;text-align:center}
+.ld-arg-quote{font-size:clamp(23px,3.1vw,40px);font-weight:800;letter-spacing:-.035em;line-height:1.18;max-width:980px;margin:0 auto 22px;text-wrap:balance}
+.ld-arg-quote .accent{color:var(--accent)}
+.ld-arg-quote .muted{color:var(--text3)}
+.ld-arg-desc{font-size:16px;color:var(--text2);line-height:1.7;max-width:620px;margin:0 auto}
+.ld-arg-split{display:grid;grid-template-columns:1fr 1fr;gap:0;max-width:820px;margin:44px auto 0;border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden}
+.ld-arg-col{padding:28px 26px;text-align:left}
+.ld-arg-col+.ld-arg-col{border-left:1px solid var(--border2);background:var(--bg2)}
+.ld-arg-col-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.ld-arg-col+.ld-arg-col .ld-arg-col-lbl{color:var(--accent)}
+.ld-arg-col p{font-size:14.5px;line-height:1.65;color:var(--text2);margin:0}
+.ld-arg-col+.ld-arg-col p{color:var(--text)}
+
+/* ── Cómo funciona (3 pasos) ───────────────────────────────────── */
+.ld-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.ld-step{padding:48px 34px;border-right:1px solid var(--border);position:relative;transition:background .25s}
+.ld-step:last-child{border-right:none}
+.ld-step:hover{background:var(--bg2)}
+.ld-step-num{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:18px;font-variant-numeric:tabular-nums}
+.ld-step-title{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+.ld-step-desc{font-size:14px;color:var(--text2);line-height:1.7}
+.ld-step-note{margin-top:16px;font-size:12.5px;color:var(--text3);display:flex;align-items:flex-start;gap:7px;line-height:1.55}
+.ld-step-note i{color:var(--accent);font-size:14px;flex-shrink:0;margin-top:1px}
+@media(max-width:900px){
+  .ld-steps{grid-template-columns:1fr}
+  .ld-step{border-right:none;border-bottom:1px solid var(--border)}
+  .ld-step:last-child{border-bottom:none}
+  .ld-arg-split{grid-template-columns:1fr}
+  .ld-arg-col+.ld-arg-col{border-left:none;border-top:1px solid var(--border2)}
+  .ld-arg{padding-top:64px}
+}
 .ld-features{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border)}
 .ld-feat{padding:44px 30px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:background .25s}
 .ld-feat:nth-child(4n){border-right:none}
@@ -1246,6 +1382,160 @@ document.addEventListener('DOMContentLoaded', function(){
 /* ── Landing page: aparición progresiva al hacer scroll + nav flotante ──
    Usa IntersectionObserver (ligero, sin librerías) para revelar el contenido
    de la home según entra en el viewport, y añade sombra al nav al hacer scroll. */
+/* ══ initLandingFX2 — capa de interacción de la landing pública ═════════
+   Se llama desde initLandingFX(). Todo está limitado a #screen-home y no
+   toca nada de la aplicación privada. Sin librerías: CSS + rAF. */
+function initLandingFX2(){
+  var home=document.getElementById('screen-home');
+  if(!home)return;
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var coarse=window.matchMedia&&matchMedia('(pointer:coarse)').matches;
+
+  /* 1. Navbar: compresión al hacer scroll (además del cambio de fondo ya existente) */
+  var wrap=home.querySelector('.ld-nav-wrap'),navEl=home.querySelector('.ld-nav');
+  if(wrap||navEl){
+    var onScrollNav=function(){
+      var on=window.scrollY>8;
+      if(wrap)wrap.classList.toggle('compact',on);
+      /* También el fondo: así la navbar funciona aunque el bloque principal falle. */
+      if(navEl)navEl.classList.toggle('scrolled',on);
+    };
+    addEventListener('scroll',onScrollNav,{passive:true});onScrollNav();
+  }
+
+  /* 2. Tilt 3D — máximo 3 grados. Solo con ratón. */
+  if(!reduce&&!coarse){
+    home.querySelectorAll('[data-tilt]').forEach(function(el){
+      var max=parseFloat(el.getAttribute('data-tilt'))||3,raf=null,r=null;
+      el.addEventListener('pointerenter',function(){r=el.getBoundingClientRect();el.classList.add('tilting');});
+      el.addEventListener('pointermove',function(e){
+        if(!r)r=el.getBoundingClientRect();
+        var px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+        el.style.setProperty('--mx',(px*100).toFixed(1)+'%');
+        el.style.setProperty('--my',(py*100).toFixed(1)+'%');
+        if(raf)return;
+        raf=requestAnimationFrame(function(){
+          raf=null;
+          el.style.setProperty('--rx',((0.5-py)*max*2).toFixed(2)+'deg');
+          el.style.setProperty('--ry',((px-0.5)*max*2).toFixed(2)+'deg');
+        });
+      },{passive:true});
+      el.addEventListener('pointerleave',function(){
+        r=null;el.classList.remove('tilting');
+        el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg');
+      },{passive:true});
+    });
+  }
+
+  /* 3. Spotlight: el halo sigue al cursor dentro de la card */
+  if(!reduce&&!coarse){
+    home.querySelectorAll('.ld-spot').forEach(function(el){
+      if(el.hasAttribute('data-tilt'))return; /* el tilt ya escribe --mx/--my */
+      el.addEventListener('pointermove',function(e){
+        var r=el.getBoundingClientRect();
+        el.style.setProperty('--mx',(((e.clientX-r.left)/r.width)*100).toFixed(1)+'%');
+        el.style.setProperty('--my',(((e.clientY-r.top)/r.height)*100).toFixed(1)+'%');
+      },{passive:true});
+    });
+  }
+
+  /* 4. Parallax: desplazamiento pequeño, throttled con rAF */
+  if(!reduce){
+    var pars=[].slice.call(home.querySelectorAll('[data-par]'));
+    if(pars.length){
+      var ticking=false;
+      var updPar=function(){
+        ticking=false;
+        var vh=innerHeight;
+        pars.forEach(function(el){
+          var sp=parseFloat(el.getAttribute('data-par'))||.04;
+          var b=el.getBoundingClientRect();
+          if(b.bottom<-200||b.top>vh+200)return;
+          var off=-((b.top+b.height/2)-vh/2)*sp;
+          el.style.setProperty('--par',off.toFixed(1)+'px');
+        });
+      };
+      addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(updPar);}},{passive:true});
+      addEventListener('resize',updPar,{passive:true});updPar();
+    }
+  }
+
+  /* 5. Contadores: una sola vez, al entrar en viewport */
+  /* Separador de miles a la española, sin depender de la ICU del navegador. */
+  var fmt=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');};
+  var runCount=function(el){
+    var end=parseFloat(el.getAttribute('data-count'))||0;
+    var pre=el.getAttribute('data-pre')||'',suf=el.getAttribute('data-suf')||'';
+    if(reduce){el.textContent=pre+fmt(end)+suf;return;}
+    var dur=900,t0=null;
+    var step=function(t){
+      if(!t0)t0=t;
+      var p=Math.min((t-t0)/dur,1),e=1-Math.pow(1-p,3);
+      el.textContent=pre+fmt(Math.round(end*e))+suf;
+      if(p<1)requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  var counters=home.querySelectorAll('[data-count]');
+  if(counters.length){
+    if('IntersectionObserver' in window){
+      var ioC=new IntersectionObserver(function(en){
+        en.forEach(function(x){if(x.isIntersecting){runCount(x.target);ioC.unobserve(x.target);}});
+      },{threshold:.4});
+      counters.forEach(function(el){ioC.observe(el);});
+    }else{counters.forEach(runCount);}
+  }
+
+  /* 6. Filosofía: Disciplina / Análisis / Mejora entran escalonadas */
+  var phil=home.querySelector('.ld-phil-heading');
+  if(phil&&!phil.querySelector('.w')){
+    var words=phil.innerHTML.split('<br>');
+    phil.innerHTML=words.map(function(w){return '<span class="w">'+w+'</span>';}).join('');
+    if(reduce){phil.querySelectorAll('.w').forEach(function(w){w.classList.add('in');});}
+    else if('IntersectionObserver' in window){
+      var ioP=new IntersectionObserver(function(en){
+        en.forEach(function(x){
+          if(x.isIntersecting){x.target.querySelectorAll('.w').forEach(function(w){w.classList.add('in');});ioP.unobserve(x.target);}
+        });
+      },{threshold:.5});
+      ioP.observe(phil);
+    }else{phil.querySelectorAll('.w').forEach(function(w){w.classList.add('in');});}
+  }
+
+  /* 7. FAQ: apertura y cierre animados sin perder el elemento details nativo */
+  home.querySelectorAll('.ld-faq-item').forEach(function(d){
+    var sum=d.querySelector('summary'),ans=d.querySelector('.ld-faq-answer');
+    if(!sum||!ans)return;
+    sum.addEventListener('click',function(e){
+      if(reduce)return;             /* comportamiento nativo */
+      e.preventDefault();
+      if(ans.dataset.busy==='1')return;
+      ans.dataset.busy='1';
+      if(d.open){
+        ans.style.height=ans.scrollHeight+'px';
+        ans.getBoundingClientRect();
+        ans.style.height='0px';
+        ans.addEventListener('transitionend',function te(ev){
+          if(ev.propertyName!=='height')return;
+          ans.removeEventListener('transitionend',te);
+          d.open=false;ans.style.height='';ans.dataset.busy='';
+        });
+      }else{
+        d.open=true;
+        var h=ans.scrollHeight;
+        ans.style.height='0px';
+        ans.getBoundingClientRect();
+        ans.style.height=h+'px';
+        ans.addEventListener('transitionend',function te(ev){
+          if(ev.propertyName!=='height')return;
+          ans.removeEventListener('transitionend',te);
+          ans.style.height='';ans.dataset.busy='';
+        });
+      }
+    });
+  });
+}
+
 function initLandingFX(){
   const nav = document.querySelector('#screen-home .ld-nav');
   if(nav){
@@ -1253,6 +1543,7 @@ function initLandingFX(){
       nav.classList.toggle('scrolled', window.scrollY > 8);
     }, {passive:true});
   }
+  try{initLandingFX2();}catch(e){}
   const revealEls = document.querySelectorAll('#screen-home .ld-reveal');
   if(!revealEls.length) return;
   function forceRevealVisible(){
@@ -1326,9 +1617,9 @@ function initLandingFX(){
   <!-- HERO -->
   <div class="ld-hero">
     <div class="ld-hero-glow"></div>
-    <div class="ld-badge ld-reveal"><span class="dot"></span>Análisis de comportamiento con IA</div>
-    <h1 class="ld-h1 ld-reveal ld-reveal-1">Tu diario de trading para entender cómo operas<br><span class="accent">y mejorar cómo decides.</span></h1>
-    <p class="ld-sub ld-reveal ld-reveal-2">TradeDay convierte cada operación en aprendizaje real: registra, analiza tu comportamiento y construye la disciplina que de verdad cambia resultados.</p>
+    <div class="ld-badge ld-reveal"><span class="dot"></span>Diario de trading con análisis de comportamiento</div>
+    <h1 class="ld-h1 ld-reveal ld-reveal-1">Tu bróker sabe qué hiciste.<br><span class="accent">TradeDay sabe por qué.</span></h1>
+    <p class="ld-sub ld-reveal ld-reveal-2">Registra cada operación —y cada día que decides no operar— con la decisión que había detrás. TradeDay lo convierte en métricas, patrones y un índice de disciplina que compara tu plan con lo que de verdad hiciste.</p>
     <div class="ld-cta-row ld-reveal ld-reveal-3">
       <button class="ld-btn ld-btn-primary" onclick="showScreen('signup')"><i class="ti ti-arrow-right"></i>Empezar gratis</button>
       <button class="ld-btn ld-btn-ghost" onclick="showScreen('login')">Ya tengo cuenta</button>
@@ -1336,39 +1627,70 @@ function initLandingFX(){
     <div class="ld-trust ld-reveal ld-reveal-4">Gratis para siempre en el plan Free · Sin tarjeta de crédito · Listo en 2 minutos</div>
 
     <!-- product mockup -->
-    <div class="ld-mock-wrap">
-      <div class="ld-mock">
+    <div class="ld-mock-wrap" data-par="0.045">
+      <div class="ld-mock ld-spot" data-tilt="3">
         <div class="ld-mock-bar">
           <div class="ld-mock-dot"></div><div class="ld-mock-dot"></div><div class="ld-mock-dot"></div>
           <div class="ld-mock-title"><i class="ti ti-lock" style="font-size:10px;margin-right:4px"></i>tradeday.me — Tu día de trading</div>
         </div>
-        <div class="ld-mock-body">
-          <div class="ld-mock-metrics">
-            <div class="ld-mock-metric"><div class="ld-mock-metric-lbl">Win rate</div><div class="ld-mock-metric-val up">68%</div></div>
-            <div class="ld-mock-metric"><div class="ld-mock-metric-lbl">Resultado del mes</div><div class="ld-mock-metric-val up">+1.240€</div></div>
-            <div class="ld-mock-metric"><div class="ld-mock-metric-lbl">Racha actual</div><div class="ld-mock-metric-val">5 días</div></div>
-          </div>
-          <div class="ld-mock-grid" aria-hidden="true">
-            <div class="ld-mock-cell g2"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell r1"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell r1"></div><div class="ld-mock-cell g3"></div>
-            <div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell r1"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g3"></div><div class="ld-mock-cell g2"></div><div class="ld-mock-cell"></div><div class="ld-mock-cell g1"></div><div class="ld-mock-cell g3"></div>
-          </div>
-          <div class="ld-mock-journal">
-            <div class="ld-mock-journal-icon"><i class="ti ti-notebook"></i></div>
-            <div>
-              <div class="ld-mock-journal-text">"Hoy no he operado. Esperé mi setup y no forcé nada."</div>
-              <span class="ld-mock-journal-tag">Disciplina +1</span>
-            </div>
-          </div>
-        </div>
+        <img class="ld-mock-img" src="/img/tradeday-operaciones.webp" width="1600" height="654"
+             alt="Pantalla Mis operaciones de TradeDay: cada trade con su gráfico, resultado, dirección y sesión de mercado"
+             decoding="async" fetchpriority="high">
       </div>
     </div>
   </div>
 
   <!-- TRUST STATS -->
   <div class="ld-stats">
-    <div class="ld-stat ld-reveal"><div class="ld-stat-num">100%</div><div class="ld-stat-lbl">Privado y tuyo</div></div>
+    <div class="ld-stat ld-reveal"><div class="ld-stat-num" data-count="100" data-suf="%">100%</div><div class="ld-stat-lbl">Privado y tuyo</div></div>
     <div class="ld-stat ld-reveal ld-reveal-1"><div class="ld-stat-num">0€</div><div class="ld-stat-lbl">Para empezar</div></div>
-    <div class="ld-stat ld-reveal ld-reveal-2"><div class="ld-stat-num">∞</div><div class="ld-stat-lbl">Operaciones registradas</div></div>
+    <div class="ld-stat ld-reveal ld-reveal-2"><div class="ld-stat-num">2 min</div><div class="ld-stat-lbl">Y estás registrando</div></div>
+  </div>
+
+
+  <!-- ARGUMENTO DIFERENCIAL -->
+  <div class="ld-arg">
+    <h2 class="ld-arg-quote ld-reveal">Sincronizar te dice <span class="muted">qué</span> hiciste.<br>Solo tú puedes registrar <span class="accent">por qué</span>.</h2>
+    <p class="ld-arg-desc ld-reveal ld-reveal-1">Por eso en TradeDay el registro es manual. No es una limitación pendiente de resolver: es la parte que funciona. Escribir la operación te obliga a mirar la decisión de frente, y esa es exactamente la información que ningún bróker guarda por ti.</p>
+    <div class="ld-arg-split ld-reveal ld-reveal-2">
+      <div class="ld-arg-col">
+        <div class="ld-arg-col-lbl">Lo que ya tienes</div>
+        <p>Entrada, salida, tamaño y resultado. Tu bróker lo guarda todo y no te ha hecho mejor trader.</p>
+      </div>
+      <div class="ld-arg-col">
+        <div class="ld-arg-col-lbl">Lo que te falta</div>
+        <p>Por qué entraste antes de la confirmación. Por qué moviste el stop. Por qué esa operación no estaba en tu plan.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CÓMO FUNCIONA -->
+  <div class="ld-section" style="padding-bottom:0">
+    <div class="ld-section-head ld-reveal">
+      <div class="ld-eyebrow">Cómo funciona</div>
+      <h2 class="ld-h2">Tres pasos,<br>media hora a la semana</h2>
+      <p class="ld-section-desc">Sin conectar el bróker, sin importar CSV y sin configurar nada. Empiezas con tu próxima operación.</p>
+    </div>
+  </div>
+  <div class="ld-steps">
+    <div class="ld-step ld-spot ld-reveal">
+      <div class="ld-step-num">01 · OPERA</div>
+      <div class="ld-step-title">Cierras tu operación</div>
+      <div class="ld-step-desc">O decides no operar porque no aparecía tu setup. Las dos cosas cuentan, y las dos se registran: esperar es ejecutar el plan, no perder el día.</div>
+      <div class="ld-step-note"><i class="ti ti-point"></i>Y también los días que decides no operar: esperar es ejecución, no inactividad.</div>
+    </div>
+    <div class="ld-step ld-spot ld-reveal ld-reveal-1">
+      <div class="ld-step-num">02 · ESCRIBE</div>
+      <div class="ld-step-title">Anotas qué hiciste y por qué</div>
+      <div class="ld-step-desc">En caliente, mientras lo recuerdas. Datos, captura del gráfico, si seguiste tu plan y cómo te sentías. Uno o dos minutos por operación.</div>
+      <div class="ld-step-note"><i class="ti ti-point"></i>Con unas treinta operaciones las métricas empiezan a significar algo.</div>
+    </div>
+    <div class="ld-step ld-spot ld-reveal ld-reveal-2">
+      <div class="ld-step-num">03 · MEJORA</div>
+      <div class="ld-step-title">Quince minutos cada semana</div>
+      <div class="ld-step-desc">Métricas, calendario, tus peores decisiones y tu índice de disciplina. Aquí es donde el registro deja de ser un trámite y se convierte en mejora.</div>
+      <div class="ld-step-note"><i class="ti ti-point"></i>El paso que casi todo el mundo se salta, y el único que cambia resultados.</div>
+    </div>
   </div>
 
   <!-- PRICING (subida justo tras el hero para que se vea sin apenas scroll) -->
@@ -1379,7 +1701,7 @@ function initLandingFX(){
       <p class="ld-section-desc">Sin prueba con caducidad ni tarjeta al registrarte. Si además operas con varias cuentas — reales, fondeadas o demo — Pro te lo desbloquea todo por 9,99€/mes.</p>
     </div>
     <div class="ld-pricing-grid">
-      <div class="ld-price-card ld-reveal">
+      <div class="ld-price-card ld-spot ld-reveal">
         <div class="ld-price-tier">Free</div>
         <div class="ld-price-amount">0€<span>/mes, siempre</span></div>
         <p class="ld-price-desc">Tu primera cuenta de trading, completa y sin fecha de caducidad.</p>
@@ -1390,7 +1712,7 @@ function initLandingFX(){
         </ul>
         <button class="ld-btn ld-btn-ghost" style="width:100%;justify-content:center" onclick="showScreen('signup')">Empezar gratis</button>
       </div>
-      <div class="ld-price-card pro ld-reveal ld-reveal-1">
+      <div class="ld-price-card pro ld-spot ld-reveal ld-reveal-1">
         <div class="ld-price-badge">Para multi-cuenta</div>
         <div class="ld-price-tier">Pro</div>
         <div class="ld-price-amount">9,99€<span>/mes</span></div>
@@ -1447,10 +1769,63 @@ function initLandingFX(){
     </div>
   </div>
   <div class="ld-features">
-    <div class="ld-feat ld-reveal"><div class="ld-feat-icon"><i class="ti ti-book"></i></div><div class="ld-feat-title">Journal completo</div><div class="ld-feat-desc">Trades y días sin operar. Todo en un solo lugar con contexto y emociones.</div></div>
-    <div class="ld-feat ld-reveal ld-reveal-1"><div class="ld-feat-icon"><i class="ti ti-chart-donut"></i></div><div class="ld-feat-title">Métricas reales</div><div class="ld-feat-desc">Win rate, sesiones más rentables y análisis de comportamiento automático.</div></div>
-    <div class="ld-feat ld-reveal ld-reveal-2"><div class="ld-feat-icon"><i class="ti ti-calendar"></i></div><div class="ld-feat-title">Calendario visual</div><div class="ld-feat-desc">Ve tu consistencia de un vistazo. Verde, rojo y diario en colores distintos.</div></div>
-    <div class="ld-feat ld-reveal ld-reveal-3"><div class="ld-feat-icon"><i class="ti ti-shield-lock"></i></div><div class="ld-feat-title">Multi-cuenta</div><div class="ld-feat-desc">Gestiona cuentas reales y fondeadas. Cada una con su propio diario y métricas.</div></div>
+    <div class="ld-feat ld-spot ld-reveal"><div class="ld-feat-icon"><i class="ti ti-book"></i></div><div class="ld-feat-title">Journal completo</div><div class="ld-feat-desc">Trades y días sin operar. Todo en un solo lugar con contexto y emociones.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-1"><div class="ld-feat-icon"><i class="ti ti-chart-donut"></i></div><div class="ld-feat-title">Métricas reales</div><div class="ld-feat-desc">Win rate, sesiones más rentables y análisis de comportamiento automático.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-2"><div class="ld-feat-icon"><i class="ti ti-calendar"></i></div><div class="ld-feat-title">Calendario visual</div><div class="ld-feat-desc">Ve tu consistencia de un vistazo. Verde, rojo y diario en colores distintos.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-3"><div class="ld-feat-icon"><i class="ti ti-shield-lock"></i></div><div class="ld-feat-title">Multi-cuenta</div><div class="ld-feat-desc">Gestiona cuentas reales y fondeadas. Cada una con su propio diario y métricas.</div></div>
+    <div class="ld-feat ld-spot ld-reveal"><div class="ld-feat-icon"><i class="ti ti-target-arrow"></i></div><div class="ld-feat-title">Índice de disciplina</div><div class="ld-feat-desc">Un porcentaje que compara tus reglas con lo que realmente ejecutaste.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-1"><div class="ld-feat-icon"><i class="ti ti-clipboard-check"></i></div><div class="ld-feat-title">Plan y rutina</div><div class="ld-feat-desc">Define tus reglas dentro de la app y mide si las cumples, operación a operación.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-2"><div class="ld-feat-icon"><i class="ti ti-moon"></i></div><div class="ld-feat-title">Días sin operar</div><div class="ld-feat-desc">Registrar la paciencia cuenta tanto como registrar los trades. Aquí se ve.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-3"><div class="ld-feat-icon"><i class="ti ti-plug-off"></i></div><div class="ld-feat-title">Sin conectar el bróker</div><div class="ld-feat-desc">Funciona con cualquier bróker y mercado. Tus datos no salen de tu cuenta.</div></div>
+  </div>
+
+
+  <!-- CAPTURAS REALES DEL PRODUCTO -->
+  <div class="ld-section" style="padding-bottom:0">
+    <div class="ld-section-head ld-reveal">
+      <div class="ld-eyebrow">Por dentro</div>
+      <h2 class="ld-h2">Esto es la aplicación,<br>no una maqueta</h2>
+      <p class="ld-section-desc">Capturas reales de TradeDay funcionando. Sin retoques y sin pantallas de mentira.</p>
+    </div>
+  </div>
+  <div class="ld-shots">
+
+    <div class="ld-shot ld-reveal">
+      <div class="ld-shot-txt">
+        <div class="ld-shot-eyebrow">Mis operaciones</div>
+        <h3 class="ld-shot-title">Cada operación, con su gráfico y su contexto</h3>
+        <p class="ld-shot-desc">Resultado, dirección, sesión de mercado y la captura del gráfico tal y como estaba cuando entraste. Filtras por ganadoras, perdedoras o por la estrategia que quieras revisar.</p>
+      </div>
+      <div class="ld-shot-frame ld-spot" data-tilt="2.2">
+        <img src="/img/tradeday-operaciones.webp" width="1600" height="654" loading="lazy" decoding="async"
+             alt="Listado de operaciones en TradeDay con miniaturas de gráfico, resultado en porcentaje, dirección y sesión">
+      </div>
+    </div>
+
+    <div class="ld-shot stack ld-reveal">
+      <div class="ld-shot-txt">
+        <div class="ld-shot-eyebrow">Índice de disciplina</div>
+        <h3 class="ld-shot-title">Tu proceso, medido semana a semana</h3>
+        <p class="ld-shot-desc">Una puntuación que compara tu plan con lo que realmente hiciste, con su evolución semanal. No mide cuánto ganaste: mide si cumpliste. Y esa curva subiendo es la única señal fiable de que estás mejorando.</p>
+      </div>
+      <div class="ld-shot-frame ld-spot" data-tilt="2.2">
+        <img src="/img/tradeday-disciplina.webp" width="1400" height="306" loading="lazy" decoding="async"
+             alt="Índice de disciplina de TradeDay con puntuación sobre 100 y su evolución semanal ascendente">
+      </div>
+    </div>
+
+    <div class="ld-shot rev ld-reveal">
+      <div class="ld-shot-txt">
+        <div class="ld-shot-eyebrow">Mi rutina</div>
+        <h3 class="ld-shot-title">La rutina que sostiene todo lo demás</h3>
+        <p class="ld-shot-desc">Defines los hábitos de tu jornada —revisar el calendario económico, marcar niveles, parar antes de operar— y los marcas cada día. La disciplina no se sostiene con fuerza de voluntad, sino con un proceso que ya está decidido.</p>
+      </div>
+      <div class="ld-shot-frame ld-spot" data-tilt="2.2">
+        <img src="/img/tradeday-rutina.webp" width="1400" height="569" loading="lazy" decoding="async"
+             alt="Pantalla Mi rutina de TradeDay con los hábitos diarios y cuántos se han completado hoy">
+      </div>
+    </div>
+
   </div>
 
   <!-- FAQ -->
@@ -9398,6 +9773,35 @@ document.addEventListener('visibilitychange',()=>{
     savePlanProgress(false);
   }
 });
+</script>
+<script>
+/* Arranque independiente de la capa visual de la landing.
+   El bloque principal crea el cliente de Supabase en su primera línea: si esa
+   librería no carga (CDN caído, bloqueador), ese bloque revienta y con él se
+   pierden las animaciones. Las declaraciones de función sí quedan definidas
+   (hoisting), así que las arrancamos desde aquí. Solo afecta a #screen-home. */
+(function(){
+  function boot(){
+    try{ if(typeof initLandingFX2==='function') initLandingFX2(); }catch(e){}
+    try{
+      var els=document.querySelectorAll('#screen-home .ld-reveal');
+      if(!els.length) return;
+      var vistos=0;
+      els.forEach(function(el){ if(el.classList.contains('in')) vistos++; });
+      /* Si nadie los ha revelado (el bloque principal falló), los mostramos. */
+      if(vistos===0) setTimeout(function(){
+        document.querySelectorAll('#screen-home .ld-reveal').forEach(function(el){
+          if(!el.classList.contains('in')){
+            var r=el.getBoundingClientRect();
+            if(r.top<innerHeight+200) el.classList.add('in');
+          }
+        });
+      },1200);
+    }catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+  else boot();
+})();
 </script>
 </body>
 </html>
