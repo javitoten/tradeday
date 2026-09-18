@@ -4015,7 +4015,7 @@ function renderAccountsSidebar(){
       html+=`<div class="account-group-body" ${isCol?'style="display:none"':''}>`;
       html+=accs.map(a=>{
         const m=accountStatusMeta(a.status);
-        return `<div class="account-chip ${a.id===currentAccountId?'active-account':''} ${m.active?'':'is-inactive'}" data-acc-id="${a.id}" data-acc-type="${a.type}" onclick="switchAccount('${a.id}')" title="${esc(a.name)} — ${esc(m.label)}">
+        return `<div class="account-chip ${a.id===currentAccountId?'active-account':''} ${m.active?'':'is-inactive'}" data-acc-id="${a.id}" data-acc-type="${a.type}" onclick="switchAccount('${a.id}')" title="${esc(a.name)} — ${esc(window.t(m.label))}">
           <span class="acc-led acc-led-${m.cls}"></span>
           <div class="account-chip-main">
             <div class="account-chip-name" data-no-i18n>${esc(a.name)}</div>
@@ -4834,6 +4834,10 @@ function updateSubscriptionUI(){
   const premium=isPremiumUser();
   freeEl.style.display=premium?'none':'flex';
   premEl.style.display=premium?'flex':'none';
+  if(!premium){
+    const dEl=document.getElementById('cfg-sub-premium-detail');
+    if(dEl)dEl.textContent='';
+  }
   if(premium&&currentSubscription){
     const detailEl=document.getElementById('cfg-sub-premium-detail');
     if(detailEl){
@@ -5457,7 +5461,7 @@ function renderDashMetrics(){
     // % acumulado respecto al capital INICIAL de la cuenta, para que el usuario
     // vea de un vistazo el rendimiento real de la cuenta, no solo el saldo.
     const pct=initialCapital?(pnl/initialCapital*100):0;
-    pEl.textContent=(pct>=0?'+':'')+pct.toFixed(1).replace('.',',')+'% desde el inicio';
+    pEl.textContent=(pct>=0?'+':'')+(lang==='en'?pct.toFixed(1):pct.toFixed(1).replace('.',','))+(lang==='en'?'% since the start':'% desde el inicio');
     pEl.className='metric-delta '+(pnl>=0?'pos':'neg');
   }
   const wrEl=document.getElementById('d-wr');
@@ -7537,7 +7541,7 @@ function renderCalSummary(year,month){
   setText('cal-summary-title','Resumen — '+M[month]+' '+year);
   setText('cal-days-traded',mt.length.toString());
   const pEl=document.getElementById('cal-pnl');if(pEl){pEl.textContent=(pnl>=0?'+':'')+fmtMoney(pnl);pEl.className='metric-value '+(pnl>=0?'pos':'neg');}
-  const pctEl=document.getElementById('cal-pnl-pct');if(pctEl){pctEl.textContent=mt.length?(pct>=0?'+':'')+pct.toFixed(1)+'% del capital':'—';pctEl.className='metric-delta '+(pnl>=0?'pos':'neg');}
+  const pctEl=document.getElementById('cal-pnl-pct');if(pctEl){pctEl.textContent=mt.length?(pct>=0?'+':'')+pct.toFixed(1)+(lang==='en'?'% of capital':'% del capital'):'—';pctEl.className='metric-delta '+(pnl>=0?'pos':'neg');}
   setText('cal-journals',jSinTrade.toString());
   setText('cal-wr',(wins+losses)?wr+'%':'—');
 }
@@ -7660,7 +7664,7 @@ function renderWeeklySummary(year,month,dayPnL,dayTrades,capitalBase){
     const color=pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text3)';
     const monthShort=M[month].slice(0,3);
     return `<div class="week-summary-card">
-      <div class="week-summary-label">Semana ${i+1}</div>
+      <div class="week-summary-label">${window.t('Semana')} ${i+1}</div>
       <div class="week-summary-dates">📅 ${w.start}–${w.end} ${monthShort}</div>
       ${hasData
         ? `<div class="week-summary-pnl" style="color:${color}">${fmtMoneySigned(pnl)}</div>
@@ -8479,9 +8483,9 @@ function renderDashMetricsFull(){
   setText('dm-be-win',beWinCount.toString());
   setText('dm-be-loss',beLossCount.toString());
   const beWinPctEl=document.getElementById('dm-be-win-pct');
-  if(beWinPctEl)beWinPctEl.textContent=bes?Math.round(beWinCount/bes*100)+'% del BE':'—';
+  if(beWinPctEl)beWinPctEl.textContent=bes?Math.round(beWinCount/bes*100)+(lang==='en'?'% of BE':'% del BE'):'—';
   const beLossPctEl=document.getElementById('dm-be-loss-pct');
-  if(beLossPctEl)beLossPctEl.textContent=bes?Math.round(beLossCount/bes*100)+'% del BE':'—';
+  if(beLossPctEl)beLossPctEl.textContent=bes?Math.round(beLossCount/bes*100)+(lang==='en'?'% of BE':'% del BE'):'—';
 
   const advBlock=document.getElementById('dm-advanced-block');
   const advLocked=document.getElementById('dm-advanced-locked-panel');
@@ -8619,7 +8623,7 @@ function renderSessionAnalysis(trades){
   const colors={'Londres':'var(--amber)','New York':'var(--blue)','Asia':'var(--purple)'};
   el.innerHTML=sessions.map(s=>{
     const st=trades.filter(t=>t.session===s);
-    if(!st.length)return `<div class="session-card"><div class="session-card-name"><div class="legend-dot" style="background:${colors[s]}"></div>${s}</div><div style="font-size:12px;color:var(--text3)">Sin operaciones</div></div>`;
+    if(!st.length)return `<div class="session-card"><div class="session-card-name"><div class="legend-dot" style="background:${colors[s]}"></div>${window.t(s)}</div><div style="font-size:12px;color:var(--text3)">${window.t('Sin operaciones')}</div></div>`;
     const w=st.filter(t=>t.result==='win').length;
     const l=st.filter(t=>t.result==='loss').length;
     const b=st.filter(t=>t.result==='be').length;
@@ -8894,7 +8898,7 @@ function mxRowsHTML(items,opts){
   const sorted=opts.sortByPnl?[...withData].sort((a,b)=>b.pnl-a.pnl):withData;
   return sorted.map(i=>`<div class="mx-row">
     <span class="mx-row-name">${esc(i.name)}</span>
-    <span class="mx-row-mid">${i.count} op.</span>
+    <span class="mx-row-mid">${i.count} ${lang==='en'?(i.count===1?'trade':'trades'):'op.'}</span>
     <span class="mx-row-wr" style="color:${i.wr===null?'var(--text3)':i.wr>=50?'var(--green)':'var(--red)'}">${i.wr===null?'—':i.wr+'%'}</span>
     <span class="mx-row-pnl ${i.pnl>0?'pos':i.pnl<0?'neg':'neutral'}">${mxFmtMoney(i.pnl)}</span>
   </div>`).join('');
@@ -9070,7 +9074,7 @@ function mxRenderSessionChart(m){
     type:'bar',
     data:{labels:st.map(s=>s.name),datasets:[{data,backgroundColor:st.map(s=>isWr?colors[s.name]:(s.pnl>=0?mxCssVar('--green'):mxCssVar('--red'))),borderRadius:6,maxBarThickness:70}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return isWr?`Win rate: ${s.wr===null?'—':s.wr+'%'} (${s.count} op.)`:`${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return isWr?`Win rate: ${s.wr===null?'—':s.wr+'%'} (${s.count} ${lang==='en'?(s.count===1?'trade':'trades'):'op.'})`:`${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},
       scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},
         y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>isWr?v+'%':fmtMoney(v)}}}
     }
@@ -9079,7 +9083,7 @@ function mxRenderSessionChart(m){
   if(!chipsEl)return;
   const withData=st.filter(s=>s.count>0);
   if(!withData.length){chipsEl.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
-  let html=withData.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${esc(s.name)} <strong>${s.count} op.</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
+  let html=withData.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${esc(s.name)} <strong>${s.count} ${lang==='en'?(s.count===1?'trade':'trades'):'op.'}</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
   if(m.sesiones.bestSessionByPnl)html+=`<div class="mx-chip pos">Mejor sesión <strong>${esc(m.sesiones.bestSessionByPnl.name)}</strong></div>`;
   if(m.sesiones.worstSessionByPnl)html+=`<div class="mx-chip neg">Peor sesión <strong>${esc(m.sesiones.worstSessionByPnl.name)}</strong></div>`;
   chipsEl.innerHTML=html;
@@ -9128,7 +9132,7 @@ function mxRenderWeekdayChart(m){
     type:'bar',
     data:{labels:st.map(s=>s.name.slice(0,3)),datasets:[{data,backgroundColor:st.map(s=>isWr?mxCssVar('--blue'):(s.pnl>=0?mxCssVar('--green'):mxCssVar('--red'))),borderRadius:6,maxBarThickness:56}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return isWr?`Win rate: ${s.wr===null?'—':s.wr+'%'} (${s.count} op.)`:`${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},
+      plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return isWr?`Win rate: ${s.wr===null?'—':s.wr+'%'} (${s.count} ${lang==='en'?(s.count===1?'trade':'trades'):'op.'})`:`${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},
       scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},
         y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>isWr?v+'%':fmtMoney(v)}}}
     }
@@ -9203,13 +9207,13 @@ function mxRenderMiniCal(){
       const pctEl=document.createElement('div');pctEl.className='bigcal-pct';
       pctEl.textContent=(pct>=0?'+':'')+Math.abs(pct).toFixed(1)+'%';
       const trEl=document.createElement('div');trEl.className='bigcal-trades';
-      trEl.textContent=trades.length+' op.';
+      trEl.textContent=trades.length+' '+(lang==='en'?(trades.length===1?'trade':'trades'):'op.');
       contentEl.appendChild(amtEl);contentEl.appendChild(pctEl);contentEl.appendChild(trEl);
     } else if(state==='be'){
       const trades=dayTrades[key]||[];
       const beEl=document.createElement('div');beEl.className='bigcal-be-label';beEl.textContent='BE';
       contentEl.appendChild(beEl);
-      if(trades.length){const trEl=document.createElement('div');trEl.className='bigcal-trades';trEl.textContent=trades.length+' op.';contentEl.appendChild(trEl);}
+      if(trades.length){const trEl=document.createElement('div');trEl.className='bigcal-trades';trEl.textContent=trades.length+' '+(lang==='en'?(trades.length===1?'trade':'trades'):'op.');contentEl.appendChild(trEl);}
     } else if(state==='journal'){
       const jEl=document.createElement('div');jEl.className='bigcal-journal-label';jEl.style.fontSize='8px';jEl.textContent='Diario';
       contentEl.appendChild(jEl);
@@ -9455,69 +9459,106 @@ function paSetPeriod(p){
 function paPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';return(n>=0?'+':'')+Number(n).toFixed(dec===undefined?1:dec)+'%';}
 function paPlainPct(n){if(n===null||n===undefined||isNaN(n))return'—';return Math.round(n)+'%';}
 function paValClass(n){return n>0?'pos':n<0?'neg':'neutral';}
-const PA_SEV={high:{cls:'high',badge:'🔴 Prioridad alta',obs:'Qué observar'},watch:{cls:'watch',badge:'🟠 A vigilar',obs:'Qué observar'},strength:{cls:'strength',badge:'🟢 Fortaleza',obs:'Para tener en cuenta'}};
+/* Etiquetas de severidad. Se resuelven en el idioma activo cada vez que se pinta
+   una tarjeta, no una sola vez al cargar. */
+function paSev(sev){
+  const EN={high:{cls:'high',badge:'🔴 High priority',obs:'What to watch'},
+            watch:{cls:'watch',badge:'🟠 Worth watching',obs:'What to watch'},
+            strength:{cls:'strength',badge:'🟢 Strength',obs:'Worth keeping in mind'}};
+  const ES={high:{cls:'high',badge:'🔴 Prioridad alta',obs:'Qué observar'},
+            watch:{cls:'watch',badge:'🟠 A vigilar',obs:'Qué observar'},
+            strength:{cls:'strength',badge:'🟢 Fortaleza',obs:'Para tener en cuenta'}};
+  const tabla = lang==='en' ? EN : ES;
+  return tabla[sev] || tabla.watch;
+}
 // Genera título/explicación/observación/visual para cada tipo de hallazgo (tono cercano, no moralizante).
 function paFindingContent(f){
-  const sev=f.severity;
+  const EN = lang==='en';
   if(f.kind==='afterLoss'){
-    let expl=(lang==='en'
+    let expl=(EN
       ?`Your overall average result is ${paPct(f.avgAll)}, but on the trades you take right after a loss it drops to ${paPct(f.avgAfter)}. This has happened ${f.sample} times`
       :`Tu rendimiento medio general es ${paPct(f.avgAll)}, pero en las operaciones que haces justo después de una pérdida baja a ${paPct(f.avgAfter)}. Se ha repetido en ${f.sample} ocasiones`)
-      +(f.strong?'':window.t(' (muestra todavía moderada)'))+`.`;
-    if(f.journalLink)expl+=` En varios de esos registros aparecen frustración o ganas de recuperar, lo que apunta a que el cambio no está solo en la entrada, sino en cómo operas después de asumir la pérdida.`;
-    return {title:'Operaciones después de una pérdida',expl,
-      obs:'Puede ser interesante observar qué ocurre entre la pérdida y la siguiente entrada. Si sueles volver al mercado sin una pausa o con intención de recuperar, ese momento podría pesar más que la propia operación.',
-      viz:`<div class="pa-compare"><div class="pa-compare-item"><div class="pa-compare-label">Tu media general</div><div class="pa-compare-val ${paValClass(f.avgAll)}">${paPct(f.avgAll)}</div></div><div class="pa-compare-arrow">→</div><div class="pa-compare-item"><div class="pa-compare-label">Después de una pérdida</div><div class="pa-compare-val ${paValClass(f.avgAfter)}">${paPct(f.avgAfter)}</div></div></div>`};
+      +(f.strong?'':(EN?' (sample still modest)':' (muestra todavía moderada)'))+`.`;
+    if(f.journalLink)expl+=EN
+      ?` Several of those entries mention frustration or wanting to win it back, which suggests the change isn't only in the entry but in how you trade after taking a loss.`
+      :` En varios de esos registros aparecen frustración o ganas de recuperar, lo que apunta a que el cambio no está solo en la entrada, sino en cómo operas después de asumir la pérdida.`;
+    return {title:EN?'Trades after a loss':'Operaciones después de una pérdida',expl,
+      obs:EN?'It could be worth watching what happens between the loss and the next entry. If you tend to go back in without a pause or looking to recover, that moment may weigh more than the trade itself.'
+            :'Puede ser interesante observar qué ocurre entre la pérdida y la siguiente entrada. Si sueles volver al mercado sin una pausa o con intención de recuperar, ese momento podría pesar más que la propia operación.',
+      viz:`<div class="pa-compare"><div class="pa-compare-item"><div class="pa-compare-label">${EN?'Your overall average':'Tu media general'}</div><div class="pa-compare-val ${paValClass(f.avgAll)}">${paPct(f.avgAll)}</div></div><div class="pa-compare-arrow">→</div><div class="pa-compare-item"><div class="pa-compare-label">${EN?'After a loss':'Después de una pérdida'}</div><div class="pa-compare-val ${paValClass(f.avgAfter)}">${paPct(f.avgAfter)}</div></div></div>`};
   }
   if(f.kind==='sessions'){
-    const conf=f.enough?' La muestra ya es suficientemente amplia para tenerla en cuenta.':` La muestra de ${esc(f.worst.name)} todavía es limitada, así que conviene interpretarlo como una tendencia a vigilar y no como una conclusión definitiva.`;
+    const conf=f.enough
+      ?(EN?' The sample is already wide enough to take seriously.':' La muestra ya es suficientemente amplia para tenerla en cuenta.')
+      :(EN?` The ${esc(window.t(f.worst.name))} sample is still limited, so read it as a tendency to watch rather than a firm conclusion.`
+          :` La muestra de ${esc(f.worst.name)} todavía es limitada, así que conviene interpretarlo como una tendencia a vigilar y no como una conclusión definitiva.`);
     const max=Math.max(...f.stats.map(s=>Math.abs(s.avgPct)),0.01);
-    const bars=f.stats.map(s=>`<div class="pa-bar-row"><span class="pa-bar-name">${esc(s.name)}</span><div class="pa-bar-track"><div class="pa-bar-fill ${paValClass(s.avgPct)}" style="width:${Math.round(Math.abs(s.avgPct)/max*100)}%"></div></div><span class="pa-bar-val ${paValClass(s.avgPct)}">${paPct(s.avgPct)}</span><span class="pa-bar-n">${s.count} op.</span></div>`).join('');
-    return {title:'Rendimiento por sesión',
-      expl:`Tu rendimiento varía entre sesiones. ${esc(f.best.name)} concentra tus mejores resultados (${paPct(f.best.avgPct)} de media, ${f.best.count} op.), mientras que ${esc(f.worst.name)} queda por debajo (${paPct(f.worst.avgPct)}, ${f.worst.count} op.).`+conf,
-      obs:'Antes de descartar una sesión, puede merecer la pena observar si cambian tus condiciones de entrada o tu comportamiento entre una y otra.',
+    const bars=f.stats.map(s=>`<div class="pa-bar-row"><span class="pa-bar-name">${esc(window.t(s.name))}</span><div class="pa-bar-track"><div class="pa-bar-fill ${paValClass(s.avgPct)}" style="width:${Math.round(Math.abs(s.avgPct)/max*100)}%"></div></div><span class="pa-bar-val ${paValClass(s.avgPct)}">${paPct(s.avgPct)}</span><span class="pa-bar-n">${s.count} ${EN?(s.count===1?'trade':'trades'):'op.'}</span></div>`).join('');
+    return {title:EN?'Performance by session':'Rendimiento por sesión',
+      expl:(EN
+        ?`Your performance varies between sessions. ${esc(window.t(f.best.name))} holds your best results (${paPct(f.best.avgPct)} on average, ${f.best.count} trades), while ${esc(window.t(f.worst.name))} falls behind (${paPct(f.worst.avgPct)}, ${f.worst.count} trades).`
+        :`Tu rendimiento varía entre sesiones. ${esc(f.best.name)} concentra tus mejores resultados (${paPct(f.best.avgPct)} de media, ${f.best.count} op.), mientras que ${esc(f.worst.name)} queda por debajo (${paPct(f.worst.avgPct)}, ${f.worst.count} op.).`)+conf,
+      obs:EN?'Before writing off a session, it may be worth watching whether your entry conditions or your behaviour change from one to the other.'
+            :'Antes de descartar una sesión, puede merecer la pena observar si cambian tus condiciones de entrada o tu comportamiento entre una y otra.',
       viz:`<div class="pa-bars">${bars}</div>`};
   }
   if(f.kind==='plan'){
-    return {title:'Plan vs realidad',
-      expl:`Tu principal condición de entrada se está cumpliendo en aproximadamente el ${f.compliance}% de las operaciones con datos registrados (${f.total-f.violations}/${f.total}). El incumplimiento parece concentrarse en las entradas anticipadas.`,
-      obs:'Podría ser interesante revisar en qué situaciones concretas te adelantas: identificar ese momento suele ayudar más que recordarte la regla.',
-      viz:paProgressBar(f.compliance,'Cumplimiento de tu condición de entrada')};
+    return {title:EN?'Plan vs reality':'Plan vs realidad',
+      expl:EN
+        ?`Your main entry condition is being met on roughly ${f.compliance}% of the trades with data logged (${f.total-f.violations}/${f.total}). The misses seem to cluster around early entries.`
+        :`Tu principal condición de entrada se está cumpliendo en aproximadamente el ${f.compliance}% de las operaciones con datos registrados (${f.total-f.violations}/${f.total}). El incumplimiento parece concentrarse en las entradas anticipadas.`,
+      obs:EN?'It could be worth looking at the specific situations where you jump ahead — spotting that moment usually helps more than reminding yourself of the rule.'
+            :'Podría ser interesante revisar en qué situaciones concretas te adelantas: identificar ese momento suele ayudar más que recordarte la regla.',
+      viz:paProgressBar(f.compliance,EN?'Adherence to your entry condition':'Cumplimiento de tu condición de entrada')};
   }
   if(f.kind==='planStrength'){
-    return {title:'Buena ejecución del Plan',
-      expl:`En las operaciones recientes con datos registrados mantienes un ${f.compliance}% de cumplimiento de tu condición de entrada. Es un nivel alto.`,
-      obs:'No todo necesita corregirse. Mantener este comportamiento mientras trabajas otras áreas también forma parte de mejorar.',
-      viz:paProgressBar(f.compliance,'Cumplimiento de tu condición de entrada')};
+    return {title:EN?'Good execution of the Plan':'Buena ejecución del Plan',
+      expl:EN
+        ?`Across your recent trades with data logged you hold ${f.compliance}% adherence to your entry condition. That's a high level.`
+        :`En las operaciones recientes con datos registrados mantienes un ${f.compliance}% de cumplimiento de tu condición de entrada. Es un nivel alto.`,
+      obs:EN?"Not everything needs correcting. Holding on to this while you work on other areas is part of improving too."
+            :'No todo necesita corregirse. Mantener este comportamiento mientras trabajas otras áreas también forma parte de mejorar.',
+      viz:paProgressBar(f.compliance,EN?'Adherence to your entry condition':'Cumplimiento de tu condición de entrada')};
   }
   if(f.kind==='winBadExec'){
-    return {title:'Buen resultado, ejecución a vigilar',
-      expl:`En ${f.count} operaciones ganadoras aparecen excepciones respecto a tu proceso (entradas sin confirmar, ajustes de riesgo…). El resultado fue positivo, pero conviene vigilar que el buen resultado no refuerce decisiones que no quieres repetir.`,
-      obs:'Separar el resultado de la calidad de la decisión ayuda a que una buena racha no consolide hábitos que en otro contexto saldrían caros.',viz:''};
+    return {title:EN?'Good result, execution to watch':'Buen resultado, ejecución a vigilar',
+      expl:EN
+        ?`On ${f.count} winning trades there are departures from your process (entries without confirmation, risk adjustments…). The result was positive, but it's worth making sure a good outcome doesn't reinforce decisions you don't want to repeat.`
+        :`En ${f.count} operaciones ganadoras aparecen excepciones respecto a tu proceso (entradas sin confirmar, ajustes de riesgo…). El resultado fue positivo, pero conviene vigilar que el buen resultado no refuerce decisiones que no quieres repetir.`,
+      obs:EN?'Separating the result from the quality of the decision stops a good run from cementing habits that would cost you in another context.'
+            :'Separar el resultado de la calidad de la decisión ayuda a que una buena racha no consolide hábitos que en otro contexto saldrían caros.',viz:''};
   }
   if(f.kind==='lossGoodExec'){
-    return {title:'Proceso sólido pese al resultado',
-      expl:`En ${f.count} operaciones con resultado negativo, los datos de ejecución no muestran un problema claro: seguiste tu proceso.`,
-      obs:'Puede ser importante no modificar algo que estás respetando únicamente por una mala racha de resultados.',viz:''};
+    return {title:EN?'Solid process despite the result':'Proceso sólido pese al resultado',
+      expl:EN
+        ?`On ${f.count} trades that ended negative, the execution data shows no clear problem: you followed your process.`
+        :`En ${f.count} operaciones con resultado negativo, los datos de ejecución no muestran un problema claro: seguiste tu proceso.`,
+      obs:EN?"It may matter not to change something you're sticking to just because of a bad run of results."
+            :'Puede ser importante no modificar algo que estás respetando únicamente por una mala racha de resultados.',viz:''};
   }
   if(f.kind==='lossStreak'){
-    return {title:'Racha de pérdidas reciente',
-      expl:`Encadenas ${f.streak} operaciones perdedoras seguidas en este periodo.`,
-      obs:'Más que forzar la siguiente entrada, puede merecer la pena revisar si el contexto de mercado o tu estado han cambiado respecto a cuando operabas mejor.',viz:''};
+    return {title:EN?'Recent losing streak':'Racha de pérdidas reciente',
+      expl:EN?`You have ${f.streak} losing trades in a row in this period.`
+             :`Encadenas ${f.streak} operaciones perdedoras seguidas en este periodo.`,
+      obs:EN?'Rather than forcing the next entry, it may be worth checking whether the market context or your own state has changed since you were trading better.'
+            :'Más que forzar la siguiente entrada, puede merecer la pena revisar si el contexto de mercado o tu estado han cambiado respecto a cuando operabas mejor.',viz:''};
   }
   if(f.kind==='riskStable'){
-    return {title:'Buena consistencia en el riesgo',
-      expl:`El tamaño de riesgo se ha mantenido estable en la mayoría de tus operaciones recientes (media ${f.mean.toFixed(2)}%).`,
-      obs:'Mantener el riesgo constante es de lo más difícil de sostener; conviene conservar este comportamiento.',viz:''};
+    return {title:EN?'Good consistency in risk':'Buena consistencia en el riesgo',
+      expl:EN
+        ?`Your risk size has stayed stable across most of your recent trades (average ${f.mean.toFixed(2)}%).`
+        :`El tamaño de riesgo se ha mantenido estable en la mayoría de tus operaciones recientes (media ${f.mean.toFixed(2)}%).`,
+      obs:EN?'Keeping risk constant is one of the hardest things to sustain; this is worth holding on to.'
+            :'Mantener el riesgo constante es de lo más difícil de sostener; conviene conservar este comportamiento.',viz:''};
   }
-  return {title:'Patrón detectado',expl:'',obs:'',viz:''};
+  return {title:EN?'Pattern detected':'Patrón detectado',expl:'',obs:'',viz:''};
 }
 function paProgressBar(pct,label){
   const cls=pct>=75?'pos':pct>=50?'neutral':'neg';
   return `<div class="pa-prog"><div class="pa-prog-top"><span>${esc(label)}</span><span class="pa-bar-val ${cls}">${pct}%</span></div><div class="pa-bar-track"><div class="pa-bar-fill ${cls}" style="width:${Math.max(0,Math.min(100,pct))}%"></div></div></div>`;
 }
 function paFindingCardHTML(f){
-  const sev=PA_SEV[f.severity]||PA_SEV.watch;
+  const sev=paSev(f.severity);
   const c=paFindingContent(f);
   return `<div class="pa-card pa-${sev.cls}">
     <div class="pa-card-head"><span class="pa-badge pa-badge-${sev.cls}">${sev.badge}</span></div>
@@ -9527,30 +9568,39 @@ function paFindingCardHTML(f){
     <div class="pa-observe"><span class="pa-observe-label">${sev.obs}</span> ${c.obs}</div>
   </div>`;
 }
-const PA_TREND={improving:{cls:'improving',label:'🟢 Mejorando'},stable:{cls:'stable',label:'🟡 Sin cambios claros'},worsening:{cls:'worsening',label:'🔴 Empeorando'},insufficient:{cls:'insufficient',label:'⚪ Datos insuficientes'}};
+function paTrend(k){
+  const EN={improving:{cls:'improving',label:'🟢 Improving'},stable:{cls:'stable',label:'🟡 No clear change'},worsening:{cls:'worsening',label:'🔴 Getting worse'},insufficient:{cls:'insufficient',label:'⚪ Not enough data'}};
+  const ES={improving:{cls:'improving',label:'🟢 Mejorando'},stable:{cls:'stable',label:'🟡 Sin cambios claros'},worsening:{cls:'worsening',label:'🔴 Empeorando'},insufficient:{cls:'insufficient',label:'⚪ Datos insuficientes'}};
+  const tabla=lang==='en'?EN:ES;
+  return tabla[k]||tabla.insufficient;
+}
 function paActiveAreaHTML(a){
-  const tr=PA_TREND[a.trend]||PA_TREND.insufficient;
+  const tr=paTrend(a.trend);
   let body='';
   if(a.trend==='insufficient'||a.prevPct===null){
-    body=`<div class="pa-area-hint">Aparece en el ${a.curPct===null?'—':a.curPct+'%'} de tus operaciones con datos este periodo. Todavía no hay suficiente historial anterior para evaluar su evolución.</div>`;
+    body=`<div class="pa-area-hint">${lang==='en'
+      ?`Shows up in ${a.curPct===null?'—':a.curPct+'%'} of your trades with data this period. There isn't enough earlier history yet to judge how it's moving.`
+      :`Aparece en el ${a.curPct===null?'—':a.curPct+'%'} de tus operaciones con datos este periodo. Todavía no hay suficiente historial anterior para evaluar su evolución.`}</div>`;
   } else {
-    const dir=a.trend==='improving'?'Ha bajado respecto al periodo anterior.':a.trend==='worsening'?'Ha subido respecto al periodo anterior.':'Se mantiene en niveles parecidos.';
-    body=`<div class="pa-area-prog"><div class="pa-area-prog-row"><span class="pa-area-prog-lbl">Este periodo</span><div class="pa-bar-track"><div class="pa-bar-fill ${a.trend==='worsening'?'neg':'pos'}" style="width:${Math.min(100,a.curPct)}%"></div></div><span class="pa-bar-val">${a.curPct}%</span></div><div class="pa-area-prog-row"><span class="pa-area-prog-lbl">Anterior</span><div class="pa-bar-track"><div class="pa-bar-fill neutral" style="width:${Math.min(100,a.prevPct)}%"></div></div><span class="pa-bar-val">${a.prevPct}%</span></div><div class="pa-area-hint">${dir}</div></div>`;
+    const dir=lang==='en'
+      ?(a.trend==='improving'?'It has come down on the previous period.':a.trend==='worsening'?'It has gone up on the previous period.':'It is holding at similar levels.')
+      :(a.trend==='improving'?'Ha bajado respecto al periodo anterior.':a.trend==='worsening'?'Ha subido respecto al periodo anterior.':'Se mantiene en niveles parecidos.');
+    body=`<div class="pa-area-prog"><div class="pa-area-prog-row"><span class="pa-area-prog-lbl">${lang==='en'?'This period':'Este periodo'}</span><div class="pa-bar-track"><div class="pa-bar-fill ${a.trend==='worsening'?'neg':'pos'}" style="width:${Math.min(100,a.curPct)}%"></div></div><span class="pa-bar-val">${a.curPct}%</span></div><div class="pa-area-prog-row"><span class="pa-area-prog-lbl">${lang==='en'?'Previous':'Anterior'}</span><div class="pa-bar-track"><div class="pa-bar-fill neutral" style="width:${Math.min(100,a.prevPct)}%"></div></div><span class="pa-bar-val">${a.prevPct}%</span></div><div class="pa-area-hint">${dir}</div></div>`;
   }
-  return `<div class="pa-area"><div class="pa-area-top"><span class="pa-area-name">${esc(a.label)}</span><span class="pa-trend pa-trend-${tr.cls}">${tr.label}</span></div>${body}</div>`;
+  return `<div class="pa-area"><div class="pa-area-top"><span class="pa-area-name">${esc(window.t(a.label))}</span><span class="pa-trend pa-trend-${tr.cls}">${tr.label}</span></div>${body}</div>`;
 }
 function renderPerfAnalysis(){
   const body=document.getElementById('pa-body');
   if(!body)return;
   let r;
   try{ r=computePerfAnalysis(paPeriod, paBuildCtx()); }
-  catch(e){ console.error('perf analysis error',e); body.innerHTML='<div class="pa-empty">No se pudo calcular el análisis en este momento.</div>'; return; }
+  catch(e){ console.error('perf analysis error',e); body.innerHTML='<div class="pa-empty">'+window.t('No se pudo calcular el análisis en este momento.')+'</div>'; return; }
   // Estado inicial / datos insuficientes
   if(r.level==='building'){
     body.innerHTML=`<div class="pa-building">
       <div class="pa-building-icon">🌱</div>
-      <div class="pa-building-title">Aún estamos conociendo tu forma de operar</div>
-      <div class="pa-building-text">Registra más operaciones y completa tus journals para que TradeDay pueda empezar a detectar patrones, fortalezas y áreas de mejora fiables.</div>
+      <div class="pa-building-title">${window.t('Aún estamos conociendo tu forma de operar')}</div>
+      <div class="pa-building-text">${window.t('Registra más operaciones y completa tus journals para que TradeDay pueda empezar a detectar patrones, fortalezas y áreas de mejora fiables.')}</div>
       <div class="pa-building-prog"><div class="pa-bar-track"><div class="pa-bar-fill pos" style="width:${Math.round(r.totalTrades/r.need*100)}%"></div></div><span class="pa-bar-val">${r.totalTrades}/${r.need}</span></div>
       <div class="pa-building-hint">${lang==='en'
         ?`You need at least ${r.need} trades in this period for a first analysis${r.remaining>0?` — ${r.remaining} to go`:''}.${!r.hasJournalData?' Adding notes or journal entries will let us connect your data with how you felt.':''}`
@@ -9560,7 +9610,9 @@ function renderPerfAnalysis(){
   }
   const premium=(typeof isPremiumUser==='function')?isPremiumUser():true;
   const n=r.findingsCount;
-  const summary=`<div class="pa-summary">Hemos analizado tus datos y ${n>0?`hemos encontrado <b>${n} aspecto${n===1?'':'s'} relevante${n===1?'':'s'}</b> en tu rendimiento actual`:'de momento no destaca ningún patrón fuerte'}. Primero la interpretación; debajo tienes las métricas y gráficos que la respaldan.</div>`;
+  const summary=`<div class="pa-summary">${lang==='en'
+    ?`We've looked at your data and ${n>0?`found <b>${n} thing${n===1?'':'s'} worth your attention</b> in how you're trading right now`:'nothing stands out strongly for the moment'}. The reading comes first; the metrics and charts behind it are below.`
+    :`Hemos analizado tus datos y ${n>0?`hemos encontrado <b>${n} aspecto${n===1?'':'s'} relevante${n===1?'':'s'}</b> en tu rendimiento actual`:'de momento no destaca ningún patrón fuerte'}. Primero la interpretación; debajo tienes las métricas y gráficos que la respaldan.`}</div>`;
   const cards=[];
   if(r.high)cards.push({sev:'high',html:paFindingCardHTML(r.high)});
   (r.watches||[]).forEach(w=>cards.push({sev:'watch',html:paFindingCardHTML(w)}));
@@ -9568,13 +9620,13 @@ function renderPerfAnalysis(){
 
   let html=summary;
   if(!cards.length&&!(r.activeAreas||[]).length){
-    html+=`<div class="pa-empty">Con los datos de este periodo no aparece ningún patrón lo bastante claro como para destacarlo sin arriesgar una conclusión falsa. Sigue registrando y volveremos a mirarlo.</div>`;
+    html+=`<div class="pa-empty">${window.t('Con los datos de este periodo no aparece ningún patrón lo bastante claro como para destacarlo sin arriesgar una conclusión falsa. Sigue registrando y volveremos a mirarlo.')}</div>`;
     body.innerHTML=html; return;
   }
   if(premium){
     html+='<div class="pa-cards">'+cards.map(c=>c.html).join('')+'</div>';
     if((r.activeAreas||[]).length){
-      html+=`<div class="pa-areas-block"><div class="pa-areas-title">🎯 En lo que estás trabajando</div>${r.activeAreas.map(paActiveAreaHTML).join('')}</div>`;
+      html+=`<div class="pa-areas-block"><div class="pa-areas-title">${window.t('🎯 En lo que estás trabajando')}</div>${r.activeAreas.map(paActiveAreaHTML).join('')}</div>`;
     }
   } else {
     // Free: resumen + primer hallazgo completo + resto bloqueado
@@ -9583,8 +9635,10 @@ function renderPerfAnalysis(){
     const restCount=(cards.length-1)+((r.activeAreas||[]).length?1:0);
     html+=`<div class="pa-locked">
       <div class="pa-locked-icon">👑</div>
-      <div class="pa-locked-title">Análisis completo — TradeDay Premium</div>
-      <div class="pa-locked-desc">Desbloquea el resto del análisis${restCount>0?` (${restCount} bloque${restCount===1?'':'s'} más)`:''}: todas las prioridades y fortalezas, el bloque «En lo que estás trabajando» con tu evolución, y las conexiones con tu Journal, tu Plan y tu Índice de Disciplina.</div>
+      <div class="pa-locked-title">${window.t('Análisis completo — TradeDay Premium')}</div>
+      <div class="pa-locked-desc">${lang==='en'
+        ?`Unlock the rest of the analysis${restCount>0?` (${restCount} more block${restCount===1?'':'s'})`:''}: every priority and strength, the "What you're working on" block with your progression, and the links to your Journal, your Plan and your Discipline Index.`
+        :`Desbloquea el resto del análisis${restCount>0?` (${restCount} bloque${restCount===1?'':'s'} más)`:''}: todas las prioridades y fortalezas, el bloque «En lo que estás trabajando» con tu evolución, y las conexiones con tu Journal, tu Plan y tu Índice de Disciplina.`}</div>
       <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Análisis de rendimiento')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
     </div>`;
   }
@@ -9692,18 +9746,18 @@ function glRenderScopeToggle(){
   el.innerHTML=html;
 }
 function glRenderCurrent(){
-  let accs=allAccounts, trades=_glTrades||[], scopeLabel='Todas las cuentas ('+allAccounts.length+')';
+  let accs=allAccounts, trades=_glTrades||[], scopeLabel=window.t('Todas las cuentas')+' ('+allAccounts.length+')';
   if(glScope!=='all'){
     const types=glScope.split(',');
     accs=allAccounts.filter(a=>types.includes(a.type));
     const ids=new Set(accs.map(a=>a.id));
     trades=trades.filter(t=>ids.has(t.account_id));
     const g=ACCOUNT_GROUP_ORDER.find(x=>x.types.join(',')===glScope);
-    scopeLabel=(g?g.label:'')+' ('+accs.length+' cuenta'+(accs.length===1?'':'s')+')';
+    scopeLabel=(g?window.t(g.label):'')+' ('+accs.length+' '+(lang==='en'?(accs.length===1?'account':'accounts'):('cuenta'+(accs.length===1?'':'s')))+')';
   }
   const m=computeGlobalMetrics(trades, accs);
-  const sub=document.getElementById('gl-scope-sub'); if(sub)sub.textContent=(m.total?m.total+' operaciones':'Sin operaciones')+' · '+scopeLabel;
-  const note=document.getElementById('gl-scope-note'); if(note)note.textContent=glScope==='all'?'Todas tus cuentas juntas. Cambia para ver por tipo (fondeadas, evaluación, propias…).':('Solo cuentas de tipo: '+scopeLabel);
+  const sub=document.getElementById('gl-scope-sub'); if(sub)sub.textContent=(m.total?m.total+' '+(lang==='en'?(m.total===1?'trade':'trades'):'operaciones'):window.t('Sin operaciones'))+' · '+scopeLabel;
+  const note=document.getElementById('gl-scope-note'); if(note)note.textContent=glScope==='all'?window.t('Todas tus cuentas juntas. Cambia para ver por tipo (fondeadas, evaluación, propias…).'):((lang==='en'?'Only accounts of type: ':'Solo cuentas de tipo: ')+scopeLabel);
   glRenderEquity(m); glRenderPnl(m); glRenderResults(m); glRenderBuySell(m); glRenderSummary(m); glRenderSession(m); glRenderAsset(m); glRenderWeekday(m); glRenderMonthly(m); glRenderDuration(m);
 }
 function glLock(lockedId,contentId,disp){
@@ -9767,7 +9821,7 @@ function glRenderSession(m){
   const el=document.getElementById('gl-session-chips'); if(!el)return;
   const wd=st.filter(s=>s.count>0);
   if(!wd.length){el.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
-  let html=wd.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${esc(s.name)} <strong>${s.count} op.</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
+  let html=wd.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${esc(s.name)} <strong>${s.count} ${lang==='en'?(s.count===1?'trade':'trades'):'op.'}</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
   if(m.bestSession)html+=`<div class="mx-chip pos">Mejor sesión <strong>${esc(m.bestSession.name)}</strong></div>`;
   if(m.worstSession)html+=`<div class="mx-chip neg">Peor sesión <strong>${esc(m.worstSession.name)}</strong></div>`;
   el.innerHTML=html;
@@ -9840,7 +9894,7 @@ function renderPlanView(){
     updatePlanWizardUI();
     document.getElementById('plan-wizard-title').textContent=currentPlan?'Continúa tu plan de trading':'Crea tu plan de trading';
     const subEl=document.getElementById('plan-wizard-sub');
-    if(subEl)subEl.textContent=currentPlan?'Completa tu plan para desbloquear todas las funcionalidades.':'Responde con calma, podrás editarlo después';
+    if(subEl)subEl.textContent=window.t(currentPlan?'Completa tu plan para desbloquear todas las funcionalidades.':'Responde con calma, podrás editarlo después');
   }
   initDisciplineScore();
 }
@@ -10002,10 +10056,10 @@ function showPlanValidationError(show){
 
 function updatePlanWizardUI(){
   document.querySelectorAll('.plan-step').forEach((el,i)=>{el.style.display=i===planStep?'block':'none';});
-  document.getElementById('plan-step-label').textContent=`Paso ${planStep+1} de ${PLAN_TOTAL_STEPS}`;
+  document.getElementById('plan-step-label').textContent=lang==='en'?`Step ${planStep+1} of ${PLAN_TOTAL_STEPS}`:`Paso ${planStep+1} de ${PLAN_TOTAL_STEPS}`;
   document.getElementById('plan-progress-fill').style.width=((planStep+1)/PLAN_TOTAL_STEPS*100)+'%';
   document.getElementById('plan-prev-btn').style.visibility=planStep===0?'hidden':'visible';
-  document.getElementById('plan-next-btn').innerHTML=planStep===PLAN_TOTAL_STEPS-1?'Finalizar plan <i class="ti ti-check"></i>':'Siguiente <i class="ti ti-arrow-right"></i>';
+  document.getElementById('plan-next-btn').innerHTML=planStep===PLAN_TOTAL_STEPS-1?(window.t('Finalizar plan')+' <i class="ti ti-check"></i>'):(window.t('Siguiente')+' <i class="ti ti-arrow-right"></i>');
   showPlanValidationError(false);
 }
 
@@ -10085,7 +10139,7 @@ async function finishPlan(){
 function startPlanEdit(){
   document.getElementById('plan-view-saved').style.display='none';
   document.getElementById('plan-view-wizard').style.display='flex';
-  document.getElementById('plan-wizard-title').textContent='Editar tu plan de trading';
+  document.getElementById('plan-wizard-title').textContent=window.t('Editar tu plan de trading');
   planStep=0;
   loadPlanIntoForm(currentPlan);
   updatePlanWizardUI();
@@ -11270,7 +11324,91 @@ var I18N_EN = {
   'Para mañana:':'For tomorrow:',
   'Racha actual':'Current streak',
   'Tu mayor fortaleza fue':'Your biggest strength was',
-  'Ánimo:':'Mood:'
+  'Ánimo:':'Mood:',
+
+  /* ══ Métricas, balance, resumen global y etiquetas sin tilde ══ */
+  '(opcional)':'(optional)',
+  '3 meses':'3 months',
+  'Beneficio neto':'Net profit',
+  'Capital de las cuentas seleccionadas + P&L acumulado a lo largo del tiempo':'Capital of the selected accounts + cumulative P&L over time',
+  'Capital inicial ($)':'Starting capital ($)',
+  'Consistencia mensual':'Monthly consistency',
+  'Consistencia semanal':'Weekly consistency',
+  'Cuenta fondeada':'Funded account',
+  'Cuentas':'Accounts',
+  'Cumplir tu propio plan':'Following your own plan',
+  'Dejar correr las operaciones':'Letting trades run',
+  'Diario+':'Daily+',
+  'Ej: 10000':'E.g. 10000',
+  'Ej: 3% o 300$':'E.g. 3% or $300',
+  'Ej: 45 (= 45 min)':'E.g. 45 (= 45 min)',
+  'Ej: 6% o 600$':'E.g. 6% or $600',
+  'Ej: 99':'E.g. 99',
+  'Este año':'This year',
+  'Este mes':'This month',
+  'Evitar entradas por FOMO':'Avoiding FOMO entries',
+  'Fin':'End',
+  'Ganadoras':'Winners',
+  'Ganancia media/op.':'Avg. win/trade',
+  'Gestión':'Management',
+  'Guardado':'Saved',
+  'Guardado correctamente':'Saved successfully',
+  'Hoy':'Today',
+  'Importe ($)':'Amount ($)',
+  'Mantener el riesgo definido':'Sticking to your set risk',
+  'Mejor activo':'Best instrument',
+  'Mes':'Month',
+  'Mi plan':'My plan',
+  'No forzar operaciones':'Not forcing trades',
+  'Nueva York':'New York',
+  'Ops/mes':'Trades/month',
+  'Ops/semana':'Trades/week',
+  'P&L ($ o %)':'P&L ($ or %)',
+  'P&L Total':'Total P&L',
+  'P&L del mes':'P&L for the month',
+  'Par':'Pair',
+  'Peor activo':'Worst instrument',
+  'Perdedoras':'Losers',
+  'Periodo':'Period',
+  'R:R medio':'Avg. R:R',
+  'ROI fondeo':'Funding ROI',
+  'Recursos':'Resources',
+  'Respetar el stop inicial':'Respecting the original stop',
+  'Sin operaciones':'No trades',
+  'Todas':'All',
+  'Todas las cuentas':'All accounts',
+  'Todo el historial':'All history',
+  'del capital':'of capital',
+  'operaciones · journal ·':'trades · journal ·',
+  'permanentemente':'permanently',
+  '· opcional':'· optional',
+  'BE sin clasificar':'BE unclassified',
+  'Despertar':'Wake up',
+  'Dormir':'Sleep',
+  'Estrategia':'Strategy',
+  'Nueva actividad':'New activity',
+  'Objetivos del trader':'Trader\'s goals',
+  'Personalizada':'Custom',
+  'Prop firm activa':'Active prop firm',
+  'Psicología y disciplina':'Psychology and discipline',
+  'Reglas de entrada':'Entry rules',
+  'Reglas de salida':'Exit rules',
+  'Rutina del trader':'Trader\'s routine',
+  'Semana de bajo cumplimiento. Conviene revisar qué reglas de tu plan se están dejando de lado y por qué.':'A week of low adherence. Worth reviewing which rules in your plan are being left aside, and why.',
+  'Semana positiva. Has respetado tu plan y mantenido una buena rutina, aunque hay pequeños puntos a vigilar.':'A positive week. You stuck to your plan and kept a good routine, though there are small things to watch.',
+  'Semana sobresaliente. Has respetado tu plan, mantenido el journal al día y controlado tus emociones casi en todo momento.':'An outstanding week. You stuck to your plan, kept the journal up to date and held your emotions in check nearly all the way through.',
+  'Sin clasificar':'Unclassified',
+  'Solo cuentas de tipo:':'Only accounts of type:',
+  'Análisis de comportamiento y emociones':'Behaviour and emotion analysis',
+  'Calendario visual de consistencia':'Visual consistency calendar',
+  'Captura del trade guardado':'Screenshot of the saved trade',
+  'Completa tu plan para desbloquear todas las funcionalidades.':'Complete your plan to unlock every feature.',
+  'Editar tu plan de trading':'Edit your trading plan',
+  'El rendimiento por activo':'Performance by instrument',
+  'Nombre de la actividad':'Activity name',
+  'Plan guardado y completado ✓':'Plan saved and completed ✓',
+  'Progreso guardado · Plan en curso':'Progress saved · Plan in progress',
+  'Finalizar plan':'Finish plan'
 };
 
 
