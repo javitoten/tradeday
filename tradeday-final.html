@@ -1607,9 +1607,17 @@ function initLandingFX(){
 <script>
   /* SEO / rendimiento: la landing (#screen-home) es visible por defecto en el HTML,
      así los buscadores y visitantes nuevos ven el contenido al instante (mejor rastreo y LCP).
-     Solo mostramos el overlay de carga si YA hay una sesión guardada (usuario logueado),
-     para que entre directo a su panel sin ver un parpadeo de la landing. */
-  try{for(var _k in localStorage){if(_k.indexOf('-auth-token')>-1){var _l=document.getElementById('loading');if(_l)_l.style.display='flex';break;}}}catch(e){}
+     Mostramos el overlay de carga AQUÍ, de forma síncrona y antes de pintar nada, si ya hay
+     sesión guardada o si venimos de un login (Google vuelve con el token/código en la URL).
+     Hacerlo aquí (y no más abajo, esperando a Supabase) es lo que evita que se vea un
+     instante la landing por detrás al volver de Google o al recargar ya logueado. */
+  try{
+    var _hasToken=false;
+    for(var _k in localStorage){if(_k.indexOf('-auth-token')>-1){_hasToken=true;break;}}
+    var _authInUrl=/[#&](access_token|code)=/.test(location.hash||'')||/[?&]code=/.test(location.search||'');
+    window._tdExpectAuth=_hasToken||_authInUrl;
+    if(window._tdExpectAuth){var _l=document.getElementById('loading');if(_l)_l.style.display='flex';}
+  }catch(e){}
 </script>
 <div class="toast" id="toast"><i class="ti ti-check" style="color:var(--green);font-size:15px"></i><span id="toast-msg">Guardado</span></div>
 
@@ -3839,6 +3847,10 @@ function acceptCookies(){localStorage.setItem('td_cookies_ok','1');document.getE
 function initCookieBanner(){if(!localStorage.getItem('td_cookies_ok')){const b=document.getElementById('cookie-banner');if(b)b.style.display='block';}}
 
 let appInitialized=false; // true tras la primera carga real de la app
+let _authProcessing=false; // evita procesar dos eventos de auth solapados (Supabase a veces
+                            // dispara INITIAL_SESSION y SIGNED_IN muy seguidos) — sin esto,
+                            // el segundo disparo repetía la carga y cortaba en seco la
+                            // animación de entrada del primero (se veía un instante y desaparecía).
 
 sb.auth.onAuthStateChange(async(event,session)=>{
   // Nota: NO ocultamos la carga aquí arriba. Si lo hacemos, durante los ~1-2s que tardan en
@@ -3861,31 +3873,49 @@ sb.auth.onAuthStateChange(async(event,session)=>{
       currentUser=session.user;
       return;
     }
-    currentUser=session.user;
-    await loadProfile();
-    await loadSubscription();
-    updateSubscriptionUI();
-    handleCheckoutRedirect();
-    await loadAccounts();
-    if(allAccounts.length===0){
-      // Primera vez: mostrar onboarding
-      const un=document.getElementById('ob-username');
-      if(un)un.textContent=userProfile.username||'Trader';
-      showScreen('onboarding');
-    } else {
-      currentAccountId=allAccounts[0].id;
-      await loadData();
-      await loadPlan();
-      await loadRoutineSilent();
-      showScreen('app');
-      gotoView('dashboard');
-      startInactivity();
+    if(_authProcessing){
+      // Ya hay una carga de login en curso (evento duplicado): no la repetimos.
+      currentUser=session.user;
+      return;
     }
-    appInitialized=true;
-    // Primera vez (onboarding): ya tiene su propia bienvenida. Resto: saludo + entrada al dashboard.
-    if(allAccounts.length===0) hideLoading(); else finishEntry();
+    _authProcessing=true;
+    currentUser=session.user;
+    try{
+      await loadProfile();
+      await loadSubscription();
+      updateSubscriptionUI();
+      handleCheckoutRedirect();
+      await loadAccounts();
+      if(allAccounts.length===0){
+        // Primera vez: mostrar onboarding
+        const un=document.getElementById('ob-username');
+        if(un)un.textContent=userProfile.username||'Trader';
+        showScreen('onboarding');
+      } else {
+        currentAccountId=allAccounts[0].id;
+        await loadData();
+        await loadPlan();
+        await loadRoutineSilent();
+        showScreen('app');
+        gotoView('dashboard');
+        startInactivity();
+      }
+      appInitialized=true;
+      // Primera vez (onboarding): ya tiene su propia bienvenida. Resto: saludo + entrada al dashboard.
+      if(allAccounts.length===0) hideLoading(); else finishEntry();
+    } finally {
+      _authProcessing=false;
+    }
   } else {
     appInitialized=false;
+    if(window._tdExpectAuth){
+      // Esperado: este "sin sesión" es el aviso inicial de Supabase, no el resultado final.
+      // No tocamos la pantalla; si en unos segundos no ha llegado la sesión real (código
+      // caducado, cancelado, error de red...), entonces sí mostramos la landing.
+      window._tdExpectAuth=false;
+      _entryTimers.push(setTimeout(()=>{if(!currentUser){hideLoading();showScreen('home');}},6000));
+      return;
+    }
     hideLoading();
     showScreen('home');
   }
@@ -7851,7 +7881,13 @@ function entryDisplayName(){
    en la misma pestaña o un refresco de sesión no vuelve a saludar. No añade espera si ya se saludó. */
 function finishEntry(){
   const l=document.getElementById('loading');
-  if(!l||l.style.display==='none'){hideLoading();return;}
+  if(!l)return;
+  if(l.style.display==='none'){
+    // Nadie mostró la pantalla de entrada a tiempo (p.ej. carrera con otro flujo de login):
+    // la mostramos aquí igualmente en vez de perder el saludo.
+    l.classList.remove('is-ready','is-leaving');
+    l.style.display='flex';
+  }
   let greeted=false;try{greeted=sessionStorage.getItem('td_greeted')==='1';}catch(e){}
   if(greeted){
     l.classList.add('is-leaving');
@@ -7873,7 +7909,7 @@ function finishEntry(){
   _entryTimers.push(setTimeout(()=>{
     l.classList.add('is-leaving');
     _entryTimers.push(setTimeout(hideLoading,380));
-  },2500));
+  },2000));
 }
 
 /* ══════════════════════════════════════════════
@@ -10241,13 +10277,13 @@ function abandonPlanWizard(){
 
 (async()=>{
   initCookieBanner();
-  // Si volvemos de un login (token en la URL) o ya hay sesión guardada, ocultamos la landing y
-  // mostramos una carga limpia hasta que entre la app, para que no parpadee la página de inicio.
+  // El overlay de carga (si tocaba mostrarlo) ya se mostró de forma síncrona más arriba, antes
+  // del primer pintado. Aquí solo confirmamos que la landing no quede debajo mientras se
+  // resuelve la sesión real, o la mostramos si al final resulta que no hay sesión.
   const _authInUrl = /[#&](access_token|code)=/.test(window.location.hash||'') || /[?&]code=/.test(window.location.search||'');
   const{data:{session}}=await sb.auth.getSession();
   if(session||_authInUrl){
     document.getElementById('screen-home')?.classList.remove('active');
-    const _l=document.getElementById('loading'); if(_l)_l.style.display='flex';
   } else {
     hideLoading(); showScreen('home');
   }
