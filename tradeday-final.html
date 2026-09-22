@@ -1032,21 +1032,24 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
    corto cuando el dashboard ya está listo. Solo aparece al entrar en la app, nunca al navegar. */
 .loading-screen{transition:opacity .38s ease}
 .loading-screen::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(520px 260px at 50% 46%,rgba(34,197,94,.07),transparent 70%)}
-.entry-brand{position:relative;display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--text);animation:entryIn .55s cubic-bezier(.2,.7,.2,1) both;transition:transform .38s ease}
+.entry-brand{position:relative;display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--text);animation:entryIn .55s cubic-bezier(.2,.7,.2,1) both;transition:opacity .32s ease,transform .38s ease}
 .entry-mark{width:34px;height:34px;border-radius:9px;font-size:13px;box-shadow:0 0 0 1px rgba(34,197,94,.25),0 8px 28px rgba(34,197,94,.18)}
-.entry-sub{position:relative;width:100%;height:24px;margin-top:16px;display:flex;align-items:center;justify-content:center;animation:entryFade .5s .2s both}
+.entry-sub{position:relative;width:100%;height:24px;margin-top:16px;display:flex;align-items:center;justify-content:center;animation:entryFade .5s .2s both;transition:opacity .3s ease}
 .entry-bar{position:relative;width:128px;height:2px;border-radius:2px;background:var(--border2);overflow:hidden;transition:opacity .22s ease}
 .entry-bar span{position:absolute;top:0;left:0;height:100%;width:38%;border-radius:2px;background:var(--accent);animation:entryBar 1.15s cubic-bezier(.45,0,.2,1) infinite}
-.entry-greet{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 20px;text-align:center;font-size:15px;font-weight:600;color:var(--text2);opacity:0;transform:translateY(5px);transition:opacity .3s ease,transform .3s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.entry-greet span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.entry-greet b{color:var(--text);font-weight:700}
-.loading-screen.is-ready .entry-bar{opacity:0}
-.loading-screen.is-ready .entry-greet{opacity:1;transform:none}
+.entry-big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 28px;text-align:center;opacity:0;transition:opacity 1.3s cubic-bezier(.2,.7,.2,1) .05s}
+.entry-big-text{font-size:clamp(26px,5vw,44px);font-weight:800;letter-spacing:-.03em;color:var(--text);line-height:1.32;max-width:680px;transform:translateY(10px);transition:transform 1.3s cubic-bezier(.2,.7,.2,1) .05s}
+.entry-big-text b{color:var(--accent)}
+.loading-screen.is-ready .entry-brand{opacity:0;transform:translateY(-6px) scale(.97);animation:none}
+.loading-screen.is-ready .entry-sub{opacity:0;animation:none}
+.loading-screen.is-ready .entry-big{opacity:1}
+.loading-screen.is-ready .entry-big-text{transform:none}
 .loading-screen.is-leaving{opacity:0;pointer-events:none}
 .loading-screen.is-leaving .entry-brand{transform:translateY(-4px)}
 @keyframes entryIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes entryFade{from{opacity:0}to{opacity:1}}
 @keyframes entryBar{0%{transform:translateX(-110%)}100%{transform:translateX(270%)}}
-@media (prefers-reduced-motion:reduce){.entry-brand,.entry-sub{animation:none}.entry-bar span{animation-duration:2.4s}.entry-greet,.loading-screen.is-leaving .entry-brand{transform:none}}
+@media (prefers-reduced-motion:reduce){.entry-brand,.entry-sub{animation:none}.entry-bar span{animation-duration:2.4s}.entry-big-text,.loading-screen.is-leaving .entry-brand{transform:none}}
 
 /* TOAST */
 .toast{position:fixed;bottom:22px;right:22px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:9px;z-index:999;transform:translateY(60px);opacity:0;transition:all .25s;pointer-events:none;font-weight:500}
@@ -1598,7 +1601,8 @@ function initLandingFX(){
 
 <div class="loading-screen" id="loading" style="display:none" role="status" aria-live="polite" data-no-i18n>
   <div class="entry-brand"><div class="logo-mark entry-mark">TD</div><span>TradeDay</span></div>
-  <div class="entry-sub"><div class="entry-bar" aria-hidden="true"><span></span></div><div class="entry-greet" id="entry-greet"></div></div>
+  <div class="entry-sub"><div class="entry-bar" aria-hidden="true"><span></span></div></div>
+  <div class="entry-big"><div class="entry-big-text" id="entry-big-text"></div></div>
 </div>
 <script>
   /* SEO / rendimiento: la landing (#screen-home) es visible por defecto en el HTML,
@@ -3730,14 +3734,19 @@ async function loginEmail(){
   const email=document.getElementById('login-email').value.trim().slice(0,254);
   const pass=document.getElementById('login-pass').value;
   if(!email||!pass){showAuthError('login-error','Completa email y contraseña.');return;}
+  // Mostramos la pantalla de marca YA, antes de esperar la respuesta del login: si se hace
+  // después del "await" a signInWithPassword, el listener de onAuthStateChange puede terminar
+  // de cargar perfil/cuentas primero y la entrada nunca llega a verse (carrera de eventos).
+  try{sessionStorage.removeItem('td_greeted');}catch(e){}
+  showEntry();
   const captchaToken=await getCaptchaToken(hcapLoginId);
   const{error}=await sb.auth.signInWithPassword({email,password:pass,options:{captchaToken}});
   resetCaptcha(hcapLoginId);
-  if(error){showAuthError('login-error',friendlyAuthError(error));return;}
-  // Credenciales OK: nueva entrada -> se saluda de nuevo y se muestra la pantalla de marca
-  // mientras onAuthStateChange carga perfil, cuentas y datos (misma lógica de siempre).
-  try{sessionStorage.removeItem('td_greeted');}catch(e){}
-  if(!appInitialized)showEntry();
+  if(error){
+    hideLoading();
+    showAuthError('login-error',friendlyAuthError(error));
+    return;
+  }
 }
 async function signupEmail(){
   const email=document.getElementById('signup-email').value.trim().slice(0,254);
@@ -7824,7 +7833,7 @@ function hideLoading(){
   _clearEntryTimers();
   const l=document.getElementById('loading');if(!l)return;
   l.style.display='none';l.classList.remove('is-ready','is-leaving');
-  const g=document.getElementById('entry-greet');if(g)g.textContent='';
+  const g=document.getElementById('entry-big-text');if(g)g.textContent='';
 }
 /* Muestra la pantalla de entrada (marca TradeDay) mientras carga la app. */
 function showEntry(){
@@ -7850,7 +7859,7 @@ function finishEntry(){
     return;
   }
   try{sessionStorage.setItem('td_greeted','1');}catch(e){}
-  const g=document.getElementById('entry-greet');
+  const g=document.getElementById('entry-big-text');
   if(g){
     const en=(typeof lang!=='undefined'&&lang==='en');
     g.textContent='';
@@ -7864,7 +7873,7 @@ function finishEntry(){
   _entryTimers.push(setTimeout(()=>{
     l.classList.add('is-leaving');
     _entryTimers.push(setTimeout(hideLoading,380));
-  },2200));
+  },2500));
 }
 
 /* ══════════════════════════════════════════════
