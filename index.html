@@ -981,15 +981,15 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .calmatrix .week-summary-card{transition:background .15s,border-color .15s,transform .12s}
 .calmatrix .week-summary-card:hover{background:var(--bg3);border-color:var(--border2);transform:translateY(-1px)}
 .calmatrix .week-summary-card:active{transform:scale(.985)}
-/* Transición profesional al abrir el modal de trades de la semana */
+/* Transición profesional al abrir modales (resumen semanal, nueva entrada de journal) */
 @keyframes tpWeekOverlayIn{from{opacity:0}to{opacity:1}}
 @keyframes tpWeekModalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes tpWeekRowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-#modal-week{animation:tpWeekOverlayIn .18s ease}
-#modal-week .modal{animation:tpWeekModalIn .28s cubic-bezier(.2,.7,.2,1)}
+#modal-week,#modal-journal{animation:tpWeekOverlayIn .18s ease}
+#modal-week .modal,#modal-journal .modal{animation:tpWeekModalIn .28s cubic-bezier(.2,.7,.2,1)}
 #modal-week .wk-trade-row{animation:tpWeekRowIn .32s cubic-bezier(.2,.7,.2,1) both;border-radius:8px;transition:background .12s}
 #modal-week .wk-trade-row:hover{background:var(--bg3)}
-@media (prefers-reduced-motion:reduce){#modal-week,#modal-week .modal,#modal-week .wk-trade-row{animation:none}}
+@media (prefers-reduced-motion:reduce){#modal-week,#modal-journal,#modal-week .modal,#modal-journal .modal,#modal-week .wk-trade-row{animation:none}}
 .week-summary-dates{font-size:12px;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px}
 .week-summary-pnl{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .week-summary-pct{font-size:12px;font-weight:600;margin-top:2px}
