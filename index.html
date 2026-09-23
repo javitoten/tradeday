@@ -954,6 +954,13 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .week-summary-card:hover{background:var(--bg3);border-color:var(--border2)}
 .week-summary-card:last-child{margin-bottom:0}
 .week-summary-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+
+/* CALENDAR + WEEKLY SUMMARY, alineados por fila (una fila = una semana) */
+.calmatrix{display:flex;flex-direction:column;gap:5px}
+.calmatrix-head,.calmatrix-row{display:grid;grid-template-columns:repeat(7,1fr) 220px;gap:5px;align-items:stretch}
+.calmatrix-wk-head{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:6px 0 6px 6px;display:flex;align-items:flex-end}
+.calmatrix .week-summary-card{margin-bottom:0;height:100%;min-height:92px;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
+.calmatrix .week-summary-card.empty-week{color:var(--text3)}
 .week-summary-dates{font-size:12px;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px}
 .week-summary-pnl{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .week-summary-pct{font-size:12px;font-weight:600;margin-top:2px}
@@ -1304,10 +1311,12 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
   .section-header{flex-wrap:wrap;gap:10px}
 
   /* ── CALENDARIO COMPLETO (página dedicada) ── */
-  .cal-layout{display:flex !important;flex-direction:column !important;gap:16px !important;align-items:stretch !important}
-  .cal-layout > div{width:100%;min-width:0}
-  #weekly-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
-  .week-summary-card{margin-bottom:0;width:auto}
+  /* Móvil: cada semana muestra sus 7 días y, justo debajo, su resumen a ancho completo */
+  .calmatrix{gap:10px}
+  .calmatrix-head{grid-template-columns:repeat(7,1fr);gap:4px}
+  .calmatrix-head .calmatrix-wk-head{display:none}
+  .calmatrix-row{grid-template-columns:repeat(7,1fr);gap:4px}
+  .calmatrix-row .week-summary-card{grid-column:1/-1;margin-top:2px}
   .bigcal-grid{gap:4px}
   .bigcal-grid-header{gap:4px}
   .bigcal-day-label{font-size:10px;padding:3px 0}
@@ -2500,22 +2509,8 @@ function initLandingFX(){
           </div>
         </div>
 
-        <!-- Layout: calendario + resumen semanal -->
-        <div class="cal-layout" style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start">
-
-          <!-- CALENDARIO GRANDE -->
-          <div>
-            <div class="bigcal-grid-header" id="full-labels"></div>
-            <div class="bigcal-grid" id="full-days"></div>
-          </div>
-
-          <!-- RESUMEN SEMANAL -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Resumen semanal</div>
-            <div id="weekly-summary"></div>
-          </div>
-
-        </div>
+        <!-- Layout: cada fila = una semana [7 días | resumen], alineados dinámicamente -->
+        <div class="calmatrix" id="full-calmatrix"></div>
       </div>
 
       <!-- OPS -->
@@ -3398,6 +3393,14 @@ function initLandingFX(){
         <div class="choice-card diary" onclick="openJournalForm()"><div class="choice-icon">✍️</div><div class="choice-title">No he operado</div><div class="choice-sub-text">Escribir en el diario</div></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- TRADES DE LA SEMANA (desde el resumen semanal del calendario) -->
+<div class="modal-overlay" id="modal-week" style="display:none" onclick="if(event.target===this)closeModal('modal-week')">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><div class="modal-title" id="week-modal-title">Trades de la semana</div><button class="modal-close" onclick="closeModal('modal-week')"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body" id="week-modal-body" style="gap:0"></div>
   </div>
 </div>
 
@@ -7619,133 +7622,179 @@ function renderFullCal(){
   const yearEl=document.getElementById('full-cal-year');
   if(yearEl)yearEl.textContent=fullYear;
 
-  const labelsEl=document.getElementById('full-labels');
-  if(labelsEl){
-    labelsEl.innerHTML='';
-    D.forEach(d=>{const e=document.createElement('div');e.className='bigcal-day-label';e.textContent=d.slice(0,3);labelsEl.appendChild(e);});
-  }
-
+  // Agregados por día — misma fuente de verdad que el resto de la app (allTrades)
   const calData=getCalData();
   const dayPnL={};const dayTrades={};
   allTrades.forEach(t=>{
     if(!t.date)return;
     if(!dayTrades[t.date])dayTrades[t.date]=[];
     dayTrades[t.date].push(t);
-    const n=t.amount?parseFloat(t.amount.replace(/[^0-9.\-]/g,'')):0;
+    const n=t.amount?parseFloat(String(t.amount).replace(/[^0-9.\-]/g,'')):0;
     if(!isNaN(n))dayPnL[t.date]=(dayPnL[t.date]||0)+n;
   });
 
   const acc=currentAccount();
   const capitalBase=acc?acc.capital:1;
-  const grid=document.getElementById('full-days');
-  if(!grid)return;
-  grid.innerHTML='';
+  const matrix=document.getElementById('full-calmatrix');
+  if(!matrix)return;
+  matrix.innerHTML='';
 
-  const first=new Date(fullYear,fullMonth,1).getDay();
+  const first=new Date(fullYear,fullMonth,1).getDay(); // 0=Domingo (calendario domingo→sábado)
   const total=new Date(fullYear,fullMonth+1,0).getDate();
   const today=new Date();
+  const isToday=d=>today.getFullYear()===fullYear&&today.getMonth()===fullMonth&&today.getDate()===d;
+  const pad=n=>String(n).padStart(2,'0');
+  const keyFor=d=>`${fullYear}-${pad(fullMonth+1)}-${pad(d)}`;
+  const monthShort=M[fullMonth].slice(0,3);
 
-  for(let i=0;i<first;i++){
-    const e=document.createElement('div');e.className='bigcal-day empty';grid.appendChild(e);
+  // Cabecera: etiquetas de día + título del resumen (comparten las mismas columnas)
+  const headRow=document.createElement('div');headRow.className='calmatrix-head';
+  D.forEach(d=>{const e=document.createElement('div');e.className='bigcal-day-label';e.textContent=d.slice(0,3);headRow.appendChild(e);});
+  const headWk=document.createElement('div');headWk.className='calmatrix-wk-head';headWk.textContent=window.t('Resumen semanal');headRow.appendChild(headWk);
+  matrix.appendChild(headRow);
+
+  // Celdas planas: huecos iniciales + días del mes, rellenando el final hasta múltiplo de 7.
+  // Así CADA fila del DOM contiene exactamente los 7 días de una semana visual del calendario,
+  // y su resumen se calcula sobre esos mismos días → alineación y fechas siempre coherentes.
+  const cells=[];
+  for(let i=0;i<first;i++)cells.push(null);
+  for(let d=1;d<=total;d++)cells.push(d);
+  while(cells.length%7!==0)cells.push(null);
+
+  for(let w=0;w*7<cells.length;w++){
+    const rowDays=cells.slice(w*7,w*7+7);
+    const row=document.createElement('div');row.className='calmatrix-row';
+
+    rowDays.forEach(d=>{
+      if(d===null){const e=document.createElement('div');e.className='bigcal-day empty';row.appendChild(e);return;}
+      const key=keyFor(d);
+      const state=calData[key]||null;
+      const el=document.createElement('div');
+      el.className='bigcal-day'+(state?' '+state:'');
+      if(isToday(d))el.classList.add('today');
+      const numEl=document.createElement('div');numEl.className='bigcal-day-num';numEl.textContent=d;el.appendChild(numEl);
+      const contentEl=document.createElement('div');contentEl.className='bigcal-day-content';
+      if(state==='win'||state==='loss'){
+        const pnl=dayPnL[key]||0;
+        const pct=capitalBase>0?(pnl/capitalBase*100):0;
+        const trades=dayTrades[key]||[];
+        const amtEl=document.createElement('div');amtEl.className='bigcal-amount';
+        amtEl.textContent=fmtMoneySigned(pnl);
+        const pctEl=document.createElement('div');pctEl.className='bigcal-pct';
+        pctEl.textContent=(pct>=0?'+':'')+Math.abs(pct).toFixed(1)+'%';
+        const trEl=document.createElement('div');trEl.className='bigcal-trades';
+        trEl.textContent=trades.length+(trades.length===1?' trade':' trades');
+        contentEl.appendChild(amtEl);contentEl.appendChild(pctEl);contentEl.appendChild(trEl);
+      } else if(state==='be'){
+        const trades=dayTrades[key]||[];
+        const beEl=document.createElement('div');beEl.className='bigcal-be-label';beEl.textContent='BE';
+        const trEl=document.createElement('div');trEl.className='bigcal-trades';
+        trEl.textContent=trades.length+(trades.length===1?' trade':' trades');
+        contentEl.appendChild(beEl);if(trades.length)contentEl.appendChild(trEl);
+      } else if(state==='journal'){
+        const jEl=document.createElement('div');jEl.className='bigcal-journal-label';jEl.innerHTML='Diario<br>completado';
+        contentEl.appendChild(jEl);
+      }
+      el.appendChild(contentEl);
+      row.appendChild(el);
+    });
+
+    // Resumen de esta semana = exactamente los días reales de esta fila del calendario
+    const realDays=rowDays.filter(d=>d!==null);
+    row.appendChild(buildWeekCard(w+1,realDays,fullYear,fullMonth,dayPnL,dayTrades,capitalBase,monthShort));
+    matrix.appendChild(row);
   }
 
-  for(let d=1;d<=total;d++){
-    const key=`${fullYear}-${String(fullMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const state=calData[key]||null;
-    const el=document.createElement('div');
-    el.className='bigcal-day'+(state?' '+state:'');
-    if(today.getFullYear()===fullYear&&today.getMonth()===fullMonth&&today.getDate()===d)el.classList.add('today');
-
-    // Número del día
-    const numEl=document.createElement('div');numEl.className='bigcal-day-num';numEl.textContent=d;el.appendChild(numEl);
-
-    // Contenido
-    const contentEl=document.createElement('div');contentEl.className='bigcal-day-content';
-    if(state==='win'||state==='loss'){
-      const pnl=dayPnL[key]||0;
-      const pct=capitalBase>0?(pnl/capitalBase*100):0;
-      const trades=dayTrades[key]||[];
-      const amtEl=document.createElement('div');amtEl.className='bigcal-amount';
-      amtEl.textContent=fmtMoneySigned(pnl);
-      const pctEl=document.createElement('div');pctEl.className='bigcal-pct';
-      pctEl.textContent=(pct>=0?'+':'')+Math.abs(pct).toFixed(1)+'%';
-      const trEl=document.createElement('div');trEl.className='bigcal-trades';
-      trEl.textContent=trades.length+(trades.length===1?' trade':' trades');
-      contentEl.appendChild(amtEl);contentEl.appendChild(pctEl);contentEl.appendChild(trEl);
-    } else if(state==='be'){
-      const trades=dayTrades[key]||[];
-      const beEl=document.createElement('div');beEl.className='bigcal-be-label';beEl.textContent='BE';
-      const trEl=document.createElement('div');trEl.className='bigcal-trades';
-      trEl.textContent=trades.length+(trades.length===1?' trade':' trades');
-      contentEl.appendChild(beEl);if(trades.length)contentEl.appendChild(trEl);
-    } else if(state==='journal'){
-      const jEl=document.createElement('div');jEl.className='bigcal-journal-label';jEl.innerHTML='Diario<br>completado';
-      contentEl.appendChild(jEl);
-    }
-
-    el.appendChild(contentEl);
-    grid.appendChild(el);
-  }
-
-  renderWeeklySummary(fullYear,fullMonth,dayPnL,dayTrades,capitalBase);
   renderCalSummary(fullYear,fullMonth);
 }
 
-function renderWeeklySummary(year,month,dayPnL,dayTrades,capitalBase){
-  const M=gM();
-  const el=document.getElementById('weekly-summary');
-  if(!el)return;
-  const total=new Date(year,month+1,0).getDate();
-  const weeks=[];
-  let weekStart=1;
-
-  // Construir semanas del mes (lunes a domingo)
-  for(let d=1;d<=total;d++){
-    const date=new Date(year,month,d);
-    const dow=date.getDay(); // 0=domingo
-    const isLastDay=d===total;
-    // Fin de semana es domingo (0) o último día del mes
-    if(dow===0||isLastDay){
-      weeks.push({start:weekStart,end:d});
-      weekStart=d+1;
+// Construye la tarjeta de resumen de UNA semana (mismos cálculos y helpers que el resto de la app).
+function buildWeekCard(num,realDays,year,month,dayPnL,dayTrades,capitalBase,monthShort){
+  const pad=n=>String(n).padStart(2,'0');
+  let pnl=0,tradesCount=0,wins=0,losses=0,be=0,buys=0,sells=0;
+  realDays.forEach(d=>{
+    const key=`${year}-${pad(month+1)}-${pad(d)}`;
+    if(dayPnL[key])pnl+=dayPnL[key];
+    const dts=dayTrades[key];
+    if(dts){
+      tradesCount+=dts.length;
+      dts.forEach(t=>{
+        if(t.result==='win')wins++;else if(t.result==='loss')losses++;else if(t.result==='be')be++;
+        if(t.direction==='Buy')buys++;else if(t.direction==='Sell')sells++;
+      });
     }
+  });
+  const pct=capitalBase>0?(pnl/capitalBase*100):0;
+  const hasData=tradesCount>0;
+  const wr=(wins+losses)?Math.round(wins/(wins+losses)*100):0;
+  const color=pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text3)';
+  const start=realDays.length?realDays[0]:'';
+  const end=realDays.length?realDays[realDays.length-1]:'';
+  const card=document.createElement('div');
+  card.className='week-summary-card'+(hasData?'':' empty-week');
+  let html=`<div class="week-summary-label">${window.t('Semana')} ${num}</div>
+    <div class="week-summary-dates">📅 ${start}–${end} ${monthShort}</div>`;
+  if(hasData){
+    html+=`<div class="week-summary-pnl" style="color:${color}">${fmtMoneySigned(pnl)}</div>
+      <div class="week-summary-pct" style="color:${color}">${(pct>=0?'+':'')+pct.toFixed(1)+'%'}</div>
+      <div class="week-summary-meta">
+        <span>${tradesCount} trade${tradesCount!==1?'s':''}</span>
+        <div class="week-summary-dot"></div>
+        <span>${wr}% WR</span>
+      </div>
+      <div class="week-summary-meta" style="margin-top:3px">
+        <span style="color:var(--green)">${wins}W</span>
+        <div class="week-summary-dot"></div>
+        <span style="color:var(--red)">${losses}L</span>
+        ${be?`<div class="week-summary-dot"></div><span style="color:var(--text3)">${be}BE</span>`:''}
+      </div>
+      ${(buys||sells)?`<div class="week-summary-meta" style="margin-top:3px"><span>${buys} Buy</span><div class="week-summary-dot"></div><span>${sells} Sell</span></div>`:''}
+      <div style="font-size:10px;color:var(--text3);margin-top:8px;display:flex;align-items:center;gap:4px"><i class="ti ti-list-search" style="font-size:12px"></i>${window.t('Ver trades')}</div>`;
+  } else {
+    html+=`<div style="font-size:12px;color:var(--text3)">${window.t('Sin actividad')}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px;display:flex;align-items:center;gap:4px;opacity:.75"><i class="ti ti-list-search" style="font-size:12px"></i>${window.t('Ver trades')}</div>`;
   }
+  card.innerHTML=html;
+  if(realDays.length)card.onclick=()=>openWeekTrades(year,month,start,end);
+  return card;
+}
 
-  if(!weeks.length){el.innerHTML='<div style="font-size:12px;color:var(--text3)">Sin semanas</div>';return;}
-
-  el.innerHTML=weeks.map((w,i)=>{
-    let pnl=0;let tradesCount=0;
-    let wins=0;let losses=0;
-    for(let d=w.start;d<=w.end;d++){
-      const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if(dayPnL[key])pnl+=dayPnL[key];
-      if(dayTrades[key]){
-        tradesCount+=dayTrades[key].length;
-        wins+=dayTrades[key].filter(t=>t.result==='win').length;
-        losses+=dayTrades[key].filter(t=>t.result==='loss').length;
-      }
-    }
-    const pct=capitalBase>0?(pnl/capitalBase*100):0;
-    const hasData=tradesCount>0||pnl!==0;
-    const color=pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text3)';
-    const monthShort=M[month].slice(0,3);
-    return `<div class="week-summary-card">
-      <div class="week-summary-label">${window.t('Semana')} ${i+1}</div>
-      <div class="week-summary-dates">📅 ${w.start}–${w.end} ${monthShort}</div>
-      ${hasData
-        ? `<div class="week-summary-pnl" style="color:${color}">${fmtMoneySigned(pnl)}</div>
-           <div class="week-summary-pct" style="color:${color}">${(pct>=0?'+':'')+pct.toFixed(1)+'%'}</div>
-           <div class="week-summary-meta">
-             <span>${tradesCount} trade${tradesCount!==1?'s':''}</span>
-             <div class="week-summary-dot"></div>
-             <span style="color:var(--green)">${wins}W</span>
-             <div class="week-summary-dot"></div>
-             <span style="color:var(--red)">${losses}L</span>
-           </div>`
-        : `<div style="font-size:12px;color:var(--text3)">Sin actividad</div>`
-      }
-    </div>`;
-  }).join('');
+// Modal con los trades reales de una semana; cada trade abre su detalle/edición completo.
+function openWeekTrades(year,month,startDay,endDay){
+  const M=gM();const pad=n=>String(n).padStart(2,'0');
+  const startKey=`${year}-${pad(month+1)}-${pad(startDay)}`;
+  const endKey=`${year}-${pad(month+1)}-${pad(endDay)}`;
+  const wt=allTrades.filter(t=>t.date&&t.date>=startKey&&t.date<=endKey)
+    .sort((a,b)=>((a.date+(a.time||''))<(b.date+(b.time||''))?-1:1));
+  setText('week-modal-title',`${window.t('Trades')} · ${startDay}–${endDay} ${M[month].slice(0,3)} ${year}`);
+  const body=document.getElementById('week-modal-body');
+  if(!body)return;
+  if(!wt.length){body.innerHTML=`<div class="day-detail-empty">${window.t('No hay operaciones registradas esta semana.')}</div>`;openModal('modal-week');return;}
+  let pnl=0,wins=0,losses=0;
+  wt.forEach(t=>{const n=t.amount?parseFloat(String(t.amount).replace(/[^0-9.\-]/g,'')):0;if(!isNaN(n))pnl+=n;if(t.result==='win')wins++;else if(t.result==='loss')losses++;});
+  const wr=(wins+losses)?Math.round(wins/(wins+losses)*100):0;
+  const pcolor=pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text3)';
+  const lbl='font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;font-weight:700';
+  let html=`<div style="display:flex;gap:16px;flex-wrap:wrap;padding:0 0 12px;margin-bottom:8px;border-bottom:1px solid var(--border)">
+    <div><div style="${lbl}">${window.t('Resultado')}</div><div style="font-size:16px;font-weight:800;color:${pcolor}">${fmtMoneySigned(pnl)}</div></div>
+    <div><div style="${lbl}">${window.t('Trades')}</div><div style="font-size:16px;font-weight:800">${wt.length}</div></div>
+    <div><div style="${lbl}">${window.t('Win rate')}</div><div style="font-size:16px;font-weight:800">${(wins+losses)?wr+'%':'—'}</div></div>
+  </div>`;
+  wt.forEach(t=>{
+    const coverUrl=getTradeCoverUrl(t);
+    const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
+    const rescls=t.result==='win'?'pos':t.result==='loss'?'neg':'neutral';
+    const dircls=t.direction==='Buy'?'badge-buy':'badge-sell';
+    html+=`<div data-no-i18n onclick="closeModal('modal-week');editTradeEntry('${esc(t.id)}')" style="display:flex;align-items:flex-start;gap:9px;padding:9px 2px;border-bottom:1px solid var(--border);cursor:pointer">${thumb}
+      <div style="flex:1;min-width:0;font-size:12px">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><strong>${esc(t.pair||'—')}</strong> ${t.direction?`<span class="badge ${dircls}">${esc(t.direction)}</span>`:''} ${t.session?`<span style="color:var(--text3)">${esc(t.session)}</span>`:''}</div>
+        <div style="margin-top:3px"><span style="color:var(--text3)">${fmtDate(t.date)}</span> · <span class="${rescls}">${esc(t.amount||'BE')}</span></div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--text3);font-size:15px;align-self:center"></i></div>`;
+  });
+  body.innerHTML=html;
+  hydrateTradeImages(body);
+  openModal('modal-week');
 }
 
 function miniPrev(){miniMonth--;if(miniMonth<0){miniMonth=11;miniYear--;}renderMiniCal();}
@@ -11105,6 +11154,9 @@ var I18N_EN = {
   'Seleccionar otra cuenta':'Choose another account',
   'Seleccionar...':'Choose...',
   'Semana':'Week',
+  'Ver trades':'View trades',
+  'No hay operaciones registradas esta semana.':'No trades recorded this week.',
+  'Win rate':'Win rate',
   'Semana actual':'This week',
   'Semana pasada':'Last week',
   'Septiembre':'September',
