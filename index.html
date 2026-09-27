@@ -990,6 +990,36 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 #modal-week .wk-trade-row{animation:tpWeekRowIn .32s cubic-bezier(.2,.7,.2,1) both;border-radius:8px;transition:background .12s}
 #modal-week .wk-trade-row:hover{background:var(--bg3)}
 @media (prefers-reduced-motion:reduce){#modal-week,#modal-journal,#modal-week .modal,#modal-journal .modal,#modal-week .wk-trade-row{animation:none}}
+/* OFERTA POR TIEMPO LIMITADO (banner del dashboard + franja en planes) */
+.offer-banner{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:18px 48px 18px 20px;border-radius:var(--radius-xl);border:1px solid var(--green-border);background:radial-gradient(600px 160px at 0% 0%,rgba(34,197,94,.16),transparent 70%),linear-gradient(180deg,var(--green-bg),var(--bg2));box-shadow:0 10px 30px #00000030;animation:tpWeekModalIn .4s cubic-bezier(.2,.7,.2,1)}
+.offer-banner-main{display:flex;flex-direction:column;gap:6px;min-width:0}
+.offer-badge{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--green);background:#22C55E1a;border:1px solid var(--green-border);padding:4px 9px;border-radius:999px}
+.offer-badge i{font-size:13px}
+.offer-title{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--text);line-height:1.2}
+.offer-pct{color:var(--green)}
+.offer-sub{font-size:13px;color:var(--text2);display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.offer-sub strong{color:var(--text)}
+.offer-strike{text-decoration:line-through;opacity:.55}
+.offer-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;letter-spacing:.08em;color:var(--green);background:var(--bg);border:1px dashed var(--green-border);padding:2px 8px;border-radius:6px}
+.offer-side{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.offer-countdown{display:flex;flex-direction:column;align-items:flex-end;font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.offer-countdown strong{font-size:17px;color:var(--text);letter-spacing:.01em;text-transform:none;font-variant-numeric:tabular-nums}
+.offer-cta{white-space:nowrap}
+.offer-close{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;border-radius:6px;display:flex}
+.offer-close:hover{color:var(--text);background:var(--bg3)}
+.pp-offer-strip{display:flex;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;color:var(--text2);line-height:1.45}
+.pp-offer-strip i{color:var(--green);font-size:18px}
+.pp-offer-strip strong{color:var(--text)}
+.ld-offer-bar{position:relative;z-index:201;display:flex;align-items:center;justify-content:center;gap:10px 16px;flex-wrap:wrap;padding:10px 16px;font-size:13px;color:var(--text2);background:linear-gradient(90deg,#052C14,#0b3b1c 50%,#052C14);border-bottom:1px solid var(--green-border);animation:tpWeekOverlayIn .35s ease}
+.ld-offer-text{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.ld-offer-text i{color:var(--green);font-size:16px}
+.ld-offer-text strong{color:var(--text)}
+.ld-offer-timer{display:inline-flex;align-items:center;gap:6px;color:var(--text3);font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.ld-offer-timer strong{color:var(--text);font-size:13.5px;text-transform:none;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.ld-offer-cta{display:inline-flex;align-items:center;gap:6px;background:var(--green);color:#000;border:none;border-radius:999px;padding:6px 14px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit;transition:transform .12s,filter .15s}
+.ld-offer-cta:hover{filter:brightness(1.08);transform:translateY(-1px)}
+@media (max-width:760px){.ld-offer-bar{font-size:12px;padding:9px 12px;gap:6px 10px}.ld-offer-timer{font-size:10.5px}}
+@media (max-width:760px){.offer-banner{padding:16px 40px 16px 16px}.offer-side{width:100%;justify-content:space-between}.offer-countdown{align-items:flex-start}.offer-title{font-size:17px}}
 .week-summary-dates{font-size:12px;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px}
 .week-summary-pnl{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .week-summary-pct{font-size:12px;font-weight:600;margin-top:2px}
@@ -1682,6 +1712,12 @@ function initLandingFX(){
 
 <!-- ══ HOME ══ -->
 <div class="screen active" id="screen-home">
+  <!-- OFERTA POR TIEMPO LIMITADO (landing): visible solo mientras dure OFFER, con cuenta atrás -->
+  <div class="ld-offer-bar" id="ld-offer-bar" style="display:none" role="region" aria-label="Oferta por tiempo limitado">
+    <span class="ld-offer-text"><i class="ti ti-flame"></i><strong>Oferta por tiempo limitado:</strong> <span>−25% de por vida en Premium mensual con</span> <span class="offer-code" data-no-i18n>SEMANA25</span></span>
+    <span class="ld-offer-timer"><span>Termina en</span> <strong id="ld-offer-countdown" data-no-i18n>—</strong></span>
+    <button class="ld-offer-cta" onclick="startOfferSignup()"><span>Aprovechar</span><i class="ti ti-arrow-right"></i></button>
+  </div>
   <div class="ld-nav-wrap">
     <nav class="ld-nav">
       <div class="nav-logo"><div class="logo-mark">TD</div>TradeDay</div>
@@ -2300,6 +2336,20 @@ function initLandingFX(){
             <div id="account-type-badge"></div>
           </div>
           <button class="btn btn-primary" onclick="openChoice()"><i class="ti ti-plus"></i>Nueva entrada</button>
+        </div>
+
+        <!-- OFERTA POR TIEMPO LIMITADO (solo usuarios sin Premium, se oculta sola al caducar) -->
+        <div class="offer-banner" id="offer-banner" style="display:none">
+          <div class="offer-banner-main">
+            <div class="offer-badge"><i class="ti ti-flame"></i><span>Oferta por tiempo limitado</span></div>
+            <div class="offer-title"><span class="offer-pct">−25%</span> <span>de por vida en Premium mensual</span></div>
+            <div class="offer-sub"><span class="offer-strike">9,99€</span> <strong>7,49€/mes</strong> <span>para siempre · código</span> <span class="offer-code" data-no-i18n>SEMANA25</span> <span>· hasta el 4 de octubre</span></div>
+          </div>
+          <div class="offer-side">
+            <div class="offer-countdown" aria-live="polite"><span>Termina en</span> <strong id="offer-countdown" data-no-i18n>—</strong></div>
+            <button class="btn btn-primary offer-cta" onclick="claimOffer()"><i class="ti ti-crown"></i>Aprovechar oferta</button>
+          </div>
+          <button class="offer-close" onclick="dismissOfferBanner()" title="Cerrar" aria-label="Cerrar"><i class="ti ti-x"></i></button>
         </div>
 
         <!-- RESUMEN DEL DÍA -->
@@ -3690,6 +3740,7 @@ function initLandingFX(){
       <!-- PANTALLA 2: PRECIO + OFERTA + CTA -->
       <div id="pp-screen-plans" style="display:none">
         <div class="pp-back" onclick="showPricingScreen(1)"><i class="ti ti-arrow-left"></i>Volver</div>
+        <div id="pp-offer-strip" class="pp-offer-strip" style="display:none"><i class="ti ti-flame"></i><div><strong><span>−25% de por vida</span></strong> <span>en el plan Mensual con</span> <strong data-no-i18n>SEMANA25</strong> <span>· termina en</span> <strong id="pp-offer-countdown" data-no-i18n>—</strong></div></div>
         <div id="pp-trial-banner" style="display:none;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin-bottom:14px"><i class="ti ti-gift" style="color:var(--green);font-size:18px"></i><div style="font-size:12.5px;color:var(--text2);line-height:1.45"><strong style="color:var(--text)">7 días gratis.</strong> No se te cobra hasta el día 7. Cancela antes y no pagas nada.</div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
@@ -4783,6 +4834,8 @@ function openPricingModal(){
   if(tb)tb.style.display=trialOffer?'flex':'none';
   showPricingScreen(1);
   openModal('modal-pricing');
+  // Durante la oferta SEMANA25: franja visible en planes + código ya aplicado al Mensual.
+  if(typeof offerActive==='function'&&offerActive()){tickOffer();prefillOfferCoupon();}
 }
 function showPricingScreen(n){
   const v=document.getElementById('pp-screen-value'), p=document.getElementById('pp-screen-plans');
@@ -4921,6 +4974,8 @@ function handleCheckoutRedirect(){
   // Enlace del email de win-back: activa el trial exclusivo de 7 días para este usuario.
   if(params.get('trial')==='1'){trialOffer=true;try{sessionStorage.setItem('td_trial','1');}catch(_){}}
   else{try{if(sessionStorage.getItem('td_trial')==='1')trialOffer=true;}catch(_){}}
+  // Enlace del email de la oferta SEMANA25: al entrar, se abren los planes con el código ya aplicado.
+  if(params.get('offer')==='semana25'){try{sessionStorage.setItem('td_open_offer','1');}catch(_){}}
   const checkout=params.get('checkout');
   if(!checkout)return;
   history.replaceState(null,'',window.location.pathname);
@@ -5465,9 +5520,75 @@ function markTrustpilotClicked(){ markTrustpilotDismissed(); } // ya no volvemos
 if(document.readyState!=='loading')initTrustpilotLanding();
 else document.addEventListener('DOMContentLoaded',initTrustpilotLanding);
 
+/* ── OFERTA POR TIEMPO LIMITADO: SEMANA25 (27 sep – 4 oct 2026, hora de Madrid) ──
+   −25% de por vida en el plan Mensual. Descuento INCONDICIONAL: no está ligado a dejar
+   reseñas (Trustpilot prohíbe incentivos). La caducidad real la controla Stripe (el código
+   deja de existir el 4-oct 23:59); esto solo muestra/oculta la UI. Para una nueva campaña,
+   basta con cambiar OFFER (y crear el código en Stripe). */
+const OFFER={code:'SEMANA25',start:Date.parse('2026-09-27T00:00:00+02:00'),end:Date.parse('2026-10-04T23:59:59+02:00')};
+let _offerTimer=null;
+function offerActive(){const n=Date.now();return n>=OFFER.start&&n<=OFFER.end;}
+function offerRemainingText(){
+  const ms=Math.max(0,OFFER.end-Date.now());
+  const d=Math.floor(ms/86400000),h=Math.floor(ms%86400000/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);
+  const p=n=>String(n).padStart(2,'0');
+  return d>0?(d+'d '+p(h)+'h '+p(m)+'m'):(p(h)+':'+p(m)+':'+p(s));
+}
+function offerDismissed(){try{return sessionStorage.getItem('td_offer_'+OFFER.code+'_x')==='1';}catch(e){return false;}}
+function dismissOfferBanner(){
+  try{sessionStorage.setItem('td_offer_'+OFFER.code+'_x','1');}catch(e){}
+  const b=document.getElementById('offer-banner');if(b)b.style.display='none';
+}
+function tickOffer(){
+  const live=offerActive();
+  const on=live&&!!currentUser&&!isPremiumUser();
+  // Landing pública: visible para cualquiera mientras dure la oferta
+  const lb=document.getElementById('ld-offer-bar');
+  if(lb)lb.style.display=live?'flex':'none';
+  const b=document.getElementById('offer-banner');
+  if(b)b.style.display=(on&&!offerDismissed())?'flex':'none';
+  const strip=document.getElementById('pp-offer-strip');
+  if(strip)strip.style.display=on?'flex':'none';
+  if(live){const t=offerRemainingText();setText('ld-offer-countdown',t);setText('offer-countdown',t);setText('pp-offer-countdown',t);}
+  else if(_offerTimer){clearInterval(_offerTimer);_offerTimer=null;} // caducó: todo oculto y timer parado
+}
+// CTA de la landing: registro y, al entrar, se abren los planes con el código ya aplicado.
+function startOfferSignup(){
+  try{sessionStorage.setItem('td_open_offer','1');}catch(_){}
+  if(currentUser&&typeof gotoView==='function'){showScreen('app');renderOffer();return;}
+  showScreen('signup');
+}
+function initLandingOffer(){tickOffer();if(offerActive()&&!_offerTimer)_offerTimer=setInterval(tickOffer,1000);}
+if(document.readyState!=='loading')initLandingOffer();
+else document.addEventListener('DOMContentLoaded',initLandingOffer);
+function renderOffer(){
+  tickOffer();
+  if(offerActive()&&!_offerTimer)_offerTimer=setInterval(tickOffer,1000);
+  // Llegó desde el email (?offer=semana25): abrimos los planes una sola vez, ya con el código.
+  let pending=false;try{pending=sessionStorage.getItem('td_open_offer')==='1';}catch(_){}
+  if(pending&&currentUser){
+    try{sessionStorage.removeItem('td_open_offer');}catch(_){}
+    if(offerActive()&&!isPremiumUser())setTimeout(claimOffer,400);
+  }
+}
+// Rellena y valida SEMANA25 en el modal de planes (usa el mismo flujo que escribir el código a mano).
+async function prefillOfferCoupon(){
+  if(!offerActive()||isPremiumUser()||!currentUser)return;
+  if(ppCoupon&&ppCoupon.code)return;
+  const input=document.getElementById('pp-coupon-input');if(!input)return;
+  input.value=OFFER.code;
+  try{await applyCoupon();}catch(e){}
+}
+function claimOffer(){
+  openPricingModal();
+  showPricingScreen(2);
+  selectPricingPlan('monthly');
+}
+
 function renderAll(){
   updateDashboardAccountInfo();
   renderTrustpilotCard();
+  renderOffer();
   renderDashMetrics();renderMiniCal();renderRecent();renderDaySummary();
   if(currentView==='journal'){renderJournalList();if(weeklyEmotionalOpen)renderWeeklyEmotional();}
   if(currentView==='ops'){renderOpsList();renderMetrics();}
@@ -11187,6 +11308,18 @@ var I18N_EN = {
   'Seleccionar...':'Choose...',
   'Semana':'Week',
   'Ver trades':'View trades',
+  'Oferta por tiempo limitado':'Limited-time offer',
+  'de por vida en Premium mensual':'for life on monthly Premium',
+  'para siempre · código':'forever · code',
+  '· hasta el 4 de octubre':'· until October 4',
+  'Termina en':'Ends in',
+  'Oferta por tiempo limitado:':'Limited-time offer:',
+  '−25% de por vida en Premium mensual con':'−25% for life on monthly Premium with',
+  'Aprovechar':'Claim it',
+  'Aprovechar oferta':'Claim offer',
+  '−25% de por vida':'−25% for life',
+  'en el plan Mensual con':'on the Monthly plan with',
+  '· termina en':'· ends in',
   'Sin operaciones':'No trades',
   'No hay operaciones registradas esta semana.':'No trades recorded this week.',
   'Win rate':'Win rate',
