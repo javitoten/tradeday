@@ -788,7 +788,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 @property --p{syntax:'<number>';inherits:false;initial-value:0}
 .mx-tip{position:fixed;left:0;top:0;z-index:9999;max-width:260px;padding:8px 11px;border-radius:9px;background:var(--bg4);border:1px solid var(--border2);color:var(--text);font-size:11.5px;font-weight:600;line-height:1.45;box-shadow:0 10px 28px #0009;pointer-events:none;opacity:0;transition:opacity .12s;white-space:pre-line}
 .mx-tip.show{opacity:1}
-[data-tip]{cursor:help}
+[data-tip]{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%2732%27%20height%3D%2732%27%20viewBox%3D%270%200%2032%2032%27%3E%3Cpath%20d%3D%27M3%202.5v16.2l4.1-3.8%202.9%206.4%202.6-1.1-2.8-6.3h5.5z%27%20fill%3D%27%23F0F2F5%27%20stroke%3D%27%230A0B0E%27%20stroke-width%3D%271.2%27%20stroke-linejoin%3D%27round%27%2F%3E%3Crect%20x%3D%2715.5%27%20y%3D%2718.5%27%20width%3D%2714%27%20height%3D%2710.5%27%20rx%3D%273%27%20fill%3D%27%2322C55E%27%20stroke%3D%27%230A0B0E%27%20stroke-width%3D%271%27%2F%3E%3Ctext%20x%3D%2722.5%27%20y%3D%2726.1%27%20font-family%3D%27Arial%2CHelvetica%2Csans-serif%27%20font-size%3D%277%27%20font-weight%3D%27700%27%20text-anchor%3D%27middle%27%20fill%3D%27%23052C14%27%3ETD%3C%2Ftext%3E%3C%2Fsvg%3E") 3 2,help}
 .mx-ext[data-tip],.mx-leg-row[data-tip]{cursor:pointer}
 .mx-empty-mini{font-size:12px;color:var(--text3);padding:12px;border:1px dashed var(--border2);border-radius:12px;margin-top:16px;line-height:1.5}
 /* Drawdown: gráfico "bajo el agua" */
@@ -1247,6 +1247,20 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 #modal-week .wk-trade-row{animation:tpWeekRowIn .32s cubic-bezier(.2,.7,.2,1) both;border-radius:8px;transition:background .12s}
 #modal-week .wk-trade-row:hover{background:var(--bg3)}
 @media (prefers-reduced-motion:reduce){#modal-week,#modal-journal,#modal-week .modal,#modal-journal .modal,#modal-week .wk-trade-row{animation:none}}
+/* Subapartados de Métricas en la barra lateral */
+.si-chev{margin-left:auto;width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text3);border-radius:6px;cursor:pointer;padding:0;font-size:14px;transition:background .15s,color .15s}
+.si-chev:hover{background:var(--bg4);color:var(--text)}
+.si-chev i{transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+.si-chev.open i{transform:rotate(180deg)}
+.sidebar-item .nav-new~.si-chev{margin-left:6px}
+.sidebar-sub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s cubic-bezier(.2,.7,.2,1)}
+.sidebar-sub-in{overflow:hidden;min-height:0}
+.sidebar-sub.open{grid-template-rows:1fr}
+.sidebar-subitem{padding:6px 10px 6px 30px;font-size:12.5px;white-space:nowrap}
+.sidebar-subitem .sub-label{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sidebar-subitem .sub-dot{width:5px;height:5px;border-radius:50%;background:var(--border3);flex-shrink:0;transition:background .15s}
+.sidebar-subitem.active .sub-dot,.sidebar-subitem:hover .sub-dot{background:var(--accent)}
+@media (prefers-reduced-motion:reduce){.sidebar-sub,.si-chev i{transition:none}}
 /* Etiqueta "Nuevo" en la navegación */
 .nav-new{display:inline-flex;align-items:center;gap:4px;margin-left:auto;padding:2px 7px 2px 6px;border-radius:999px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#052C14;background:linear-gradient(135deg,#4ADE80,var(--green));box-shadow:0 0 0 1px rgba(34,197,94,.35),0 4px 12px rgba(34,197,94,.25);line-height:1.4;animation:navNewIn .5s cubic-bezier(.2,.7,.2,1)}
 .nav-new::before{content:'';width:5px;height:5px;border-radius:50%;background:#052C14;opacity:.75;animation:navNewPulse 2s ease-in-out infinite}
@@ -2560,7 +2574,12 @@ function initLandingFX(){
         <div class="sidebar-item" onclick="gotoView('journal')" id="si-journal"><i class="ti ti-book"></i>Journal</div>
         <div class="sidebar-item" onclick="gotoView('calendar')" id="si-calendar"><i class="ti ti-calendar"></i>Calendario</div>
         <div class="sidebar-item" onclick="gotoView('ops')" id="si-ops"><i class="ti ti-list"></i>Mis operaciones</div>
-        <div class="sidebar-item" onclick="gotoView('metrics')" id="si-metrics"><i class="ti ti-chart-bar"></i>Métricas</div>
+        <div class="sidebar-item" onclick="gotoView('metrics')" id="si-metrics"><i class="ti ti-chart-bar"></i>Métricas<button class="si-chev" type="button" onclick="event.stopPropagation();toggleMetricsSub()" aria-label="Mostrar subapartados de Métricas" aria-expanded="false" aria-controls="si-metrics-sub"><i class="ti ti-chevron-down"></i></button></div>
+        <div class="sidebar-sub" id="si-metrics-sub">
+          <div class="sidebar-sub-in">
+            <div class="sidebar-item sidebar-subitem" onclick="gotoView('analysis')" id="si-analysis"><span class="sub-dot"></span><span class="sub-label">Análisis de rendimiento</span></div>
+          </div>
+        </div>
         <div class="sidebar-item" onclick="gotoView('balance')" id="si-balance"><i class="ti ti-wallet"></i>Balance</div>
         <div class="sidebar-item" onclick="gotoView('global')" id="si-global"><i class="ti ti-world"></i>Resumen global</div>
         <div class="sidebar-divider"></div>
@@ -2893,23 +2912,6 @@ function initLandingFX(){
           <div><div class="section-title" style="font-size:17px">Métricas</div><div class="section-sub">Estadísticas completas de tu trading — <span id="metrics-account-sub">—</span></div></div>
         </div>
 
-        <!-- 0. 🧠 ANÁLISIS DE RENDIMIENTO (interpretación antes que datos) -->
-        <div class="card mx-section-block pa-section">
-          <div class="mx-card-head">
-            <div>
-              <div class="mx-card-title"><span style="font-size:17px;margin-right:2px">🧠</span>Análisis de rendimiento</div>
-              <div class="mx-card-sub">Qué parece estar ocurriendo en tu trading, ordenado por importancia</div>
-            </div>
-            <div class="mx-toggle-group" id="pa-period-toggle">
-              <button class="mx-toggle" data-p="week" onclick="paSetPeriod('week')">Semana</button>
-              <button class="mx-toggle" data-p="month" onclick="paSetPeriod('month')">Mes</button>
-              <button class="mx-toggle" data-p="3m" onclick="paSetPeriod('3m')">3 meses</button>
-              <button class="mx-toggle active" data-p="all" onclick="paSetPeriod('all')">Todo</button>
-            </div>
-          </div>
-          <div id="pa-body"></div>
-        </div>
-
         <!-- 1. EVOLUCIÓN DEL CAPITAL (Free) -->
         <div class="card mx-section-block">
           <div class="mx-card-head">
@@ -3152,6 +3154,30 @@ function initLandingFX(){
       </div>
 
       <!-- BALANCE -->
+      <!-- ANÁLISIS DE RENDIMIENTO (subapartado de Métricas en la barra lateral) -->
+      <div id="view-analysis" style="display:none;flex-direction:column;gap:18px">
+        <div class="welcome-bar">
+          <div><div class="section-title" style="font-size:17px">Análisis de rendimiento</div><div class="section-sub">Lo que dicen tus datos, ordenado por importancia — <span id="analysis-account-sub">—</span></div></div>
+          <button class="btn btn-ghost btn-sm" onclick="gotoView('metrics')"><i class="ti ti-chart-bar"></i>Ver métricas</button>
+        </div>
+        <div class="card mx-section-block pa-section">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><span style="font-size:17px;margin-right:2px">🧠</span>Qué está pasando en tu trading</div>
+              <div class="mx-card-sub">Qué parece estar ocurriendo en tu trading, ordenado por importancia</div>
+            </div>
+            <div class="mx-toggle-group" id="pa-period-toggle">
+              <button class="mx-toggle" data-p="week" onclick="paSetPeriod('week')">Semana</button>
+              <button class="mx-toggle" data-p="month" onclick="paSetPeriod('month')">Mes</button>
+              <button class="mx-toggle" data-p="3m" onclick="paSetPeriod('3m')">3 meses</button>
+              <button class="mx-toggle active" data-p="all" onclick="paSetPeriod('all')">Todo</button>
+            </div>
+          </div>
+          <div id="pa-body"></div>
+        </div>
+
+      </div>
+
       <div id="view-balance" style="display:none;flex-direction:column;gap:18px">
         <div class="welcome-bar">
           <div><div class="section-title" style="font-size:17px">Balance</div><div class="section-sub">Tu historial económico real: cuánto has invertido, recuperado y ganado</div></div>
@@ -5874,7 +5900,8 @@ function claimOffer(){
    lateral y en el menú superior, y desaparece sola cuando pasa `until`, o antes para cada usuario
    en cuanto entra a esa sección (se recuerda en su navegador). */
 const NAV_NEW_BADGES=[
-  {view:'metrics',key:'metrics-redesign-2026-09',until:'2026-10-11T23:59:59+02:00'}
+  {view:'metrics',key:'metrics-redesign-2026-09',until:'2026-10-11T23:59:59+02:00'},
+  {view:'analysis',key:'analysis-section-2026-09',until:'2026-10-11T23:59:59+02:00'}
 ];
 function navBadgeSeen(b){try{return localStorage.getItem('td_seen_'+b.key)==='1';}catch(_){return false;}}
 function navBadgeActive(b){return Date.now()<=Date.parse(b.until)&&!navBadgeSeen(b);}
@@ -5883,7 +5910,7 @@ function renderNavBadges(){
     const on=navBadgeActive(b);
     document.querySelectorAll(`.sidebar-item[onclick="gotoView('${b.view}')"],.nav-link[onclick="gotoView('${b.view}')"]`).forEach(el=>{
       let tag=el.querySelector('.nav-new');
-      if(on&&!tag){tag=document.createElement('span');tag.className='nav-new';tag.textContent=window.t('Nuevo');tag.title=window.t('Sección mejorada recientemente');el.appendChild(tag);}
+      if(on&&!tag){tag=document.createElement('span');tag.className='nav-new';tag.textContent=window.t('Nuevo');tag.title=window.t('Sección mejorada recientemente');const chev=el.querySelector('.si-chev');if(chev)el.insertBefore(tag,chev);else el.appendChild(tag);}
       else if(!on&&tag)tag.remove();
     });
   });
@@ -5903,6 +5930,7 @@ function renderAll(){
   if(currentView==='journal'){renderJournalList();if(weeklyEmotionalOpen)renderWeeklyEmotional();}
   if(currentView==='ops'){renderOpsList();renderMetrics();}
   if(currentView==='metrics')renderMetricsPage();
+  if(currentView==='analysis')renderPerfAnalysis();
   if(currentView==='calendar')renderFullCal();
   if(dashMetricsOpen)renderDashMetricsFull();
   renderAccountsSidebar();
@@ -8883,7 +8911,7 @@ async function getRoutineComplianceForWeek(offset){
 function gotoView(v){
   currentView=v;
   if(typeof markNavBadgeSeen==='function')markNavBadgeSeen(v);
-  ['dashboard','journal','calendar','ops','metrics','balance','global','plan','routine','config'].forEach(view=>{
+  ['dashboard','journal','calendar','ops','metrics','analysis','balance','global','plan','routine','config'].forEach(view=>{
     const el=document.getElementById('view-'+view);if(el)el.style.display=view===v?'flex':'none';
     const si=document.getElementById('si-'+view);if(si)si.classList.toggle('active',view===v);
   });
@@ -8896,6 +8924,7 @@ function gotoView(v){
   if(v==='journal')renderJournalList();
   if(v==='ops'){renderOpsList();renderMetrics();}
   if(v==='metrics'){const ms=document.getElementById('metrics-account-sub');const accM=currentAccount();if(ms&&accM)ms.textContent=accM.name;renderMetricsPage();}
+  if(v==='analysis'){const as=document.getElementById('analysis-account-sub');const accA=currentAccount();if(as&&accA)as.textContent=accA.name;renderPerfAnalysis();openMetricsSub(true);}
   if(v==='balance')renderBalancePage();
   if(v==='global')renderGlobalPage();
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
@@ -8903,6 +8932,17 @@ function gotoView(v){
   if(v==='routine')loadRoutine();
   if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';const rm=document.getElementById('cfg-reminder');if(rm)rm.checked=(userProfile.daily_reminder_enabled!==false);renderAccountsSidebar();updateSubscriptionUI();}
 }
+
+/* Subapartados de Métricas en la barra lateral (plegable con la flecha; se recuerda el estado) */
+function openMetricsSub(open){
+  const sub=document.getElementById('si-metrics-sub'),btn=document.querySelector('#si-metrics .si-chev');
+  if(!sub)return;
+  sub.classList.toggle('open',!!open);
+  if(btn){btn.classList.toggle('open',!!open);btn.setAttribute('aria-expanded',open?'true':'false');}
+  try{localStorage.setItem('td_metrics_sub',open?'1':'0');}catch(_){}
+}
+function toggleMetricsSub(){const sub=document.getElementById('si-metrics-sub');openMetricsSub(!(sub&&sub.classList.contains('open')));}
+(function(){try{if(localStorage.getItem('td_metrics_sub')==='1'){const go=()=>openMetricsSub(true);if(document.readyState!=='loading')go();else document.addEventListener('DOMContentLoaded',go);}}catch(_){}})();
 
 function toggleMobileSidebar(){
   document.getElementById('app-sidebar').classList.toggle('open');
@@ -12075,7 +12115,7 @@ var I18N_EN = {
   'Acierto':'Accuracy','Rentabilidad':'Profitability','Ratio R:R':'R:R ratio','Consistencia':'Consistency','Control del DD':'Drawdown control','Disciplina':'Discipline','Sin datos':'No data',
   'Registra "¿Seguiste el plan?" en tus operaciones':'Log "Did you follow the plan?" on your trades',
   'Media de los ejes con datos (0–100)':'Average of the axes with data (0–100)',
-  'Nuevo':'New','Sección mejorada recientemente':'Recently improved section',
+  'Nuevo':'New','Análisis de rendimiento':'Performance analysis','Ver métricas':'View metrics','Qué está pasando en tu trading':'What is happening in your trading','Lo que dicen tus datos, ordenado por importancia —':'What your data says, ordered by importance —','Mostrar subapartados de Métricas':'Show Metrics subsections','Sección mejorada recientemente':'Recently improved section',
   'Mejor':'Best','Peor':'Worst','Ver menos':'Show less','Sin operaciones':'No trades','Pérdida':'Loss','Ganancia':'Profit','mejor día':'best day',
   'Acumulado':'Cumulative','Mes':'Month','Consistencia mensual':'Monthly consistency','Consistencia semanal':'Weekly consistency',
   '% de meses cerrados en positivo':'% of months closed in profit','% de semanas cerradas en positivo':'% of weeks closed in profit',
