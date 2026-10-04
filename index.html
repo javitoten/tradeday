@@ -1473,6 +1473,82 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .ds-bar-score{font-size:12px;color:var(--text);width:50px;text-align:right;flex-shrink:0;font-weight:700}
 .ds-feedback-line{font-size:12px;color:var(--text2);line-height:1.6;display:flex;align-items:flex-start;gap:6px}
 .ds-feedback-line i{font-size:13px;margin-top:1px;flex-shrink:0}
+.ds-hero{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.ds-dial{position:relative;width:150px;height:150px;flex-shrink:0}
+.ds-dial svg{width:100%;height:100%;overflow:visible}
+.ds-dial-trk{fill:none;stroke:var(--bg4);stroke-width:10}
+.ds-dial-val{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dasharray 1.1s cubic-bezier(.22,1,.36,1),stroke .3s;filter:drop-shadow(0 0 6px color-mix(in srgb,currentColor 45%,transparent))}
+.ds-tick{stroke:var(--bg4);stroke-width:1.6;stroke-linecap:round;transition:stroke .25s}
+.ds-tick.on{stroke:var(--c)}
+.ds-mark{stroke:var(--text3);stroke-width:1.4;opacity:.7}
+.ds-mark-t{font-size:7px;fill:var(--text3);font-weight:700}
+.ds-dial-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ds-dial-num{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.ds-dial-of{font-size:11px;color:var(--text3);font-weight:600;margin-top:3px}
+.ds-hero-r{flex:1;min-width:220px}
+.ds-hero-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.ds-level{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:20px;color:var(--c,var(--text2));background:color-mix(in srgb,var(--c,var(--text3)) 14%,transparent);border:1px solid color-mix(in srgb,var(--c,var(--text3)) 35%,transparent)}
+.ds-week{font-size:11.5px;color:var(--text3);font-weight:600}
+.ds-delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--bg4);color:var(--text2)}
+.ds-delta.up{color:var(--green);background:var(--green-bg)}
+.ds-delta.down{color:var(--red);background:var(--red-bg)}
+.ds-expl{font-size:13px;color:var(--text2);line-height:1.65}
+.ds-fb{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.ds-comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.ds-tile{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 13px 11px;transition:border-color .2s,transform .2s,background .2s;overflow:hidden}
+.ds-tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c);opacity:.85}
+.ds-tile:hover{border-color:color-mix(in srgb,var(--c) 45%,var(--border));transform:translateY(-2px);background:var(--bg4)}
+.ds-tile.na{opacity:.6}
+.ds-tile-h{display:flex;align-items:center;gap:7px;min-height:18px}
+.ds-tile-h>i{font-size:15px;color:var(--c)}
+.ds-tile-l{font-size:11.5px;font-weight:600;color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-tag{font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:5px;flex-shrink:0}
+.ds-tag.best{color:var(--green);background:var(--green-bg)}
+.ds-tag.worst{color:var(--amber);background:var(--amber-bg)}
+.ds-tile-v{display:flex;align-items:baseline;gap:4px;margin:8px 0 8px}
+.ds-tile-v b{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ds-tile-v small{font-size:10.5px;color:var(--text3);font-weight:600}
+.ds-tile-d{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--text3)}
+.ds-tile-d.up{color:var(--green)}.ds-tile-d.down{color:var(--red)}
+.ds-tile-bar{position:relative;height:5px;border-radius:3px;background:var(--bg4)}
+.ds-tile-bar>span{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;background:var(--c);transition:width .9s cubic-bezier(.22,1,.36,1)}
+.ds-tile-bar>i{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--text3);opacity:.45}
+.ds-tile-s{font-size:10.5px;color:var(--text3);margin-top:7px;font-weight:600}
+.ds-stack{display:flex;height:12px;border-radius:7px;overflow:hidden;background:var(--bg4);gap:2px;margin:6px 0 14px}
+.ds-stack>span{height:100%;width:0;transition:width .9s cubic-bezier(.22,1,.36,1)}
+.ds-bk-title{font-size:12px;font-weight:700;color:var(--text);display:flex;justify-content:space-between;align-items:baseline}
+.ds-bk-title small{font-size:11px;color:var(--text3);font-weight:600}
+.ds-bk-row{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--border)}
+.ds-bk-dot{width:10px;height:10px;border-radius:3px;margin-top:3px}
+.ds-bk-n{font-size:12.5px;font-weight:600;color:var(--text)}
+.ds-bk-d{font-size:11.5px;color:var(--text3);line-height:1.5;margin-top:2px}
+.ds-bk-v{font-size:12px;font-weight:700;color:var(--text);text-align:right;white-space:nowrap}
+.ds-bk-v small{display:block;font-size:10.5px;color:var(--text3);font-weight:600}
+.ds-h-title{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+.ds-h-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.ds-h-stat{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+.ds-h-stat span{display:block;font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.ds-h-stat b{display:block;font-size:17px;font-weight:800;color:var(--text);margin-top:3px;font-variant-numeric:tabular-nums}
+.ds-h-stat b small{font-size:10.5px;font-weight:600;color:var(--text3);margin-left:3px}
+.ds-hc{position:relative;height:150px;margin:0 6px 0 24px}
+.ds-hc-z{position:absolute;left:0;right:0;border-radius:2px}
+.ds-hc-z.g{top:0;height:30%;background:linear-gradient(180deg,color-mix(in srgb,var(--green) 9%,transparent),color-mix(in srgb,var(--green) 3%,transparent))}
+.ds-hc-z.a{top:30%;height:20%;background:color-mix(in srgb,var(--amber) 5%,transparent)}
+.ds-hc-z.r{top:50%;bottom:0;background:color-mix(in srgb,var(--red) 3%,transparent)}
+.ds-hc-y{position:absolute;left:-24px;width:20px;text-align:right;font-size:9px;color:var(--text3);font-weight:700;transform:translateY(-50%)}
+.ds-hc-gl{position:absolute;left:0;right:0;border-top:1px dashed var(--border2)}
+.ds-hc svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ds-hc-line{fill:none;stroke:var(--green);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.ds-hc svg{clip-path:inset(0 100% 0 0);transition:clip-path 1.2s cubic-bezier(.22,1,.36,1)}
+.ds-hc-area{opacity:0;transition:opacity .8s .35s}
+.ds-hc.in svg{clip-path:inset(-10px -10px -10px -10px)}.ds-hc.in .ds-hc-area{opacity:1}
+.ds-hc-pt{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;display:flex;align-items:center;justify-content:center;cursor:default}
+.ds-hc-pt>i{width:9px;height:9px;border-radius:50%;background:var(--bg2);border:2px solid var(--c);transition:transform .15s}
+.ds-hc-pt:hover>i{transform:scale(1.45)}
+.ds-hc-pt.last>i{width:11px;height:11px;background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 22%,transparent)}
+.ds-hc-pt>b{position:absolute;bottom:20px;font-size:10.5px;font-weight:800;color:var(--text);background:var(--bg4);border:1px solid var(--border2);padding:1px 6px;border-radius:6px;white-space:nowrap}
+.ds-hc-x{position:relative;height:16px;margin:8px 6px 0 24px}
+.ds-hc-x span{position:absolute;transform:translateX(-50%);font-size:9.5px;color:var(--text3);white-space:nowrap}
 .ds-history-bars{display:flex;align-items:flex-end;gap:8px;height:90px;padding-top:10px}
 .ds-history-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
 .ds-history-bar{width:100%;max-width:32px;border-radius:4px 4px 2px 2px;background:var(--accent);transition:height .4s;min-height:3px}
@@ -1644,6 +1720,13 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
   /* ── DISCIPLINE SCORE ── */
   #ds-unlocked>div[style*="display:flex"]{flex-direction:column;align-items:center;text-align:center}
   .ds-bar-label{width:90px;font-size:11px}
+  .ds-hero{flex-direction:column;text-align:center;gap:16px}
+  .ds-hero-top{justify-content:center}
+  .ds-fb .ds-feedback-line{justify-content:center;text-align:left}
+  .ds-comp-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .ds-tile{padding:11px 11px 10px}
+  .ds-h-stat b{font-size:15px}
+  .ds-hc-x span:not(.k){display:none}
 
   /* ── CALENDARIO MINI (dashboard) ── */
   .section-header{flex-wrap:wrap;gap:10px}
@@ -2682,27 +2765,37 @@ function initLandingFX(){
                 <div class="section-title">Disciplina Score</div>
                 <div class="section-sub">Mide tu proceso, no tus resultados económicos</div>
               </div>
-              <button class="btn btn-ghost btn-sm" onclick="toggleDisciplineBreakdown()"><span id="ds-toggle-lbl">Ver desglose</span></button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleDisciplineBreakdown()"><i class="ti ti-chart-bar" style="font-size:13px"></i><span id="ds-toggle-lbl">Ver desglose</span></button>
             </div>
-            <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-              <div style="text-align:center;flex-shrink:0">
-                <svg width="100" height="100" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="42" fill="none" stroke="var(--bg4)" stroke-width="9"/>
-                  <circle id="ds-ring" cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="9" stroke-dasharray="0 264" stroke-dashoffset="66" transform="rotate(-90 50 50)" stroke-linecap="round" style="transition:stroke-dasharray .5s"/>
-                  <text x="50" y="47" text-anchor="middle" font-size="22" font-weight="800" fill="var(--text)" id="ds-score-text">—</text>
-                  <text x="50" y="63" text-anchor="middle" font-size="9" fill="var(--text3)">/ 100</text>
+            <div class="ds-hero">
+              <div class="ds-dial" id="ds-dial">
+                <svg viewBox="0 0 140 140" aria-hidden="true">
+                  <g id="ds-ticks"></g>
+                  <circle class="ds-dial-trk" cx="70" cy="70" r="52"/>
+                  <circle id="ds-ring" class="ds-dial-val" cx="70" cy="70" r="52" stroke="var(--green)" stroke-dasharray="0 326.73" transform="rotate(-90 70 70)"/>
+                  <g id="ds-marks"></g>
                 </svg>
+                <div class="ds-dial-c">
+                  <div class="ds-dial-num" id="ds-score-text">—</div>
+                  <div class="ds-dial-of">/ 100</div>
+                </div>
               </div>
-              <div style="flex:1;min-width:200px">
-                <div id="ds-explanation" style="font-size:13px;color:var(--text2);line-height:1.7">Calculando tu disciplina semanal...</div>
-                <div id="ds-feedback" style="margin-top:10px;display:flex;flex-direction:column;gap:4px"></div>
+              <div class="ds-hero-r">
+                <div class="ds-hero-top">
+                  <span class="ds-level" id="ds-level">—</span>
+                  <span class="ds-week" id="ds-week-lbl"></span>
+                  <span id="ds-delta"></span>
+                </div>
+                <div id="ds-explanation" class="ds-expl">Calculando tu disciplina semanal...</div>
+                <div id="ds-feedback" class="ds-fb"></div>
               </div>
             </div>
-            <div id="ds-breakdown" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
+            <div class="ds-comp-grid" id="ds-comp-grid"></div>
+            <div id="ds-breakdown" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
               <div id="ds-breakdown-bars"></div>
             </div>
             <div id="ds-history-wrap" style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
-              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Evolución semanal</div>
+              <div class="ds-h-title">Evolución semanal</div>
               <div id="ds-history-chart"></div>
             </div>
           </div>
@@ -7681,6 +7774,139 @@ function renderWeeklyEmotional(){
   `;
 }
 
+/* ── Disciplina Score · presentación (los cálculos siguen en computeDisciplineForWeek) ── */
+const DS_META={
+  plan:{icon:'ti-clipboard-check',label:'Cumplimiento del plan',hue:'#60A5FA',tip:'Mide si mantienes un ritmo de operaciones sostenible cada día. Sobreoperar resta puntos.'},
+  risk:{icon:'ti-scale',label:'Gestión del riesgo',hue:'#A78BFA',tip:'Pérdidas que superan 1,5 veces el riesgo por operación que declaraste en tu plan.'},
+  journal:{icon:'ti-notebook',label:'Journal',hue:'#22D3EE',tip:'Días de la semana con al menos una operación o una entrada de journal registrada.'},
+  emotional:{icon:'ti-brain',label:'Control emocional',hue:'#F472B6',tip:'Proporción de emociones negativas detectadas en tus notas y en tu journal.'},
+  routine:{icon:'ti-flame',label:'Rutina',hue:'#FBBF24',tip:'Cumplimiento de los hábitos marcados en Mi Rutina durante la semana.'},
+  coherence:{icon:'ti-target-arrow',label:'Coherencia plan ↔ ejecución',hue:'#34D399',tip:'Si ejecutaste según tus propias reglas (esperar confirmación, no forzar entradas...). No mira si la operación ganó o perdió.'}
+};
+function dsColor(v){return v===null||v===undefined?'var(--text3)':v>=70?'var(--green)':v>=50?'var(--amber)':'var(--red)';}
+function dsStatus(v){return v===null||v===undefined?'Sin datos':v>=70?'Sólido':v>=50?'Mejorable':'Débil';}
+function dsShortDate(d){const M=gM();return d.getDate()+' '+M[d.getMonth()].slice(0,3).toLowerCase();}
+function dsRenderScore(current,previous,prevActive){
+  const T=window.t||(x=>x);
+  const active=!!(current.weekTrades.length||current.weekJournals.length);
+  const o=current.overall, col=dsColor(o);
+  // Dial
+  const R=52, C=2*Math.PI*R;
+  const ring=document.getElementById('ds-ring');
+  if(ring){
+    const rc=active?col:'var(--text3)';ring.style.color=rc;ring.setAttribute('stroke',rc);
+    const go=()=>ring.setAttribute('stroke-dasharray',`${C*o/100} ${C}`);
+    ring.setAttribute('stroke-dasharray',`0 ${C}`);
+    if(mxReducedMotion()||document.hidden)go();else requestAnimationFrame(()=>requestAnimationFrame(go));
+  }
+  const ticks=document.getElementById('ds-ticks');
+  if(ticks){
+    const N=48;let h='';
+    for(let i=0;i<N;i++){const a=(i/N)*2*Math.PI-Math.PI/2,r1=62,r2=66;
+      h+=`<line class="ds-tick${(i+.5)/N*100<=o?' on':''}" x1="${(70+r1*Math.cos(a)).toFixed(2)}" y1="${(70+r1*Math.sin(a)).toFixed(2)}" x2="${(70+r2*Math.cos(a)).toFixed(2)}" y2="${(70+r2*Math.sin(a)).toFixed(2)}"/>`;}
+    ticks.innerHTML=h;ticks.style.setProperty('--c',active?col:'var(--text3)');
+  }
+  const marks=document.getElementById('ds-marks');
+  if(marks){
+    marks.innerHTML=[50,70].map(v=>{const a=v/100*2*Math.PI-Math.PI/2;return `<line class="ds-mark" x1="${(70+45*Math.cos(a)).toFixed(2)}" y1="${(70+45*Math.sin(a)).toFixed(2)}" x2="${(70+59*Math.cos(a)).toFixed(2)}" y2="${(70+59*Math.sin(a)).toFixed(2)}"/>`;}).join('');
+  }
+  const dial=document.getElementById('ds-dial');
+  if(dial)dial.setAttribute('data-tip',T('Puntuación de la semana. Verde desde 70, ámbar entre 50 y 69, rojo por debajo de 50.'));
+  mxAnimateNumber(document.getElementById('ds-score-text'),o,v=>v===null||v===undefined?'—':String(Math.round(v)),900);
+  // Nivel + semana + variación
+  const lv=document.getElementById('ds-level');
+  if(lv){const L=!active?'Sin actividad':o>=85?'Sobresaliente':o>=70?'Sólida':o>=50?'Irregular':'Baja';lv.textContent=T(L);lv.style.setProperty('--c',active?col:'var(--text3)');}
+  const wl=document.getElementById('ds-week-lbl');
+  if(wl)wl.textContent=(lang==='en'?'Week of ':'Semana del ')+dsShortDate(current.monday)+' – '+dsShortDate(current.sunday);
+  const dl=document.getElementById('ds-delta');
+  if(dl){
+    if(prevActive&&active){const d=o-previous.overall;
+      dl.innerHTML=`<span class="ds-delta ${d>0?'up':d<0?'down':''}"><i class="ti ti-${d>0?'arrow-up-right':d<0?'arrow-down-right':'minus'}"></i>${d>0?'+':''}${d} ${esc(T('vs semana anterior'))}</span>`;
+    } else dl.innerHTML='';
+  }
+  setText('ds-explanation',disciplineExplanation(current));
+  const fb=document.getElementById('ds-feedback');
+  // La variación ya se muestra en la píldora; aquí solo fortaleza y área de mejora.
+  if(fb)fb.innerHTML=active?disciplineFeedback(current,null):'';
+  // Tarjetas por componente
+  const comps=current.components, prevC=prevActive?(previous.components||{}):{};
+  const valid=Object.entries(comps).filter(([,v])=>v!==null);
+  let bestK=null,worstK=null;
+  if(active&&valid.length>=2){
+    const sorted=[...valid].sort((a,b)=>b[1]-a[1]);
+    if(sorted[0][1]!==sorted[sorted.length-1][1]){bestK=sorted[0][0];worstK=sorted[sorted.length-1][0];}
+  }
+  const grid=document.getElementById('ds-comp-grid');
+  if(grid){
+    grid.innerHTML=Object.keys(DS_META).filter(k=>k in comps).map(k=>{
+      const m=DS_META[k],v=comps[k],c=dsColor(v),pv=prevC[k];
+      const d=(v!==null&&pv!==null&&pv!==undefined)?v-pv:null;
+      const dH=d===null?'':`<span class="ds-tile-d ${d>0?'up':d<0?'down':''}">${d>0?'▲ +'+d:d<0?'▼ '+d:'='}</span>`;
+      const tag=k===bestK?`<span class="ds-tag best">${esc(T('Fortaleza'))}</span>`:k===worstK?`<span class="ds-tag worst">${esc(T('A mejorar'))}</span>`:'';
+      const tip=T(m.label)+' · '+(v===null?T('Sin datos esta semana'):v+'/100')+'\n'+T(m.tip);
+      return `<div class="ds-tile${v===null?' na':''}" style="--c:${v===null?'var(--text3)':c}" data-tip="${esc(tip)}">
+        <div class="ds-tile-h"><i class="ti ${m.icon}"></i><span class="ds-tile-l">${esc(T(m.label))}</span>${tag}</div>
+        <div class="ds-tile-v"><b>${v===null?'—':v}</b><small>/100</small>${dH}</div>
+        <div class="ds-tile-bar"><span data-w="${v===null?0:v}"></span><i style="left:50%"></i><i style="left:70%"></i></div>
+        <div class="ds-tile-s">${esc(T(dsStatus(v)))}</div>
+      </div>`;
+    }).join('');
+    mxAnimateWidths(grid);
+  }
+  // Desglose: cuánto aporta cada componente a la puntuación final (media simple de los que tienen datos)
+  const bk=document.getElementById('ds-breakdown-bars');
+  if(bk){
+    const n=valid.length||1;
+    const seg=valid.map(([k,v])=>`<span data-w="${(v/n).toFixed(2)}" style="background:${DS_META[k].hue}" data-tip="${esc(T(DS_META[k].label)+' · '+(lang==='en'?'adds ':'aporta ')+(v/n).toFixed(1)+' pts')}"></span>`).join('');
+    const rows=Object.keys(DS_META).filter(k=>k in comps).map(k=>{
+      const m=DS_META[k],v=comps[k];
+      return `<div class="ds-bk-row"><div class="ds-bk-dot" style="background:${v===null?'var(--bg4)':m.hue}"></div>
+        <div><div class="ds-bk-n">${esc(T(m.label))}</div><div class="ds-bk-d">${esc(T(m.tip))}</div></div>
+        <div class="ds-bk-v">${v===null?'—':'+'+(v/n).toFixed(1)+' pts'}<small>${v===null?esc(T('No cuenta en la media')):v+'/100'}</small></div></div>`;
+    }).join('');
+    bk.innerHTML=`<div class="ds-bk-title">${esc(T('Cómo se compone tu puntuación'))}<small>${esc(lang==='en'?`Average of ${valid.length} components with data`:`Media de ${valid.length} componentes con datos`)}</small></div>
+      <div class="ds-stack">${seg}</div>${rows}`;
+    if(disciplineBreakdownOpen)mxAnimateWidths(bk);
+  }
+}
+function dsRenderHistory(el,hist){
+  const T=window.t||(x=>x);
+  const n=hist.length, sc=hist.map(h=>Number(h.score)||0);
+  const avg=Math.round(sc.reduce((a,b)=>a+b,0)/n);
+  const bestI=sc.indexOf(Math.max(...sc));
+  const trend=sc[n-1]-sc[n-2];
+  const lbl=h=>dsShortDate(new Date(h.week_start+'T12:00:00'));
+  const X=i=>n===1?50:i/(n-1)*100, Y=v=>100-Math.max(0,Math.min(100,v));
+  const line=sc.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(2)} ${Y(v).toFixed(2)}`).join(' ');
+  const area=`${line} L100 100 L0 100 Z`;
+  const pts=hist.map((h,i)=>{
+    const v=sc[i],d=i?v-sc[i-1]:null,c=dsColor(v);
+    const tip=(lang==='en'?'Week of ':'Semana del ')+lbl(h)+' · '+v+'/100'+(d===null?'':' ('+(d>0?'+':'')+d+')');
+    return `<div class="ds-hc-pt${i===n-1?' last':''}" style="left:${X(i)}%;top:${Y(v)}%;--c:${c}" data-tip="${esc(tip)}"><i></i>${i===n-1?`<b>${v}</b>`:''}</div>`;
+  }).join('');
+  const xl=hist.map((h,i)=>`<span class="${i===0||i===n-1?'k':''}" style="left:${X(i)}%">${esc(lbl(h))}</span>`).join('');
+  el.innerHTML=`<div class="ds-h-stats">
+      <div class="ds-h-stat"><span>${esc(T('Media'))}</span><b style="color:${dsColor(avg)}">${avg}<small>/100</small></b></div>
+      <div class="ds-h-stat"><span>${esc(T('Mejor semana'))}</span><b>${sc[bestI]}<small>${esc(lbl(hist[bestI]))}</small></b></div>
+      <div class="ds-h-stat"><span>${esc(T('Tendencia'))}</span><b style="color:${trend>0?'var(--green)':trend<0?'var(--red)':'var(--text2)'}">${trend>0?'▲ +':trend<0?'▼ ':''}${trend}<small>${esc(T('vs semana anterior'))}</small></b></div>
+    </div>
+    <div class="ds-hc">
+      <div class="ds-hc-z g"></div><div class="ds-hc-z a"></div><div class="ds-hc-z r"></div>
+      <div class="ds-hc-gl" style="top:30%"></div><div class="ds-hc-gl" style="top:50%"></div>
+      <div class="ds-hc-y" style="top:0">100</div><div class="ds-hc-y" style="top:30%">70</div><div class="ds-hc-y" style="top:50%">50</div><div class="ds-hc-y" style="top:100%">0</div>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="ds-hc-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--green)" stop-opacity=".28"/><stop offset="1" stop-color="var(--green)" stop-opacity="0"/></linearGradient></defs>
+        <path class="ds-hc-area" d="${area}" fill="url(#ds-hc-grad)"/>
+        <path class="ds-hc-line" d="${line}" vector-effect="non-scaling-stroke"/>
+      </svg>
+      ${pts}
+    </div>
+    <div class="ds-hc-x">${xl}</div>`;
+  mxInitTips();
+  const hc=el.querySelector('.ds-hc');
+  if(mxReducedMotion()||document.hidden)hc.classList.add('in');else requestAnimationFrame(()=>requestAnimationFrame(()=>hc.classList.add('in')));
+}
+
 /* ── DISCIPLINA SCORE ── */
 let disciplineBreakdownOpen=false;
 let disciplineHistory=[];
@@ -7707,6 +7933,7 @@ function toggleDisciplineBreakdown(){
   disciplineBreakdownOpen=!disciplineBreakdownOpen;
   document.getElementById('ds-breakdown').style.display=disciplineBreakdownOpen?'block':'none';
   setText('ds-toggle-lbl',disciplineBreakdownOpen?'Ocultar desglose':'Ver desglose');
+  if(disciplineBreakdownOpen){const bk=document.getElementById('ds-breakdown');if(bk)requestAnimationFrame(()=>requestAnimationFrame(()=>bk.querySelectorAll('[data-w]').forEach(e=>{e.style.width=e.dataset.w+'%';})));}
 }
 
 // Calcula los componentes del Disciplina Score para una semana concreta (offset 0 = actual)
@@ -7816,10 +8043,10 @@ async function computeDisciplineForWeek(offset){
 
 function disciplineExplanation(result){
   const{overall,components}=result;
+  if(result.weekTrades.length===0&&result.weekJournals.length===0)return `Aún no hay actividad registrada esta semana. El Disciplina Score se calculará en cuanto registres trades o journal.`;
   if(overall>=85)return `Semana sobresaliente. Has respetado tu plan, mantenido el journal al día y controlado tus emociones casi en todo momento.`;
   if(overall>=70)return `Semana positiva. Has respetado tu plan y mantenido una buena rutina, aunque hay pequeños puntos a vigilar.`;
   if(overall>=50)return `Semana irregular. Hubo aspectos correctos, pero también desviaciones notables respecto a tu plan o tu rutina.`;
-  if(result.weekTrades.length===0&&result.weekJournals.length===0)return `Aún no hay actividad registrada esta semana. El Disciplina Score se calculará en cuanto registres trades o journal.`;
   return `Semana de bajo cumplimiento. Conviene revisar qué reglas de tu plan se están dejando de lado y por qué.`;
 }
 
@@ -7849,38 +8076,9 @@ async function computeAndRenderDisciplineScore(){
   const current=await computeDisciplineForWeek(0);
   const previous=await computeDisciplineForWeek(-1);
 
-  // Anillo circular
-  const circ=2*Math.PI*42;
-  const ring=document.getElementById('ds-ring');
-  const scoreText=document.getElementById('ds-score-text');
-  if(ring){
-    const filled=circ*current.overall/100;
-    ring.setAttribute('stroke-dasharray',`${filled} ${circ-filled}`);
-    ring.setAttribute('stroke',current.overall>=70?'var(--green)':current.overall>=50?'var(--amber)':'var(--red)');
-  }
-  if(scoreText)scoreText.textContent=current.overall;
-
-  setText('ds-explanation',disciplineExplanation(current));
-  const fb=document.getElementById('ds-feedback');
-  if(fb)fb.innerHTML=disciplineFeedback(current,previous.weekTrades.length||previous.weekJournals.length?previous.overall:null);
-
-  // Desglose
-  const LABELS_ICON={plan:['📋','Cumplimiento del plan'],risk:['⚖️','Gestión del riesgo'],journal:['📓','Journal'],emotional:['🧠','Control emocional'],routine:['🔥','Rutina'],coherence:['🎯','Coherencia plan ↔ ejecución']};
-  const breakdown=document.getElementById('ds-breakdown-bars');
-  if(breakdown){
-    breakdown.innerHTML=Object.entries(current.components).map(([key,val])=>{
-      const[icon,label]=LABELS_ICON[key];
-      const display=val===null?'—':val;
-      const pct=val===null?0:val;
-      const color=val===null?'var(--text3)':val>=70?'var(--green)':val>=50?'var(--amber)':'var(--red)';
-      return `<div class="ds-bar-row">
-        <div class="ds-bar-icon">${icon}</div>
-        <div class="ds-bar-label">${label}</div>
-        <div class="ds-bar-track"><div class="ds-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div class="ds-bar-score">${display}${val!==null?'/100':''}</div>
-      </div>`;
-    }).join('');
-  }
+  const prevActive=!!(previous.weekTrades.length||previous.weekJournals.length);
+  dsRenderScore(current,previous,prevActive);
+  mxInitTips();
 
   // Solo escribimos en Supabase si el resultado de esta semana ha cambiado de verdad
   // desde el último guardado (evita un upsert en cada render/click de la app).
@@ -7912,16 +8110,7 @@ async function renderDisciplineHistory(){
     el.innerHTML='<div class="we-empty">Necesitas al menos 2 semanas con actividad para ver tu evolución.</div>';
     return;
   }
-  const M=gM();
-  el.innerHTML=`<div class="ds-history-bars">${disciplineHistory.map(h=>{
-    const d=new Date(h.week_start+'T12:00:00');
-    const color=h.score>=70?'var(--green)':h.score>=50?'var(--amber)':'var(--red)';
-    return `<div class="ds-history-col">
-      <div class="ds-history-val">${h.score}</div>
-      <div class="ds-history-bar" style="height:${Math.max(h.score,3)}%;background:${color}"></div>
-      <div class="ds-history-lbl">${d.getDate()} ${M[d.getMonth()].slice(0,3)}</div>
-    </div>`;
-  }).join('')}</div>`;
+  dsRenderHistory(el,disciplineHistory);
 }
 
 let routineLogsCache={}; // date -> completedMap, precargado para mostrar cumplimiento de rutina en cada entrada de journal
@@ -11366,6 +11555,31 @@ document.addEventListener('visibilitychange',()=>{
    Los datos que escribe el trader NUNCA se traducen. */
 
 var I18N_EN = {
+  /* ── Disciplina Score (rediseño) ── */
+  'Sobresaliente':'Outstanding',
+  'Sólida':'Solid',
+  'Irregular':'Uneven',
+  'Baja':'Low',
+  'Fortaleza':'Strength',
+  'A mejorar':'To improve',
+  'Sólido':'Solid',
+  'Mejorable':'Can improve',
+  'Débil':'Weak',
+  'Sin datos':'No data',
+  'Sin datos esta semana':'No data this week',
+  'Media':'Average',
+  'Mejor semana':'Best week',
+  'Tendencia':'Trend',
+  'vs semana anterior':'vs last week',
+  'No cuenta en la media':'Not counted in the average',
+  'Cómo se compone tu puntuación':'How your score is built',
+  'Puntuación de la semana. Verde desde 70, ámbar entre 50 y 69, rojo por debajo de 50.':'The week score. Green from 70, amber between 50 and 69, red below 50.',
+  'Mide si mantienes un ritmo de operaciones sostenible cada día. Sobreoperar resta puntos.':'Measures whether you keep a sustainable number of trades per day. Overtrading costs points.',
+  'Pérdidas que superan 1,5 veces el riesgo por operación que declaraste en tu plan.':'Losses that exceed 1.5× the risk per trade you set in your plan.',
+  'Días de la semana con al menos una operación o una entrada de journal registrada.':'Days of the week with at least one trade or journal entry logged.',
+  'Proporción de emociones negativas detectadas en tus notas y en tu journal.':'Share of negative emotions detected in your notes and journal.',
+  'Cumplimiento de los hábitos marcados en Mi Rutina durante la semana.':'Completion of the habits ticked in My Routine during the week.',
+  'Si ejecutaste según tus propias reglas (esperar confirmación, no forzar entradas...). No mira si la operación ganó o perdió.':'Whether you executed by your own rules (waiting for confirmation, not forcing entries...). It ignores whether the trade won or lost.',
   /* ── Navegación y acciones ── */
   'Iniciar sesión':'Log in',
   'Empezar gratis':'Start free',
