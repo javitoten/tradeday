@@ -3271,16 +3271,21 @@ function initLandingFX(){
         <!-- 1B. GANANCIAS Y PÉRDIDAS -->
         <div class="card mx-section-block">
           <div class="mx-card-title"><i class="ti ti-coins"></i>Ganancias y pérdidas</div>
-          <div class="mx-card-sub">Desglose de tus beneficios y pérdidas</div>
-          <div class="mx-chip-row" id="gl-pnl-chips"></div>
+          <div class="mx-card-sub">Lo que has ganado frente a lo que has perdido, y cuánto vale de media cada operación.</div>
+          <div class="mx-tug" id="gl-pnl-chips"></div>
         </div>
 
-        <!-- 2. DISTRIBUCIÓN + BUY VS SELL -->
+        <!-- 2. DISTRIBUCIÓN DE OPERACIONES + BUY VS SELL -->
         <div class="mx-two-col">
           <div class="card mx-section-block">
             <div class="mx-card-title"><i class="ti ti-chart-donut-2"></i>Distribución de operaciones</div>
-            <div class="mx-chart-wrap" style="height:190px"><canvas id="gl-chart-results"></canvas></div>
-            <div class="mx-chip-row" id="gl-results-chips"></div>
+            <div class="mx-card-sub">Cómo se reparten tus resultados. Pasa el ratón por el gráfico o la leyenda para ver cada tipo.</div>
+            <div class="mx-donut">
+              <div class="mx-donut-chart"><canvas id="gl-chart-results"></canvas>
+                <div class="mx-donut-center" id="gl-results-center"><div class="mx-donut-value">—</div><div class="mx-donut-label">Win rate</div><div class="mx-donut-sub"></div></div>
+              </div>
+              <div class="mx-donut-legend" id="gl-results-chips"></div>
+            </div>
           </div>
           <div class="card mx-section-block">
             <div class="mx-locked-panel mx-locked-inline" id="gl-buysell-locked">
@@ -3291,36 +3296,53 @@ function initLandingFX(){
             </div>
             <div id="gl-buysell-content" style="display:none">
               <div class="mx-card-title"><i class="ti ti-arrows-up-down"></i>Buy vs Sell</div>
-              <div class="mx-chart-wrap" style="height:190px"><canvas id="gl-chart-buysell"></canvas></div>
-              <div class="mx-chip-row" id="gl-buysell-chips"></div>
+              <div class="mx-card-sub">Compras frente a ventas, cara a cara: cuántas haces, cuánto aciertas y qué resultado deja cada lado.</div>
+              <div class="mx-vs" id="gl-buysell-chips"></div>
             </div>
           </div>
         </div>
 
-        <!-- 2C. RATIOS / RACHAS / MEJOR-PEOR -->
+        <!-- 2C. DESGLOSE DE OPERACIONES: ratios, rachas, mejor/peor -->
         <div class="mx-three-col">
-          <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-percentage"></i>Ratios de acierto</div><div class="mx-chip-row" id="gl-results-rates-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
-          <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-flame"></i>Rachas</div><div class="mx-chip-row" id="gl-results-streaks-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
-          <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-trophy"></i>Mejor y peor operación</div><div class="mx-chip-row" id="gl-results-besttrade-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
-        </div>
-
-        <!-- INFORMACIÓN RESUMIDA (edge, free) -->
-        <div class="card mx-section-block">
-          <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-list-details"></i>Información resumida</div>
-          <div class="mx-kpi-grid">
-            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-scale"></i></div><div class="metric-label">Profit Factor</div><div class="metric-value" id="gl-pf">—</div><div class="metric-delta neutral">Ganancia bruta ÷ Pérdida bruta</div></div>
-            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-target-arrow"></i></div><div class="metric-label">Expectancy</div><div class="metric-value" id="gl-exp">—</div><div class="metric-delta neutral">Beneficio neto ÷ Nº operaciones</div></div>
-            <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-arrows-up-down"></i></div><div class="metric-label">R:R medio</div><div class="metric-value" id="gl-rr">—</div><div class="metric-delta neutral">Ganancia media ÷ Pérdida media</div></div>
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-percentage"></i>Ratios de acierto</div>
+            <div class="mx-gauges" id="gl-results-rates-chips"></div>
+          </div>
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-flame"></i>Rachas</div>
+            <div class="mx-streaks" id="gl-results-streaks-chips"></div>
+          </div>
+          <div class="card mx-section-block">
+            <div class="mx-card-title"><i class="ti ti-trophy"></i>Mejor y peor operación</div>
+            <div class="mx-extremes" id="gl-results-besttrade-chips"></div>
           </div>
         </div>
 
-        <!-- INFORMACIÓN RESUMIDA AVANZADA (Premium, difuminada) -->
+        <!-- 5. INFORMACIÓN RESUMIDA (edge + riesgo) -->
+        <div class="card mx-section-block">
+          <div class="mx-card-title"><i class="ti ti-list-details"></i>Información resumida</div>
+          <div class="mx-card-sub">Tu perfil de trading en seis ejes (0–100) y los tres números que resumen si tu forma de operar tiene ventaja.</div>
+          <div class="mx-profile">
+            <div class="mx-profile-radar">
+              <div class="mx-profile-score" id="gl-profile-score"><span class="mx-profile-score-v">—</span><span class="mx-profile-score-l">Puntuación global</span></div>
+              <div class="mx-chart-wrap mx-radar-wrap"><canvas id="gl-chart-radar"></canvas></div>
+              <div class="mx-profile-empty" id="gl-profile-empty" style="display:none"></div>
+            </div>
+            <div class="mx-profile-side">
+              <div class="mx-kpi2" id="gl-kpi-pf-card"><div class="mx-kpi2-head"><span class="mx-kpi2-icon"><i class="ti ti-scale"></i></span><span class="metric-label">Profit Factor</span><span class="metric-value" id="gl-pf">—</span></div><div class="mx-scale" id="gl-pf-scale"></div><div class="mx-kpi2-foot">Ganancia bruta ÷ Pérdida bruta · por encima de 1 ganas más de lo que pierdes</div></div>
+              <div class="mx-kpi2" id="gl-kpi-exp-card"><div class="mx-kpi2-head"><span class="mx-kpi2-icon"><i class="ti ti-target-arrow"></i></span><span class="metric-label">Expectancy</span><span class="metric-value" id="gl-exp">—</span></div><div class="mx-kpi2-foot">Lo que te deja de media cada operación (beneficio neto ÷ nº de operaciones)</div></div>
+              <div class="mx-kpi2" id="gl-kpi-rr-card"><div class="mx-kpi2-head"><span class="mx-kpi2-icon"><i class="ti ti-arrows-up-down"></i></span><span class="metric-label">R:R medio</span><span class="metric-value" id="gl-rr">—</span></div><div class="mx-scale" id="gl-rr-scale"></div><div class="mx-kpi2-foot">Ganancia media ÷ Pérdida media · por encima de 1 tus ganadoras pesan más que tus perdedoras</div></div>
+              <div class="mx-axes" id="gl-profile-axes"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="mx-blur-wrap" style="margin-top:2px">
         <div id="gl-summary-locked" class="mx-locked-panel" style="margin-top:2px">
           <div class="mx-locked-icon">👑</div>
           <div class="mx-locked-title">Drawdown, Recovery Factor y Riesgo — función Premium</div>
           <div class="mx-locked-desc">Desbloquea el resto de información resumida con TradeDay Premium.</div>
-          <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La información resumida global')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
+          <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La información resumida avanzada')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
         </div>
         <div id="gl-summary-content" style="display:none;flex-direction:column;gap:18px">
           <div class="mx-two-col">
@@ -3331,6 +3353,10 @@ function initLandingFX(){
                 <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-activity"></i></div><div class="metric-label">Drawdown actual</div><div class="metric-value" id="gl-dd-current">—</div><div class="metric-delta" id="gl-dd-current-pct">—</div></div>
                 <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-rotate-clockwise"></i></div><div class="metric-label">Recovery Factor</div><div class="metric-value" id="gl-recovery">—</div><div class="metric-delta neutral">Beneficio neto ÷ Drawdown máximo</div></div>
               </div>
+              <div class="mx-uw">
+                <div class="mx-uw-head"><span>Distancia al máximo, operación a operación</span><span class="mx-uw-leg"><i></i>0% = en máximos</span></div>
+                <div class="mx-chart-wrap" style="height:130px"><canvas id="gl-chart-dd"></canvas></div>
+              </div>
             </div>
             <div class="card mx-section-block">
               <div class="mx-card-title" style="margin-bottom:14px"><i class="ti ti-shield"></i>Riesgo</div>
@@ -3339,75 +3365,102 @@ function initLandingFX(){
                 <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-x"></i></div><div class="metric-label">Riesgo máximo</div><div class="metric-value" id="gl-risk-max">—</div></div>
                 <div class="mx-kpi-card"><div class="mx-kpi-icon"><i class="ti ti-shield-check"></i></div><div class="metric-label">Riesgo mínimo</div><div class="metric-value" id="gl-risk-min">—</div></div>
               </div>
+              <div class="mx-riskviz" id="gl-risk-viz"></div>
               <div id="gl-risk-hint" class="mx-empty-hint" style="display:none;margin-top:12px">Añade el % de riesgo al crear o editar tus operaciones para ver el Riesgo medio/máximo/mínimo.</div>
             </div>
           </div>
           <div class="mx-three-col">
-            <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-percentage"></i>Resultado medio (%)</div><div class="mx-chip-row" id="gl-summary-avgpct-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
-            <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Actividad</div><div class="mx-chip-row" id="gl-summary-activity-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
-            <div class="card mx-section-block"><div class="mx-card-title"><i class="ti ti-flame"></i>Consistencia de rachas</div><div class="mx-chip-row" id="gl-summary-streaks-chips" style="border-top:none;margin-top:0;padding-top:0"></div></div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-percentage"></i>Resultado medio (%)</div>
+              <div class="mx-cols" id="gl-summary-avgpct-chips"></div>
+            </div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Actividad</div>
+              <div class="mx-tiles" id="gl-summary-activity-chips"></div>
+            </div>
+            <div class="card mx-section-block">
+              <div class="mx-card-title"><i class="ti ti-flame"></i>Consistencia de rachas</div>
+              <div class="mx-rings" id="gl-summary-streaks-chips"></div>
+            </div>
           </div>
         </div>
         </div>
 
-        <!-- POR SESIÓN (Premium) -->
+        <!-- 3. RENDIMIENTO POR SESIÓN (aprox. horaria) (Premium) -->
         <div class="card mx-section-block">
           <div class="mx-locked-panel" id="gl-session-locked">
-            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Rendimiento por sesión — función Premium</div>
-            <div class="mx-locked-desc">Beneficio y win rate por sesión (Londres, New York, Asia), con TradeDay Premium.</div>
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Rendimiento por sesión — función Premium</div>
+            <div class="mx-locked-desc">Beneficio y win rate por sesión de trading (Londres, New York, Asia), disponible con TradeDay Premium.</div>
             <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por sesión')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
           </div>
           <div id="gl-session-content" style="display:none">
-            <div class="mx-card-title"><i class="ti ti-clock"></i>Rendimiento por sesión</div>
-            <div class="mx-card-sub" style="margin-bottom:14px">Beneficio por sesión, sumando las cuentas seleccionadas</div>
-            <div class="mx-chart-wrap" style="height:240px"><canvas id="gl-chart-session"></canvas></div>
-            <div class="mx-chip-row" id="gl-session-chips"></div>
+            <div class="mx-card-head">
+              <div>
+                <div class="mx-card-title"><i class="ti ti-clock"></i>Rendimiento por sesión</div>
+                <div class="mx-card-sub">Tu día de trading en tres sesiones (hora de Madrid). La sesión se sugiere según la hora que registras en cada trade.</div>
+              </div>
+              <div class="mx-toggle-group" id="gl-session-toggle">
+                <button class="mx-toggle active" data-m="pnl" onclick="glSetSessionMode('pnl')">Beneficio</button>
+                <button class="mx-toggle" data-m="wr" onclick="glSetSessionMode('wr')">Win Rate</button>
+              </div>
+            </div>
+            <div class="mx-sess" id="gl-session-chips"></div>
           </div>
         </div>
 
-        <!-- POR ACTIVO (Premium) -->
+        <!-- 4. RENDIMIENTO POR ACTIVO (Premium) -->
         <div class="card mx-section-block">
           <div class="mx-locked-panel" id="gl-asset-locked">
-            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Rendimiento por activo — función Premium</div>
-            <div class="mx-locked-desc">Beneficio y número de operaciones por cada par que operas, con TradeDay Premium.</div>
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Rendimiento por activo — función Premium</div>
+            <div class="mx-locked-desc">Beneficio y número de operaciones por cada par que operas, disponible con TradeDay Premium.</div>
             <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por activo')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
           </div>
           <div id="gl-asset-content" style="display:none">
             <div class="mx-card-title"><i class="ti ti-coin"></i>Rendimiento por activo</div>
-            <div class="mx-card-sub" style="margin-bottom:14px">Beneficio total por par</div>
-            <div class="mx-chart-wrap" style="height:240px"><canvas id="gl-chart-asset"></canvas></div>
-            <div class="mx-chip-row" id="gl-asset-chips"></div>
+            <div class="mx-card-sub">Ranking de tus pares de mejor a peor resultado, con operaciones y acierto de cada uno.</div>
+            <div class="mx-rank" id="gl-asset-chips"></div>
           </div>
         </div>
 
-        <!-- POR DÍA DE LA SEMANA (Premium) -->
+        <!-- 5. RENDIMIENTO POR DÍA DE LA SEMANA (Premium) -->
         <div class="card mx-section-block">
           <div class="mx-locked-panel" id="gl-weekday-locked">
-            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Rendimiento por día de la semana — función Premium</div>
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Rendimiento por día de la semana — función Premium</div>
             <div class="mx-locked-desc">Identifica tus mejores y peores días de la semana para operar, con TradeDay Premium.</div>
             <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('El rendimiento por día de la semana')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
           </div>
           <div id="gl-weekday-content" style="display:none">
-            <div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Rendimiento por día de la semana</div>
-            <div class="mx-chart-wrap" style="height:230px;margin-top:14px"><canvas id="gl-chart-weekday"></canvas></div>
+            <div class="mx-card-head">
+              <div><div class="mx-card-title"><i class="ti ti-calendar-stats"></i>Rendimiento por día de la semana</div><div class="mx-card-sub">Cuanto más intenso el color, mayor el resultado de ese día.</div></div>
+              <div class="mx-toggle-group" id="gl-weekday-toggle">
+                <button class="mx-toggle active" data-m="pnl" onclick="glSetWeekdayMode('pnl')">Beneficio</button>
+                <button class="mx-toggle" data-m="wr" onclick="glSetWeekdayMode('wr')">Win Rate</button>
+              </div>
+            </div>
+            <div class="mx-heat" id="gl-weekday-viz"></div>
           </div>
         </div>
 
-        <!-- EVOLUCIÓN MENSUAL (Premium) -->
+        <!-- 6. EVOLUCIÓN MENSUAL (Premium) -->
         <div class="card mx-section-block">
           <div class="mx-locked-panel" id="gl-monthly-locked">
-            <div class="mx-locked-icon">👑</div><div class="mx-locked-title">Evolución mensual — función Premium</div>
+            <div class="mx-locked-icon">👑</div>
+            <div class="mx-locked-title">Evolución mensual — función Premium</div>
             <div class="mx-locked-desc">Beneficio o pérdida de cada mes de tu historial, con TradeDay Premium.</div>
             <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('La evolución mensual')"><i class="ti ti-crown"></i>Mejorar a Premium</button>
           </div>
           <div id="gl-monthly-content" style="display:none">
             <div class="mx-card-title"><i class="ti ti-calendar-event"></i>Evolución mensual</div>
-            <div class="mx-chart-wrap" style="height:230px;margin-top:14px"><canvas id="gl-chart-monthly"></canvas></div>
-            <div class="mx-chip-row" id="gl-monthly-chips"></div>
+            <div class="mx-card-sub">Barras: resultado de cada mes · Línea: resultado acumulado.</div>
+            <div class="mx-chart-wrap" style="height:240px;margin-top:14px"><canvas id="gl-chart-monthly"></canvas></div>
+            <div class="mx-month-stats" id="gl-monthly-chips"></div>
           </div>
         </div>
 
-        <!-- DURACIÓN MEDIA -->
+        <!-- 10. DURACIÓN MEDIA DE LA OPERACIÓN -->
         <div class="card mx-section-block">
           <div class="mx-duration-card">
             <div class="mx-duration-icon"><i class="ti ti-clock-hour-4"></i></div>
@@ -3417,8 +3470,10 @@ function initLandingFX(){
               <div class="metric-delta neutral" id="gl-duration-sub">Tiempo medio que mantienes abierta una operación</div>
             </div>
           </div>
+          <div class="mx-dur-hist" id="gl-duration-hist"></div>
           <div id="gl-duration-hint" class="mx-empty-hint" style="display:none;margin-top:14px">Añade la duración (en minutos) al crear o editar tus operaciones para ver esta métrica.</div>
         </div>
+
       </div>
 
       <!-- PLAN -->
@@ -9658,6 +9713,13 @@ function mxRenderEquityChart(m){
   });
 }
 
+/* — Contexto de render compartido: el mismo código pinta Métricas (prefijo "mx", operaciones de la
+   cuenta activa) y Resumen global (prefijo "gl", operaciones de las cuentas seleccionadas). — */
+let MXCTX={p:'mx',trades:null,noJournal:false};
+function mxId(suffix){return MXCTX.p+'-'+suffix;}
+function mxT(){return MXCTX.trades||allTrades;}
+function mxWithCtx(ctx,fn){const prev=MXCTX;MXCTX=Object.assign({p:'mx',trades:null,noJournal:false},ctx);try{fn();}finally{MXCTX=prev;}}
+
 /* — 2. Distribución de operaciones + Buy vs Sell —
    Componente común "donut con dato central + leyenda lateral interactiva":
    · el centro muestra el KPI principal (y el tipo sobre el que está el ratón),
@@ -9668,10 +9730,14 @@ function mxReducedMotion(){try{return window.matchMedia('(prefers-reduced-motion
 function mxAnimateNumber(el,to,fmt,dur){
   if(!el)return;
   if(el._mxRaf)cancelAnimationFrame(el._mxRaf);
-  if(mxReducedMotion()||to===null||to===undefined||!isFinite(to)){el.textContent=fmt(to);return;}
+  if(el._mxFb)clearTimeout(el._mxFb);
+  // Sin animación si: movimiento reducido, valor vacío o pestaña oculta (el navegador pausa las animaciones).
+  if(mxReducedMotion()||to===null||to===undefined||!isFinite(to)||document.hidden){el.textContent=fmt(to);return;}
   const t0=performance.now();dur=dur||750;
   const step=now=>{const p=Math.min(1,(now-t0)/dur);const e=1-Math.pow(1-p,3);el.textContent=fmt(to*e);if(p<1)el._mxRaf=requestAnimationFrame(step);};
   el._mxRaf=requestAnimationFrame(step);
+  // Red de seguridad: el valor final siempre queda escrito aunque la animación no llegue a ejecutarse.
+  el._mxFb=setTimeout(()=>{if(el._mxRaf)cancelAnimationFrame(el._mxRaf);el.textContent=fmt(to);},dur+120);
 }
 function mxRenderDonut(key,cfg){
   // cfg: {canvasId, centerId, legendId, cats:[{label,count,color,meta?}], total, center:{value,fmt:'pct'|'int',label,sub,color?}}
@@ -9752,11 +9818,11 @@ function mxRenderResultsChart(m){
   ].filter(c=>c.count>0);
   const total=cats.reduce((s,c)=>s+c.count,0);
   const wr=(o.wins+o.losses)?o.winRate:null;
-  mxRenderDonut('results',{canvasId:'mx-chart-results',centerId:'mx-results-center',legendId:'mx-results-chips',cats,total,
+  mxRenderDonut(mxId('results'),{canvasId:mxId('chart-results'),centerId:mxId('results-center'),legendId:mxId('results-chips'),cats,total,
     center:{value:wr,fmt:'pct',label:window.t('Win rate'),sub:total+' '+window.t(total===1?'operación':'operaciones'),color:wr===null?'':(wr>=50?mxCssVar('--green'):'')}});
-  const ratesEl=document.getElementById('mx-results-rates-chips');
-  const streaksEl=document.getElementById('mx-results-streaks-chips');
-  const bestEl=document.getElementById('mx-results-besttrade-chips');
+  const ratesEl=document.getElementById(mxId('results-rates-chips'));
+  const streaksEl=document.getElementById(mxId('results-streaks-chips'));
+  const bestEl=document.getElementById(mxId('results-besttrade-chips'));
   const emptyMini=`<div class="mx-empty-mini">${window.t('Sin operaciones todavía')}</div>`;
   if(!total){
     if(ratesEl)ratesEl.innerHTML=emptyMini;
@@ -9776,7 +9842,7 @@ function mxRenderResultsChart(m){
   }
   // Rachas → tira con la secuencia real de operaciones (más antigua → más reciente) + rachas máximas
   if(streaksEl){
-    const seq=[...allTrades].filter(t=>t.date&&t.result).sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):String(a.id).localeCompare(String(b.id)));
+    const seq=[...mxT()].filter(t=>t.date&&t.result).sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):String(a.id).localeCompare(String(b.id)));
     const shown=seq.slice(-48);
     const cls=r=>r==='win'?'w':r==='loss'?'l':'b';
     const cells=shown.map((t,i)=>`<i class="${cls(t.result)}${i===shown.length-1?' cur':''}" style="animation-delay:${Math.min(i*14,650)}ms" data-tip="${esc(fmtDate(t.date))} · ${esc(t.pair||'—')} · ${esc(t.result==='win'?window.t('Ganadora'):t.result==='loss'?window.t('Perdedora'):'BE')}${t.amount?' · '+esc(t.amount):''}"></i>`).join('');
@@ -9810,7 +9876,7 @@ function mxRenderResultsChart(m){
 }
 /* — Ganancias y pérdidas → "tira y afloja" (bruto) + medias por operación — */
 function mxRenderPnlTug(m){
-  const el=document.getElementById('mx-pnl-chips');if(!el)return;
+  const el=document.getElementById(mxId('pnl-chips'));if(!el)return;
   const r=m.rendimiento,gp=r.grossProfit||0,gl=r.grossLoss||0,sum=gp+gl;
   if(!sum){el.innerHTML=`<div class="mx-empty-mini">${window.t('Sin operaciones todavía')}</div>`;return;}
   const G=mxCssVar('--green'),R=mxCssVar('--red');
@@ -9870,12 +9936,12 @@ function mxAnimateWidths(root){
 }
 function mxRenderBuySellChart(m){
   const premium=isPremiumUser();
-  const locked=document.getElementById('mx-buysell-locked'),content=document.getElementById('mx-buysell-content');
+  const locked=document.getElementById(mxId('buysell-locked')),content=document.getElementById(mxId('buysell-content'));
   if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
   if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
   const[buy,sell]=m.tipos.directionStats;
   const total=buy.count+sell.count;
-  const el=document.getElementById('mx-buysell-chips');
+  const el=document.getElementById(mxId('buysell-chips'));
   if(!el)return;
   if(!total){el.innerHTML=`<div class="mx-empty-mini">${window.t('Sin operaciones todavía')}</div>`;return;}
   const G=mxCssVar('--green'),R=mxCssVar('--red'),share=c=>Math.round(c/total*100);
@@ -9929,20 +9995,20 @@ const MX_SESSIONS=[
   {name:'New York',hours:'13:00–22:00',segs:[[13,22]]}
 ];
 function mxHexA(c,a){return mxHexAlpha(c,a);}
-function mxSessionFocus(name){
-  document.querySelectorAll('#mx-session-chips .mx-sess-seg').forEach(s=>s.classList.toggle('dim',!!name&&s.dataset.s!==name));
+function mxSessionFocus(p,name){
+  document.querySelectorAll('#'+p+'-session-chips .mx-sess-seg').forEach(s=>s.classList.toggle('dim',!!name&&s.dataset.s!==name));
 }
 function mxRenderSessionChart(m){
   const premium=isPremiumUser();
-  const locked=document.getElementById('mx-session-locked'),content=document.getElementById('mx-session-content');
+  const locked=document.getElementById(mxId('session-locked')),content=document.getElementById(mxId('session-content'));
   if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
   if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
-  const el=document.getElementById('mx-session-chips');if(!el)return;
+  const el=document.getElementById(mxId('session-chips'));if(!el)return;
   const st=m.sesiones.sessionStats;
   const by={};st.forEach(s=>{by[s.name]=s;});
   const withData=st.filter(s=>s.count>0);
   if(!withData.length){el.innerHTML=`<div class="mx-empty-mini">${window.t('Sin operaciones todavía')}</div>`;return;}
-  const isWr=mxSessionMode==='wr';
+  const isWr=(MXCTX.p==='gl'?glSessionMode:mxSessionMode)==='wr';
   const G=mxCssVar('--green'),R=mxCssVar('--red'),T=mxCssVar('--bg4')||'#1E2028';
   const val=s=>isWr?(s.wr===null?null:s.wr):s.pnl;
   const maxAbs=Math.max(1,...withData.map(s=>isWr?Math.abs((s.wr||0)-50):Math.abs(s.pnl)));
@@ -9965,7 +10031,7 @@ function mxRenderSessionChart(m){
     const mainColor=!s.count||v===null?'var(--text3)':(isWr?(v>=50?G:R):(s.pnl>=0?G:R));
     const meta=s.count?(isWr?`<b>${s.count}</b> ${window.t(s.count===1?'operación':'operaciones')} · ${mxFmtMoney(s.pnl)}`:`<b>${s.count}</b> ${window.t(s.count===1?'operación':'operaciones')} · WR ${s.wr===null?'—':s.wr+'%'}`):window.t('Sin operaciones todavía');
     const badge=s.name===best?`<span class="mx-sess-badge">${window.t('Mejor')}</span>`:s.name===worst?`<span class="mx-sess-badge worst">${window.t('Peor')}</span>`:'';
-    return `<div class="mx-sess-card${s.name===best?' best':''}${s.count?'':' empty'}" style="--c:${colorOf(s)}" onmouseenter="mxSessionFocus('${ss.name}')" onmouseleave="mxSessionFocus(null)" data-tip="${esc(window.t(ss.name)+' ('+ss.hours+'): '+s.count+' '+window.t(s.count===1?'operación':'operaciones')+' · WR '+(s.wr===null?'—':s.wr+'%')+' · '+mxFmtMoney(s.pnl))}">
+    return `<div class="mx-sess-card${s.name===best?' best':''}${s.count?'':' empty'}" style="--c:${colorOf(s)}" onmouseenter="mxSessionFocus('${MXCTX.p}','${ss.name}')" onmouseleave="mxSessionFocus('${MXCTX.p}',null)" data-tip="${esc(window.t(ss.name)+' ('+ss.hours+'): '+s.count+' '+window.t(s.count===1?'operación':'operaciones')+' · WR '+(s.wr===null?'—':s.wr+'%')+' · '+mxFmtMoney(s.pnl))}">
       <div class="mx-sess-top"><div><div class="mx-sess-name">${esc(window.t(ss.name))}</div><div class="mx-sess-h">${ss.hours}</div></div>${badge}</div>
       <div class="mx-sess-v" style="color:${mainColor}">${main}</div>
       <div class="mx-sess-meta">${meta}</div>
@@ -9974,18 +10040,18 @@ function mxRenderSessionChart(m){
 }
 
 /* — 4. Rendimiento por activo → ranking con barras divergentes (0 en el centro) — */
-let mxAssetShowAll=false;
-function mxToggleAssets(){mxAssetShowAll=!mxAssetShowAll;if(mxLastMetrics)mxRenderAssetChart(mxLastMetrics);}
+const mxAssetShowAll={mx:false,gl:false};
+function mxToggleAssets(p){mxAssetShowAll[p]=!mxAssetShowAll[p];if(p==='gl'){if(glLastFull)mxWithCtx(glCtx(),()=>mxRenderAssetChart(glLastFull));}else if(mxLastMetrics)mxRenderAssetChart(mxLastMetrics);}
 function mxRenderAssetChart(m){
   const premium=isPremiumUser();
-  const locked=document.getElementById('mx-asset-locked'),content=document.getElementById('mx-asset-content');
+  const locked=document.getElementById(mxId('asset-locked')),content=document.getElementById(mxId('asset-content'));
   if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
   if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
-  const el=document.getElementById('mx-asset-chips');if(!el)return;
+  const el=document.getElementById(mxId('asset-chips'));if(!el)return;
   const st=[...m.activos.assetStats].sort((a,b)=>b.pnl-a.pnl);
   if(!st.length){el.innerHTML=`<div class="mx-empty-mini">${window.t('Sin operaciones todavía')}</div>`;return;}
   const LIMIT=8;
-  const shown=mxAssetShowAll?st:st.slice(0,LIMIT);
+  const shown=mxAssetShowAll[MXCTX.p]?st:st.slice(0,LIMIT);
   const max=Math.max(1,...st.map(s=>Math.abs(s.pnl)));
   const G=mxCssVar('--green'),R=mxCssVar('--red');
   el.innerHTML=shown.map((s,i)=>{
@@ -9996,7 +10062,7 @@ function mxRenderAssetChart(m){
       <span class="mx-rank-neg"><span class="mx-anim-w" data-w="${s.pnl<0?w:0}"></span></span>
       <span class="mx-rank-pos-bar"><span class="mx-anim-w" data-w="${s.pnl>0?w:0}"></span></span>
       <span class="mx-rank-v" style="color:${s.pnl>=0?G:R}">${mxFmtMoney(s.pnl)}</span>
-    </div>`;}).join('')+(st.length>LIMIT?`<button class="mx-rank-more" onclick="mxToggleAssets()">${mxAssetShowAll?window.t('Ver menos'):(lang==='en'?'See all ('+st.length+')':'Ver todos ('+st.length+')')}</button>`:'');
+    </div>`;}).join('')+(st.length>LIMIT?`<button class="mx-rank-more" onclick="mxToggleAssets('${MXCTX.p}')">${mxAssetShowAll[MXCTX.p]?window.t('Ver menos'):(lang==='en'?'See all ('+st.length+')':'Ver todos ('+st.length+')')}</button>`:'');
   mxAnimateWidths(el);
 }
 
@@ -10010,17 +10076,17 @@ function mxSetWeekdayMode(mode){
 }
 function mxRenderWeekdayChart(m){
   const premium=isPremiumUser();
-  const locked=document.getElementById('mx-weekday-locked'),content=document.getElementById('mx-weekday-content');
+  const locked=document.getElementById(mxId('weekday-locked')),content=document.getElementById(mxId('weekday-content'));
   if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
   if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
-  const el=document.getElementById('mx-weekday-viz');if(!el)return;
+  const el=document.getElementById(mxId('weekday-viz'));if(!el)return;
   const ws=m.temporal.weekdayStats;
   const order=[1,2,3,4,5];
   if(ws[6]&&ws[6].count>0)order.push(6);
   if(ws[0]&&ws[0].count>0)order.push(0);
   const st=order.map(idx=>ws[idx]);
   if(!st.some(s=>s.count>0)){el.style.setProperty('--n',1);el.innerHTML=`<div class="mx-empty-mini">${window.t('Sin operaciones todavía')}</div>`;return;}
-  const isWr=mxWeekdayMode==='wr';
+  const isWr=(MXCTX.p==='gl'?glWeekdayMode:mxWeekdayMode)==='wr';
   const G=mxCssVar('--green'),R=mxCssVar('--red'),B=mxCssVar('--blue');
   const maxAbs=Math.max(1,...st.map(s=>Math.abs(s.pnl)));
   const full=lang==='en'?['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']:['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -10045,13 +10111,13 @@ function mxRenderWeekdayChart(m){
 /* — 6. Evolución mensual → barras (mes) + línea (acumulado) y resumen visual de consistencia — */
 function mxRenderMonthlyChart(m){
   const premium=isPremiumUser();
-  const locked=document.getElementById('mx-monthly-locked'),content=document.getElementById('mx-monthly-content');
+  const locked=document.getElementById(mxId('monthly-locked')),content=document.getElementById(mxId('monthly-content'));
   if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
   if(content){content.style.display='block';content.classList.toggle('mx-blur-preview',!premium);}
   const evo=m.temporal.monthlyEvolution;
   let acc=0;const cum=evo.map(e=>(acc+=e.pnl));
   const G=mxCssVar('--green'),R=mxCssVar('--red'),LINE='#8B9CFF';
-  mxMakeChart('mx-chart-monthly',{
+  mxMakeChart(mxId('chart-monthly'),{
     type:'bar',
     data:{labels:evo.map(e=>e.label),datasets:[
       {type:'line',label:window.t('Acumulado'),data:cum,borderColor:LINE,backgroundColor:LINE,borderWidth:2,tension:.3,pointRadius:3.5,pointHoverRadius:6,pointBackgroundColor:LINE,pointBorderColor:mxCssVar('--bg2')||'#111',pointBorderWidth:2,order:0},
@@ -10064,7 +10130,7 @@ function mxRenderMonthlyChart(m){
         y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}
     }
   });
-  const chipsEl=document.getElementById('mx-monthly-chips');
+  const chipsEl=document.getElementById(mxId('monthly-chips'));
   if(chipsEl){
     const tm=m.temporal;
     const pb=(label,v,tip)=>`<div class="mx-ms" data-tip="${esc(tip)}"><div class="mx-ms-t">${label}<b>${v===null?'—':v+'%'}</b></div><div class="mx-mini-bar"><span class="mx-anim-w" data-w="${v||0}" style="background:${(v||0)>=50?G:mxCssVar('--amber')}"></span></div></div>`;
@@ -10141,41 +10207,41 @@ function mxRenderMiniCal(){
 
 /* — 8. Información resumida — */
 function mxRenderSummary(m){
-  setText('mx-pf',mxFmtRatio(m.rendimiento.profitFactor));
-  mxSetClass('mx-pf','metric-value '+(m.rendimiento.profitFactor===null?'':m.rendimiento.profitFactor>=1?'pos':'neg'));
-  setText('mx-exp',mxFmtMoney(m.rendimiento.expectancy));
-  mxSetClass('mx-exp','metric-value '+(m.rendimiento.expectancy>=0?'pos':'neg'));
-  setText('mx-rr',mxFmtRatio(m.rendimiento.avgRR));
-  mxSetClass('mx-rr','metric-value '+(m.rendimiento.avgRR===null?'':m.rendimiento.avgRR>=1?'pos':'neg'));
-  mxRenderScale('mx-pf-scale',m.rendimiento.profitFactor);
-  mxRenderScale('mx-rr-scale',m.rendimiento.avgRR);
+  setText(mxId('pf'),mxFmtRatio(m.rendimiento.profitFactor));
+  mxSetClass(mxId('pf'),'metric-value '+(m.rendimiento.profitFactor===null?'':m.rendimiento.profitFactor>=1?'pos':'neg'));
+  setText(mxId('exp'),mxFmtMoney(m.rendimiento.expectancy));
+  mxSetClass(mxId('exp'),'metric-value '+(m.rendimiento.expectancy>=0?'pos':'neg'));
+  setText(mxId('rr'),mxFmtRatio(m.rendimiento.avgRR));
+  mxSetClass(mxId('rr'),'metric-value '+(m.rendimiento.avgRR===null?'':m.rendimiento.avgRR>=1?'pos':'neg'));
+  mxRenderScale(mxId('pf-scale'),m.rendimiento.profitFactor);
+  mxRenderScale(mxId('rr-scale'),m.rendimiento.avgRR);
   mxRenderProfile(m);
   mxInitTips();
 
   const premium=isPremiumUser();
-  const locked=document.getElementById('mx-summary-locked'),content=document.getElementById('mx-summary-content');
+  const locked=document.getElementById(mxId('summary-locked')),content=document.getElementById(mxId('summary-content'));
   if(locked){locked.style.display=premium?'none':'flex';locked.classList.toggle('mx-blur-overlay',!premium);}
   if(content){content.style.display='flex';content.classList.toggle('mx-blur-preview',!premium);}
 
-  setText('mx-dd-max',m.riesgo.maxDD>0?('-'+fmtMoney(m.riesgo.maxDD)):'0$');
-  setText('mx-dd-max-pct',(m.riesgo.maxDD>0?'-':'')+m.riesgo.maxDDPct.toFixed(1)+'%');
-  setText('mx-dd-current',m.riesgo.currentDD>0?('-'+fmtMoney(m.riesgo.currentDD)):'0$');
-  mxSetClass('mx-dd-current','metric-value '+(m.riesgo.currentDD>0?'neg':'neutral'));
-  const ddCurPctEl=document.getElementById('mx-dd-current-pct');
+  setText(mxId('dd-max'),m.riesgo.maxDD>0?('-'+fmtMoney(m.riesgo.maxDD)):'0$');
+  setText(mxId('dd-max-pct'),(m.riesgo.maxDD>0?'-':'')+m.riesgo.maxDDPct.toFixed(1)+'%');
+  setText(mxId('dd-current'),m.riesgo.currentDD>0?('-'+fmtMoney(m.riesgo.currentDD)):'0$');
+  mxSetClass(mxId('dd-current'),'metric-value '+(m.riesgo.currentDD>0?'neg':'neutral'));
+  const ddCurPctEl=document.getElementById(mxId('dd-current-pct'));
   if(ddCurPctEl){ddCurPctEl.textContent=(m.riesgo.currentDD>0?'-':'')+m.riesgo.currentDDPct.toFixed(1)+(lang==='en'?'% from the peak':'% desde el máximo');ddCurPctEl.className='metric-delta '+(m.riesgo.currentDD>0?'neg':'neutral');}
-  setText('mx-recovery',mxFmtRatio(m.riesgo.recoveryFactor));
+  setText(mxId('recovery'),mxFmtRatio(m.riesgo.recoveryFactor));
   mxRenderUnderwater(m);
   mxRenderRiskViz(m);
 
   const hasRisk=m.riesgo.riskTradesCount>0;
-  const riskHint=document.getElementById('mx-risk-hint');
+  const riskHint=document.getElementById(mxId('risk-hint'));
   if(riskHint)riskHint.style.display=hasRisk?'none':'block';
-  setText('mx-risk-avg',hasRisk?mxFmtPlainPct(m.riesgo.riskAvg):'—');
-  setText('mx-risk-max',hasRisk?mxFmtPlainPct(m.riesgo.riskMax):'—');
-  setText('mx-risk-min',hasRisk?mxFmtPlainPct(m.riesgo.riskMin):'—');
+  setText(mxId('risk-avg'),hasRisk?mxFmtPlainPct(m.riesgo.riskAvg):'—');
+  setText(mxId('risk-max'),hasRisk?mxFmtPlainPct(m.riesgo.riskMax):'—');
+  setText(mxId('risk-min'),hasRisk?mxFmtPlainPct(m.riesgo.riskMin):'—');
 
   // Resultado medio (%) → dos columnas comparadas (misma escala)
-  const avgPctEl=document.getElementById('mx-summary-avgpct-chips');
+  const avgPctEl=document.getElementById(mxId('summary-avgpct-chips'));
   if(avgPctEl){
     const w=Math.abs(m.riesgo.avgWinPct||0),l=Math.abs(m.riesgo.avgLossPct||0),mxv=Math.max(w,l);
     if(!m.meta.total||!mxv){avgPctEl.style.height='auto';avgPctEl.innerHTML=`<div class="mx-empty-mini" style="width:100%;margin-top:0">${m.meta.total?window.t('Registra el resultado en % de tus operaciones para ver esta comparativa.'):window.t('Sin operaciones todavía')}</div>`;}
@@ -10195,7 +10261,7 @@ function mxRenderSummary(m){
   }
 
   // Actividad → tiles con icono
-  const activityEl=document.getElementById('mx-summary-activity-chips');
+  const activityEl=document.getElementById(mxId('summary-activity-chips'));
   if(activityEl){
     const g=m.generales;
     const tile=(icon,v,l,tip,wide)=>`<div class="mx-tile${wide?' wide':''}"${tip?` data-tip="${esc(tip)}"`:''}><div class="mx-tile-i"><i class="ti ${icon}"></i></div><div><div class="mx-tile-v">${v}</div><div class="mx-tile-l">${l}</div></div></div>`;
@@ -10205,11 +10271,11 @@ function mxRenderSummary(m){
       tile('ti-calendar-month',mxFmtCount(g.opsPerMonth),window.t('Ops/mes'),window.t('Operaciones por mes con actividad'))+
       tile('ti-clock-hour-4',mxFmtCount(g.opsPerSession),window.t('Ops/sesión'),window.t('Operaciones por sesión de mercado'))+
       tile('ti-hourglass',mxFmtDays(g.avgDaysBetween),window.t('Entre operaciones'),window.t('Tiempo medio entre una operación y la siguiente'))+
-      tile('ti-notebook',String(m.temporal.journalOnlyDays),window.t('Días de journal sin operar'),window.t('Días en los que registraste el journal sin abrir operaciones'));
+      (MXCTX.noJournal?'':tile('ti-notebook',String(m.temporal.journalOnlyDays),window.t('Días de journal sin operar'),window.t('Días en los que registraste el journal sin abrir operaciones')));
   }
 
   // Consistencia de rachas → anillos de progreso
-  const streaksPctEl=document.getElementById('mx-summary-streaks-chips');
+  const streaksPctEl=document.getElementById(mxId('summary-streaks-chips'));
   if(streaksPctEl){
     const has=m.meta.total>0;
     const ring=(p,c,l,s,tip)=>`<div class="mx-ring"${tip?` data-tip="${esc(tip)}"`:''}><div class="mx-ring-c" style="--c:${c}" data-p="${has?p:0}"><div class="mx-ring-in">${has?p+'%':'—'}</div></div><div class="mx-ring-l">${l}</div><div class="mx-ring-s">${s}</div></div>`;
@@ -10225,16 +10291,16 @@ function mxRenderSummary(m){
 /* — Drawdown "bajo el agua": distancia (%) al máximo de capital, operación a operación.
    Mismo cálculo que el drawdown de computeFullMetrics (pico acumulado de la curva de capital). — */
 function mxRenderUnderwater(m){
-  const cv=document.getElementById('mx-chart-dd');if(!cv)return;
+  const cv=document.getElementById(mxId('chart-dd'));if(!cv)return;
   const pts=m.equityCurve||[];
   const wrap=cv.closest('.mx-uw');
-  if(pts.length<2){if(wrap)wrap.style.display='none';mxDestroyChart('mx-chart-dd');return;}
+  if(pts.length<2){if(wrap)wrap.style.display='none';mxDestroyChart(mxId('chart-dd'));return;}
   if(wrap)wrap.style.display='';
   let peak=-Infinity;
   const dd=pts.map(p=>{if(p.equity>peak)peak=p.equity;return peak>0?-((peak-p.equity)/peak*100):0;});
   const labels=pts.map((p,i)=>p.date?(i===0?window.t('Inicio'):mxFmtShortDate(p.date)):'');
   const R=mxCssVar('--red');
-  mxMakeChart('mx-chart-dd',{
+  mxMakeChart(mxId('chart-dd'),{
     type:'line',
     data:{labels,datasets:[{data:dd,borderColor:R,backgroundColor:mxHexAlpha(R,.18),borderWidth:1.8,fill:'origin',tension:.25,pointRadius:0,pointHoverRadius:4,pointHitRadius:10,pointBackgroundColor:R}]},
     options:{responsive:true,maintainAspectRatio:false,
@@ -10244,8 +10310,8 @@ function mxRenderUnderwater(m){
 }
 /* — Riesgo: rango mínimo–máximo, media y cada operación como punto (solo trades con % de riesgo) — */
 function mxRenderRiskViz(m){
-  const el=document.getElementById('mx-risk-viz');if(!el)return;
-  const vals=allTrades.filter(t=>t&&t.date&&t.risk_pct!==null&&t.risk_pct!==undefined&&!isNaN(Number(t.risk_pct))).map(t=>({v:Number(t.risk_pct),t}));
+  const el=document.getElementById(mxId('risk-viz'));if(!el)return;
+  const vals=mxT().filter(t=>t&&t.date&&t.risk_pct!==null&&t.risk_pct!==undefined&&!isNaN(Number(t.risk_pct))).map(t=>({v:Number(t.risk_pct),t}));
   if(!vals.length){el.innerHTML='';return;}
   const r=m.riesgo,lo=r.riskMin,hi=r.riskMax,avg=r.riskAvg;
   const top=hi>=1?Math.ceil(hi*1.15):Math.max(0.5,Math.ceil(hi*1.15*4)/4);
@@ -10265,8 +10331,8 @@ function mxRenderRiskViz(m){
 }
 /* — Duración: reparto de tus operaciones por tramos (solo trades con duración registrada) — */
 function mxRenderDurationHist(m){
-  const el=document.getElementById('mx-duration-hist');if(!el)return;
-  const vals=allTrades.filter(t=>t&&t.date&&t.duration_minutes!==null&&t.duration_minutes!==undefined&&!isNaN(Number(t.duration_minutes))).map(t=>Number(t.duration_minutes));
+  const el=document.getElementById(mxId('duration-hist'));if(!el)return;
+  const vals=mxT().filter(t=>t&&t.date&&t.duration_minutes!==null&&t.duration_minutes!==undefined&&!isNaN(Number(t.duration_minutes))).map(t=>Number(t.duration_minutes));
   if(!vals.length){el.innerHTML='';return;}
   const B=[{l:'< 15 min',a:0,b:15},{l:'15–60 min',a:15,b:60},{l:'1–4 h',a:60,b:240},{l:'4–24 h',a:240,b:1440},{l:'> 1 '+window.t('día'),a:1440,b:Infinity}];
   const cnt=B.map(k=>vals.filter(v=>v>=k.a&&v<k.b).length);
@@ -10305,7 +10371,7 @@ function mxComputeProfile(m){
   const clamp=x=>Math.max(0,Math.min(100,x));
   const rd=m.rendimiento,op=m.operaciones;
   const pf=rd.profitFactor,rr=rd.avgRR;
-  const planned=allTrades.filter(t=>t&&t.followed_plan);
+  const planned=mxT().filter(t=>t&&t.followed_plan);
   const planScore=planned.length?planned.reduce((s,t)=>s+(/100/.test(t.followed_plan)?1:/parcial/i.test(t.followed_plan)?0.5:0),0)/planned.length*100:null;
   const fmt1=x=>x===Infinity?'∞':x.toFixed(2);
   return[
@@ -10318,11 +10384,11 @@ function mxComputeProfile(m){
   ];
 }
 function mxRenderProfile(m){
-  const scoreEl=document.getElementById('mx-profile-score'),emptyEl=document.getElementById('mx-profile-empty'),axesEl=document.getElementById('mx-profile-axes');
-  const cv=document.getElementById('mx-chart-radar');
+  const scoreEl=document.getElementById(mxId('profile-score')),emptyEl=document.getElementById(mxId('profile-empty')),axesEl=document.getElementById(mxId('profile-axes'));
+  const cv=document.getElementById(mxId('chart-radar'));
   if(!cv)return;
   if(m.meta.total<MX_PROFILE_MIN){
-    mxDestroyChart('mx-chart-radar');cv.style.visibility='hidden';
+    mxDestroyChart(mxId('chart-radar'));cv.style.visibility='hidden';
     if(emptyEl){emptyEl.style.display='flex';emptyEl.textContent=lang==='en'?`Log at least ${MX_PROFILE_MIN} trades to see your trading profile (you have ${m.meta.total}).`:`Registra al menos ${MX_PROFILE_MIN} operaciones para ver tu perfil de trading (llevas ${m.meta.total}).`;}
     if(scoreEl)scoreEl.querySelector('.mx-profile-score-v').textContent='—';
     if(axesEl)axesEl.innerHTML='';
@@ -10337,7 +10403,7 @@ function mxRenderProfile(m){
     scoreEl.setAttribute('data-tip',window.t('Media de los ejes con datos (0–100)'));}
   const text2=mxCssVar('--text2'),grid=mxCssVar('--border2'),bg=mxCssVar('--bg2')||'#111318';
   const line='#8B9CFF';
-  mxMakeChart('mx-chart-radar',{
+  mxMakeChart(mxId('chart-radar'),{
     type:'radar',
     data:{labels:axes.map(a=>a.label),datasets:[
       {data:axes.map(a=>a.v===null?0:a.v),backgroundColor:'rgba(124,140,255,.16)',borderColor:line,borderWidth:2.2,
@@ -10354,12 +10420,12 @@ function mxRenderProfile(m){
         tooltip:Object.assign({filter:i=>i.datasetIndex===0,callbacks:{title:it=>it&&it.length?axes[it[0].dataIndex].label:'',label:c=>{const a=axes[c.dataIndex];return a.v===null?a.detail:(Math.round(a.v)+'/100 · '+a.detail);}}},mxTooltipBase())}}
   });
   if(axesEl){
-    axesEl.innerHTML=axes.map((a,i)=>`<div class="mx-axis" data-tip="${esc(a.label+': '+(a.v===null?'':Math.round(a.v)+'/100 · ')+a.detail)}" onmouseenter="mxRadarFocus(${i})" onmouseleave="mxRadarFocus(-1)"><i style="background:${a.color}"></i><span>${a.label}</span><b>${a.v===null?'—':Math.round(a.v)}</b></div>`).join('')+
+    axesEl.innerHTML=axes.map((a,i)=>`<div class="mx-axis" data-tip="${esc(a.label+': '+(a.v===null?'':Math.round(a.v)+'/100 · ')+a.detail)}" onmouseenter="mxRadarFocus('${MXCTX.p}',${i})" onmouseleave="mxRadarFocus('${MXCTX.p}',-1)"><i style="background:${a.color}"></i><span>${a.label}</span><b>${a.v===null?'—':Math.round(a.v)}</b></div>`).join('')+
       `<div class="mx-axis" style="grid-column:1/-1;cursor:default;color:var(--text3);font-size:10.5px"><span>${window.t('La línea discontinua marca 50: el punto medio de cada eje.')}</span></div>`;
   }
 }
-function mxRadarFocus(i){
-  const ch=mxCharts['mx-chart-radar'];if(!ch)return;
+function mxRadarFocus(p,i){
+  const ch=mxCharts[p+'-chart-radar'];if(!ch)return;
   try{
     if(i<0){ch.setActiveElements([]);ch.tooltip.setActiveElements([],{x:0,y:0});}
     else{const pt=ch.getDatasetMeta(0).data[i];ch.setActiveElements([{datasetIndex:0,index:i}]);ch.tooltip.setActiveElements([{datasetIndex:0,index:i}],{x:pt.x,y:pt.y});}
@@ -10369,10 +10435,10 @@ function mxRadarFocus(i){
 
 function mxRenderDuration(m){
   const hasData=m.generales.durationTradesCount>0;
-  const hint=document.getElementById('mx-duration-hint');
+  const hint=document.getElementById(mxId('duration-hint'));
   if(hint)hint.style.display=hasData?'none':'block';
-  setText('mx-duration-avg',hasData?mxFmtDuration(m.generales.avgDurationMinutes):'—');
-  const subEl=document.getElementById('mx-duration-sub');
+  setText(mxId('duration-avg'),hasData?mxFmtDuration(m.generales.avgDurationMinutes):'—');
+  const subEl=document.getElementById(mxId('duration-sub'));
   if(subEl)subEl.textContent=hasData?`Basado en ${m.generales.durationTradesCount} ${m.generales.durationTradesCount===1?'operación':'operaciones'} con duración registrada`:'Tiempo medio que mantienes abierta una operación';
   mxRenderDurationHist(m);
 }
@@ -10781,11 +10847,13 @@ function computeGlobalMetrics(trades, accounts){
   let eq=capitalBase,peak=capitalBase,maxDD=0,maxDDPct=0;
   T.forEach(t=>{eq+=mxAmt(t);if(eq>peak)peak=eq;const dd=peak-eq;const ddp=peak>0?dd/peak*100:0;if(dd>maxDD)maxDD=dd;if(ddp>maxDDPct)maxDDPct=ddp;});
   const recoveryFactor=maxDD>0?net/maxDD:(net>0?Infinity:null);
-  const riskVals=T.map(t=>Number(t.risk_pct)).filter(v=>!isNaN(v));
+  // Corrección: solo operaciones con % de riesgo registrado (antes las vacías contaban como 0%)
+  const riskVals=T.filter(t=>t.risk_pct!==null&&t.risk_pct!==undefined&&t.risk_pct!==''&&!isNaN(Number(t.risk_pct))).map(t=>Number(t.risk_pct));
   const riskAvg=riskVals.length?riskVals.reduce((a,b)=>a+b,0)/riskVals.length:null;
   const riskMax=riskVals.length?Math.max(...riskVals):null;
   const riskMin=riskVals.length?Math.min(...riskVals):null;
-  const durVals=T.map(t=>Number(t.duration_minutes)).filter(v=>!isNaN(v));
+  // Corrección: solo operaciones con duración registrada (antes las vacías contaban como 0 min)
+  const durVals=T.filter(t=>t.duration_minutes!==null&&t.duration_minutes!==undefined&&t.duration_minutes!==''&&!isNaN(Number(t.duration_minutes))).map(t=>Number(t.duration_minutes));
   const avgDuration=durVals.length?durVals.reduce((a,b)=>a+b,0)/durVals.length:null;
   const beWin=bes.filter(t=>t.be_type==='be_win').length, beLoss=bes.filter(t=>t.be_type==='be_loss').length;
   const wdNames=(typeof gD==='function')?gD():(lang==='en'?['Sun','Mon','Tue','Wed','Thu','Fri','Sat']:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']);
@@ -10855,7 +10923,13 @@ function glRenderCurrent(){
   const m=computeGlobalMetrics(trades, accs);
   const sub=document.getElementById('gl-scope-sub'); if(sub)sub.textContent=(m.total?m.total+' '+(lang==='en'?(m.total===1?'trade':'trades'):'operaciones'):window.t('Sin operaciones'))+' · '+scopeLabel;
   const note=document.getElementById('gl-scope-note'); if(note)note.textContent=glScope==='all'?window.t('Todas tus cuentas juntas. Cambia para ver por tipo (fondeadas, evaluación, propias…).'):((lang==='en'?'Only accounts of type: ':'Solo cuentas de tipo: ')+scopeLabel);
-  glRenderEquity(m); glRenderPnl(m); glRenderResults(m); glRenderBuySell(m); glRenderSummary(m); glRenderSession(m); glRenderAsset(m); glRenderWeekday(m); glRenderMonthly(m); glRenderDuration(m);
+  glRenderEquity(m);
+  // Resto de bloques: mismos componentes visuales que Métricas, con los datos globales adaptados
+  glLastFull=glToFull(m,trades); glLastTrades=trades;
+  mxWithCtx(glCtx(),()=>{
+    mxRenderPnlTug(glLastFull); mxRenderResultsChart(glLastFull); mxRenderBuySellChart(glLastFull); mxRenderSummary(glLastFull);
+    mxRenderSessionChart(glLastFull); mxRenderAssetChart(glLastFull); mxRenderWeekdayChart(glLastFull); mxRenderMonthlyChart(glLastFull); mxRenderDuration(glLastFull);
+  });
 }
 function glLock(lockedId,contentId,disp){
   const premium=(typeof isPremiumUser==='function')?isPremiumUser():true;
@@ -10872,78 +10946,38 @@ function glRenderEquity(m){
   const line=m.net>=0?mxCssVar('--green'):mxCssVar('--red');
   mxMakeChart('gl-chart-equity',{type:'line',data:{labels:pts.map(p=>p.date?mxFmtShortDate(p.date):''),datasets:[{data:pts.map(p=>m.capitalBase+p.cum),borderColor:line,backgroundColor:mxHexAlpha(line,.12),borderWidth:2,fill:true,tension:.3,pointRadius:0,pointHoverRadius:5,pointHitRadius:14,pointBackgroundColor:line,pointBorderColor:mxCssVar('--bg')||'#fff',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{title:items=>items&&items.length?items[0].label:'',label:c=>'Capital: '+fmtMoney(c.parsed.y)}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:8}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}});
 }
-function glRenderPnl(m){
-  const el=document.getElementById('gl-pnl-chips');
-  if(el)el.innerHTML=`<div class="mx-chip pos">Ganancia bruta <strong>+${fmtMoney(m.grossProfit)}</strong></div><div class="mx-chip neg">Pérdida bruta <strong>-${fmtMoney(m.grossLoss)}</strong></div><div class="mx-chip pos">Ganancia media/op. <strong>${mxFmtMoney(m.avgWin)}</strong></div><div class="mx-chip neg">Pérdida media/op. <strong>${mxFmtMoney(-m.avgLoss)}</strong></div>`;
+/* Adaptador: convierte el resultado de computeGlobalMetrics() a la forma de computeFullMetrics()
+   para reutilizar los mismos componentes visuales. NO recalcula nada: solo reordena campos. */
+let glLastFull=null, glLastTrades=null, glSessionMode='pnl', glWeekdayMode='pnl';
+function glCtx(){return{p:'gl',trades:glLastTrades||[],noJournal:true};}
+function glToFull(g,trades){
+  const T=[...(trades||[])].filter(t=>t.date).sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):String(a.id).localeCompare(String(b.id)));
+  return{
+    meta:{total:g.total,capitalInicial:g.capitalBase},
+    rendimiento:{profitFactor:g.pf,expectancy:g.expectancy,avgRR:g.avgRR,avgWin:g.avgWin,avgLoss:g.avgLoss,grossProfit:g.grossProfit,grossLoss:g.grossLoss,netProfit:g.net,netProfitPct:g.netProfitPct},
+    operaciones:{total:g.total,wins:g.wins,losses:g.losses,bes:g.bes,beWin:g.beWin,beLoss:g.beLoss,winRate:g.winRate===null?0:g.winRate,lossRate:g.lossRate,beRate:g.beRate,
+      maxWinStreak:g.maxWinStreak,maxLossStreak:g.maxLossStreak,currentStreakType:g.currentStreakType,currentStreakLen:g.currentStreakLen,bestTrade:g.bestTrade,worstTrade:g.worstTrade},
+    riesgo:{riskAvg:g.riskAvg,riskMax:g.riskMax,riskMin:g.riskMin,riskTradesCount:g.riskTradesCount,avgWinPct:g.avgWinPct,avgLossPct:g.avgLossPct,
+      maxDD:g.maxDD,maxDDPct:g.maxDDPct,currentDD:g.currentDD,currentDDPct:g.currentDDPct,recoveryFactor:g.recoveryFactor},
+    temporal:{weekdayStats:g.weekdayStats,consistenciaSemanal:g.consistenciaSemanal,consistenciaMensual:g.consistenciaMensual,greenDays:g.greenDays,redDays:g.redDays,beDays:g.beDays,journalOnlyDays:0,
+      monthlyEvolution:g.monthlyEvolution.map(e=>({label:e.name,pnl:e.pnl,count:e.count}))},
+    equityCurve:[{date:T.length?T[0].date:null,equity:g.capitalBase,anchor:true}].concat(g.cum.map(c=>({date:c.date,equity:g.capitalBase+c.cum}))),
+    sesiones:{sessionStats:g.sessions,bestSessionByPnl:g.bestSession,worstSessionByPnl:g.worstSession},
+    activos:{assetStats:g.assets,bestAsset:g.bestAsset,worstAsset:g.worstAsset},
+    tipos:{directionStats:g.directions},
+    generales:{opsPerDay:g.opsPerDay,opsPerWeek:g.opsPerWeek,opsPerMonth:g.opsPerMonth,opsPerSession:g.opsPerSession,avgDaysBetween:g.avgDaysBetween,
+      pctMaxWinStreak:g.pctMaxWinStreak,pctMaxLossStreak:g.pctMaxLossStreak,avgDurationMinutes:g.avgDuration,durationTradesCount:g.durationTradesCount}
+  };
 }
-function glRenderResults(m){
-  const cats=[{label:'Ganadoras',count:m.wins,color:mxCssVar('--green')},{label:'Perdedoras',count:m.losses,color:mxCssVar('--red')},{label:'Break Even',count:m.bes,color:mxCssVar('--text3')}].filter(c=>c.count>0);
-  const total=cats.reduce((s,c)=>s+c.count,0);
-  const set=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
-  if(total)mxMakeChart('gl-chart-results',{type:'doughnut',data:{labels:cats.map(c=>c.label),datasets:[{data:cats.map(c=>c.count),backgroundColor:cats.map(c=>c.color),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const pct=total?Math.round(c.parsed/total*100):0;return `${c.label}: ${c.parsed} (${pct}%)`;}},displayColors:true},mxTooltipBase())}}}); else mxDestroyChart('gl-chart-results');
-  if(!total){['gl-results-chips','gl-results-rates-chips','gl-results-streaks-chips','gl-results-besttrade-chips'].forEach(id=>set(id,'<div class="mx-chip">Sin operaciones todavía</div>'));return;}
-  set('gl-results-chips',cats.map(c=>`<div class="mx-chip"><span style="width:8px;height:8px;border-radius:50%;background:${c.color};display:inline-block"></span>${c.label} <strong>${c.count}</strong> (${Math.round(c.count/total*100)}%)</div>`).join(''));
-  set('gl-results-rates-chips',`<div class="mx-chip">Win Rate <strong>${Math.round(m.winRate||0)}%</strong></div><div class="mx-chip">Loss Rate <strong>${Math.round(m.lossRate)}%</strong></div><div class="mx-chip">BE Rate <strong>${Math.round(m.beRate)}%</strong> (${m.beWin} BE Win · ${m.beLoss} BE Loss)</div>`);
-  set('gl-results-streaks-chips',`<div class="mx-chip">Racha actual <strong>${m.currentStreakType?m.currentStreakLen+' '+(m.currentStreakType==='win'?'ganadoras':'perdedoras'):'—'}</strong></div><div class="mx-chip pos">Racha máx. ganadora <strong>${m.maxWinStreak}</strong></div><div class="mx-chip neg">Racha máx. perdedora <strong>${m.maxLossStreak}</strong></div>`);
-  let bh=''; if(m.bestTrade)bh+=`<div class="mx-chip pos">Mejor operación <strong>${esc(m.bestTrade.pair||'')} ${mxFmtMoney(mxAmt(m.bestTrade))}</strong></div>`; if(m.worstTrade)bh+=`<div class="mx-chip neg">Peor operación <strong>${esc(m.worstTrade.pair||'')} ${mxFmtMoney(mxAmt(m.worstTrade))}</strong></div>`;
-  set('gl-results-besttrade-chips',bh||'<div class="mx-row-empty">Sin datos todavía</div>');
+function glSetSessionMode(mode){
+  glSessionMode=mode;
+  document.querySelectorAll('#gl-session-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.m===mode));
+  if(glLastFull)mxWithCtx(glCtx(),()=>mxRenderSessionChart(glLastFull));
 }
-function glRenderBuySell(m){
-  glLock('gl-buysell-locked','gl-buysell-content','block');
-  const b=m.directions[0],s=m.directions[1],total=b.count+s.count;
-  if(total)mxMakeChart('gl-chart-buysell',{type:'doughnut',data:{labels:['Buy','Sell'],datasets:[{data:[b.count,s.count],backgroundColor:[mxCssVar('--green'),mxCssVar('--red')],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const pct=total?Math.round(c.parsed/total*100):0;return `${c.label}: ${c.parsed} (${pct}%)`;}},displayColors:true},mxTooltipBase())}}}); else mxDestroyChart('gl-chart-buysell');
-  const el=document.getElementById('gl-buysell-chips'); if(el)el.innerHTML=total?`<div class="mx-chip ${b.pnl>=0?'pos':'neg'}">Buy <strong>${b.count}</strong> · WR ${b.wr===null?'—':b.wr+'%'} · <strong>${mxFmtMoney(b.pnl)}</strong></div><div class="mx-chip ${s.pnl>=0?'pos':'neg'}">Sell <strong>${s.count}</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`:'<div class="mx-chip">Sin operaciones todavía</div>';
-}
-function glRenderSummary(m){
-  setText('gl-pf',mxFmtRatio(m.pf)); mxSetClass('gl-pf','metric-value '+(m.pf===null?'':m.pf>=1?'pos':'neg'));
-  setText('gl-exp',mxFmtMoney(m.expectancy)); mxSetClass('gl-exp','metric-value '+(m.expectancy>=0?'pos':'neg'));
-  setText('gl-rr',mxFmtRatio(m.avgRR));
-  glLock('gl-summary-locked','gl-summary-content','flex');
-  setText('gl-dd-max',m.maxDD>0?('-'+fmtMoney(m.maxDD)):'0$');
-  setText('gl-dd-max-pct',(m.maxDD>0?'-':'')+m.maxDDPct.toFixed(1)+'%');
-  setText('gl-dd-current',m.currentDD>0?('-'+fmtMoney(m.currentDD)):'0$'); mxSetClass('gl-dd-current','metric-value '+(m.currentDD>0?'neg':'neutral'));
-  const ddc=document.getElementById('gl-dd-current-pct'); if(ddc){ddc.textContent=(m.currentDD>0?'-':'')+m.currentDDPct.toFixed(1)+(lang==='en'?'% from the peak':'% desde el máximo');ddc.className='metric-delta '+(m.currentDD>0?'neg':'neutral');}
-  setText('gl-recovery',mxFmtRatio(m.recoveryFactor));
-  const hasRisk=m.riskTradesCount>0; const rh=document.getElementById('gl-risk-hint'); if(rh)rh.style.display=hasRisk?'none':'block';
-  setText('gl-risk-avg',hasRisk?mxFmtPlainPct(m.riskAvg):'—'); setText('gl-risk-max',hasRisk?mxFmtPlainPct(m.riskMax):'—'); setText('gl-risk-min',hasRisk?mxFmtPlainPct(m.riskMin):'—');
-  const set=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
-  set('gl-summary-avgpct-chips',`<div class="mx-chip pos">Ganancia media (%) <strong>${mxFmtPlainPct(m.avgWinPct)}</strong></div><div class="mx-chip neg">Pérdida media (%) <strong>${mxFmtPlainPct(m.avgLossPct)}</strong></div>`);
-  set('gl-summary-activity-chips',`<div class="mx-chip">Ops/día <strong>${mxFmtCount(m.opsPerDay)}</strong></div><div class="mx-chip">Ops/semana <strong>${mxFmtCount(m.opsPerWeek)}</strong></div><div class="mx-chip">Ops/mes <strong>${mxFmtCount(m.opsPerMonth)}</strong></div><div class="mx-chip">Ops/sesión <strong>${mxFmtCount(m.opsPerSession)}</strong></div><div class="mx-chip">Días entre ops. <strong>${mxFmtDays(m.avgDaysBetween)}</strong></div>`);
-  set('gl-summary-streaks-chips',`<div class="mx-chip pos">% en racha ganadora máx. <strong>${m.total?m.pctMaxWinStreak+'%':'—'}</strong></div><div class="mx-chip neg">% en racha perdedora máx. <strong>${m.total?m.pctMaxLossStreak+'%':'—'}</strong></div>`);
-}
-function glRenderSession(m){
-  glLock('gl-session-locked','gl-session-content','block');
-  const st=m.sessions;
-  mxMakeChart('gl-chart-session',{type:'bar',data:{labels:st.map(s=>s.name),datasets:[{data:st.map(s=>s.pnl),backgroundColor:st.map(s=>s.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:6,maxBarThickness:70}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return `${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}});
-  const el=document.getElementById('gl-session-chips'); if(!el)return;
-  const wd=st.filter(s=>s.count>0);
-  if(!wd.length){el.innerHTML='<div class="mx-chip">Sin operaciones todavía</div>';return;}
-  let html=wd.map(s=>`<div class="mx-chip ${s.pnl>=0?'pos':'neg'}">${esc(s.name)} <strong>${s.count} ${lang==='en'?(s.count===1?'trade':'trades'):'op.'}</strong> · WR ${s.wr===null?'—':s.wr+'%'} · <strong>${mxFmtMoney(s.pnl)}</strong></div>`).join('');
-  if(m.bestSession)html+=`<div class="mx-chip pos">Mejor sesión <strong>${esc(m.bestSession.name)}</strong></div>`;
-  if(m.worstSession)html+=`<div class="mx-chip neg">Peor sesión <strong>${esc(m.worstSession.name)}</strong></div>`;
-  el.innerHTML=html;
-}
-function glRenderAsset(m){
-  glLock('gl-asset-locked','gl-asset-content','block');
-  const st=[...m.assets].sort((a,b)=>b.pnl-a.pnl);
-  if(st.length)mxMakeChart('gl-chart-asset',{type:'bar',data:{labels:st.map(s=>s.name),datasets:[{data:st.map(s=>s.pnl),backgroundColor:st.map(s=>s.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:6,maxBarThickness:56}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return[`${mxFmtMoney(s.pnl)}`,`${s.count} operaciones · WR ${s.wr===null?'—':s.wr+'%'}`];}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:11,weight:'600'}}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}}); else mxDestroyChart('gl-chart-asset');
-  const el=document.getElementById('gl-asset-chips'); if(el)el.innerHTML=st.length?`${m.bestAsset?`<div class="mx-chip pos">Mejor activo <strong>${esc(m.bestAsset.name)}</strong> ${mxFmtMoney(m.bestAsset.pnl)}</div>`:''}${m.worstAsset&&(!m.bestAsset||m.worstAsset.name!==m.bestAsset.name)?`<div class="mx-chip neg">Peor activo <strong>${esc(m.worstAsset.name)}</strong> ${mxFmtMoney(m.worstAsset.pnl)}</div>`:''}`:'<div class="mx-chip">Sin operaciones todavía</div>';
-}
-function glRenderWeekday(m){
-  glLock('gl-weekday-locked','gl-weekday-content','block');
-  const st=[1,2,3,4,5].map(i=>m.weekdayStats[i]);
-  mxMakeChart('gl-chart-weekday',{type:'bar',data:{labels:st.map(s=>s.name.slice(0,3)),datasets:[{data:st.map(s=>s.pnl),backgroundColor:st.map(s=>s.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:6,maxBarThickness:56}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const s=st[c.dataIndex];return `${mxFmtMoney(s.pnl)} (${s.count} op.)`;}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text2'),font:{size:12,weight:'600'}}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}});
-}
-function glRenderMonthly(m){
-  glLock('gl-monthly-locked','gl-monthly-content','block');
-  const evo=m.monthlyEvolution;
-  if(evo.length)mxMakeChart('gl-chart-monthly',{type:'bar',data:{labels:evo.map(e=>e.name),datasets:[{data:evo.map(e=>e.pnl),backgroundColor:evo.map(e=>e.pnl>=0?mxCssVar('--green'):mxCssVar('--red')),borderRadius:5,maxBarThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>{const e=evo[c.dataIndex];return[`${mxFmtMoney(e.pnl)}`,`${e.count} operaciones`];}}},mxTooltipBase())},scales:{x:{grid:{display:false},ticks:{color:mxCssVar('--text3'),font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:12}},y:{grid:{color:mxCssVar('--border')},ticks:{color:mxCssVar('--text3'),font:{size:10},callback:v=>fmtMoney(v)}}}}}); else mxDestroyChart('gl-chart-monthly');
-  const el=document.getElementById('gl-monthly-chips'); if(el)el.innerHTML=`<div class="mx-chip">Consistencia mensual <strong>${m.consistenciaMensual===null?'—':m.consistenciaMensual+'%'}</strong></div><div class="mx-chip">Consistencia semanal <strong>${m.consistenciaSemanal===null?'—':m.consistenciaSemanal+'%'}</strong></div><div class="mx-chip pos">Días verdes <strong>${m.greenDays}</strong></div><div class="mx-chip neg">Días rojos <strong>${m.redDays}</strong></div><div class="mx-chip">Días BE <strong>${m.beDays}</strong></div>`;
-}
-function glRenderDuration(m){
-  const has=m.durationTradesCount>0; const hint=document.getElementById('gl-duration-hint'); if(hint)hint.style.display=has?'none':'block';
-  setText('gl-duration-avg',has?mxFmtDuration(m.avgDuration):'—');
-  const sub=document.getElementById('gl-duration-sub'); if(sub)sub.textContent=has?`Basado en ${m.durationTradesCount} ${m.durationTradesCount===1?'operación':'operaciones'} con duración registrada`:'Tiempo medio que mantienes abierta una operación';
+function glSetWeekdayMode(mode){
+  glWeekdayMode=mode;
+  document.querySelectorAll('#gl-weekday-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.m===mode));
+  if(glLastFull)mxWithCtx(glCtx(),()=>mxRenderWeekdayChart(glLastFull));
 }
 
 function renderMetricsPage(){
