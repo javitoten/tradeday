@@ -1365,6 +1365,11 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .chip.sel-tech{border-color:var(--blue-border);background:var(--blue-bg);color:var(--blue)}
 
 /* MODALS */
+.main-content{scrollbar-gutter:stable}
+/* Con una ventana abierta, el fondo no se desplaza (ver tdScrollLock en JS) */
+html.td-scroll-lock,html.td-scroll-lock body,html.td-scroll-lock .main-content,html.td-scroll-lock .sidebar{overflow:hidden!important}
+.modal-overlay,.lightbox-overlay,.mobile-sidebar-overlay{overscroll-behavior:contain}
+.modal-body,.modal{overscroll-behavior:contain}
 .modal-overlay{position:fixed;inset:0;background:#00000095;display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
 .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-xl);width:100%;overflow:hidden;box-shadow:0 32px 80px #00000070}
 .modal-header{padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
@@ -6074,6 +6079,34 @@ function claimOffer(){
    Para anunciar una mejora: añade una entrada. La etiqueta aparece junto a la sección en la barra
    lateral y en el menú superior, y desaparece sola cuando pasa `until`, o antes para cada usuario
    en cuanto entra a esa sección (se recuerda en su navegador). */
+/* ── Bloqueo del scroll de fondo mientras hay una ventana abierta ──
+   Vigila todas las ventanas (modales, visor de imágenes, menú móvil), las abran como las abran,
+   y bloquea el desplazamiento de lo que hay detrás. Solo se desplaza el contenido de la ventana. */
+(function tdScrollLock(){
+  const SEL='.modal-overlay,.lightbox-overlay';
+  const anyOpen=()=>[...document.querySelectorAll(SEL)].some(el=>el.style.display!=='none'&&getComputedStyle(el).display!=='none');
+  const sync=()=>{const on=anyOpen();if(document.documentElement.classList.contains('td-scroll-lock')!==on)document.documentElement.classList.toggle('td-scroll-lock',on);};
+  window.tdSyncScrollLock=sync;
+  const start=()=>{
+    new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['style','class']});
+    sync();
+    // Rueda/arrastre sobre el fondo oscuro de una ventana: no debe mover nada de detrás
+    const block=e=>{
+      if(!document.documentElement.classList.contains('td-scroll-lock'))return;
+      let el=e.target;
+      while(el&&el!==document.body){
+        const cs=getComputedStyle(el);
+        if(/(auto|scroll)/.test(cs.overflowY)&&el.scrollHeight>el.clientHeight+1&&el.closest(SEL))return; // zona desplazable dentro de la ventana
+        el=el.parentElement;
+      }
+      if(e.cancelable)e.preventDefault();
+    };
+    document.addEventListener('wheel',block,{passive:false});
+    document.addEventListener('touchmove',block,{passive:false});
+  };
+  if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+})();
+
 /* ── Muestra de interés: Backtesting (encuesta + "Próximamente" en la barra lateral) ──
    Una fila por usuario en public.feature_interest. Se pregunta UNA vez, sin bloquear la entrada. */
 const BT_SURVEY_LS='td_bt_survey_done_v1';
@@ -9342,8 +9375,8 @@ function closeMobileSidebar(){
   document.getElementById('mobile-sidebar-overlay').classList.remove('show');
 }
 
-function openModal(id){document.getElementById(id).style.display='flex';}
-function closeModal(id){document.getElementById(id).style.display='none';}
+function openModal(id){document.getElementById(id).style.display='flex';if(window.tdSyncScrollLock)tdSyncScrollLock();}
+function closeModal(id){document.getElementById(id).style.display='none';if(window.tdSyncScrollLock)tdSyncScrollLock();}
 function openChoice(){
   const blocked=accountBlockedForEntries();
   if(blocked){closeMobileSidebar();showAccountSuspendedWarning(blocked);return;}
