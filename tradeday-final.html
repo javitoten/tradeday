@@ -1262,6 +1262,25 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .sidebar-subitem.active .sub-dot,.sidebar-subitem:hover .sub-dot{background:var(--accent)}
 @media (prefers-reduced-motion:reduce){.sidebar-sub,.si-chev i{transition:none}}
 /* Etiqueta "Nuevo" en la navegación */
+.nav-soon{margin-left:auto;padding:2px 7px;border-radius:999px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);line-height:1.4}
+.bts-q{font-size:15px;font-weight:700;color:var(--text);margin:14px 0 10px;line-height:1.4}
+.bts-lead{font-size:13px;color:var(--text2);line-height:1.6;margin:0}
+.bts-feats{display:grid;gap:7px;margin:12px 0 4px;padding:0;list-style:none}
+.bts-feats li{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--text2);line-height:1.5}
+.bts-feats i{color:var(--green);font-size:15px;margin-top:1px}
+.bts-opts{display:grid;gap:8px}
+.bts-opt{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13.5px;font-weight:600;cursor:pointer;text-align:left;transition:border-color .15s,background .15s,transform .1s}
+.bts-opt:hover{border-color:var(--green-border);background:var(--bg4)}
+.bts-opt:active{transform:scale(.99)}
+.bts-opt i{font-size:17px;color:var(--text3)}
+.bts-opt.sel{border-color:var(--green);background:var(--green-bg)}.bts-opt.sel i{color:var(--green)}
+.bts-chips{display:flex;flex-wrap:wrap;gap:7px}
+.bts-chip{padding:7px 12px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer}
+.bts-chip.sel{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.bts-foot{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px}
+.bts-skip{background:none;border:0;color:var(--text3);font-size:12.5px;cursor:pointer;padding:6px 0}
+.bts-skip:hover{color:var(--text2)}
+.bts-tag{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--amber);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);padding:3px 9px;border-radius:999px}
 .nav-new{display:inline-flex;align-items:center;gap:4px;margin-left:auto;padding:2px 7px 2px 6px;border-radius:999px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#052C14;background:linear-gradient(135deg,#4ADE80,var(--green));box-shadow:0 0 0 1px rgba(34,197,94,.35),0 4px 12px rgba(34,197,94,.25);line-height:1.4;animation:navNewIn .5s cubic-bezier(.2,.7,.2,1)}
 .nav-new::before{content:'';width:5px;height:5px;border-radius:50%;background:#052C14;opacity:.75;animation:navNewPulse 2s ease-in-out infinite}
 .nav-link .nav-new{margin-left:6px;vertical-align:1px;font-size:8.5px;padding:1px 6px 1px 5px}
@@ -2665,6 +2684,7 @@ function initLandingFX(){
         </div>
         <div class="sidebar-item" onclick="gotoView('balance')" id="si-balance"><i class="ti ti-wallet"></i>Balance</div>
         <div class="sidebar-item" onclick="gotoView('global')" id="si-global"><i class="ti ti-world"></i>Resumen global</div>
+        <div class="sidebar-item" onclick="openBacktestTeaser()" id="si-backtest"><i class="ti ti-history"></i>Backtesting<span class="nav-soon">Pronto</span></div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-item" onclick="gotoView('plan')" id="si-plan"><i class="ti ti-target"></i>Mi plan</div>
         <div class="sidebar-item" onclick="gotoView('routine')" id="si-routine"><i class="ti ti-sun"></i>Mi rutina</div>
@@ -3941,6 +3961,13 @@ function initLandingFX(){
 </div>
 
 <!-- TRADES DE LA SEMANA (desde el resumen semanal del calendario) -->
+<div class="modal-overlay" id="modal-btsurvey" style="display:none" onclick="if(event.target===this)btSurveyClose(true)">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><div class="modal-title" id="bts-title">Una pregunta rápida</div><button class="modal-close" onclick="btSurveyClose(true)"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body" id="bts-body"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-week" style="display:none" onclick="if(event.target===this)closeModal('modal-week')">
   <div class="modal" style="max-width:460px">
     <div class="modal-header"><div class="modal-title" id="week-modal-title">Trades de la semana</div><button class="modal-close" onclick="closeModal('modal-week')"><i class="ti ti-x"></i></button></div>
@@ -6047,6 +6074,123 @@ function claimOffer(){
    Para anunciar una mejora: añade una entrada. La etiqueta aparece junto a la sección en la barra
    lateral y en el menú superior, y desaparece sola cuando pasa `until`, o antes para cada usuario
    en cuanto entra a esa sección (se recuerda en su navegador). */
+/* ── Muestra de interés: Backtesting (encuesta + "Próximamente" en la barra lateral) ──
+   Una fila por usuario en public.feature_interest. Se pregunta UNA vez, sin bloquear la entrada. */
+const BT_SURVEY_LS='td_bt_survey_done_v1';
+let btInterest=null, btSurveyScheduled=false, btSurveyState={};
+async function loadBtInterest(){
+  if(!currentUser)return null;
+  const{data}=await sb.from('feature_interest').select('*').eq('user_id',currentUser.id).eq('feature','backtesting').maybeSingle();
+  btInterest=data||null;return btInterest;
+}
+async function saveBtInterest(patch){
+  if(!currentUser)return;
+  const row=Object.assign({user_id:currentUser.id,feature:'backtesting'},patch);
+  const{data,error}=await sb.from('feature_interest').upsert(row,{onConflict:'user_id,feature'}).select().single();
+  if(!error)btInterest=data;
+  try{if(window.posthog)posthog.capture('backtesting_interest',patch);}catch(_){}
+}
+function maybeShowBtSurvey(){
+  if(btSurveyScheduled||!currentUser)return;
+  btSurveyScheduled=true;
+  try{if(localStorage.getItem(BT_SURVEY_LS+'_'+currentUser.id))return;}catch(_){}
+  setTimeout(async()=>{
+    const r=await loadBtInterest();
+    if(r&&(r.answer||r.dismissed)){try{localStorage.setItem(BT_SURVEY_LS+'_'+currentUser.id,'1');}catch(_){}return;}
+    // No interrumpir si hay otra ventana abierta: se vuelve a intentar un poco más tarde
+    const busy=[...document.querySelectorAll('.modal-overlay')].some(m=>m.style.display==='flex');
+    if(busy||document.hidden){btSurveyScheduled=false;setTimeout(maybeShowBtSurvey,20000);return;}
+    btSurveyState={from:'modal'};renderBtSurveyStep1();openModal('modal-btsurvey');
+    try{if(window.posthog)posthog.capture('backtesting_survey_shown');}catch(_){}
+  },4000);
+}
+function btFeatList(){
+  const T=window.t;
+  return `<ul class="bts-feats">
+    <li><i class="ti ti-calendar-time"></i><span>${T('Elige un activo y una fecha del pasado; el futuro queda oculto.')}</span></li>
+    <li><i class="ti ti-player-play"></i><span>${T('Las velas avanzan como en directo: pausa, vela a vela o a la velocidad que quieras.')}</span></li>
+    <li><i class="ti ti-target-arrow"></i><span>${T('Coloca entradas, Stop Loss y Take Profit directamente sobre el gráfico.')}</span></li>
+    <li><i class="ti ti-chart-dots"></i><span>${T('Estadísticas propias del backtesting, separadas de tu diario real.')}</span></li>
+  </ul>`;
+}
+function renderBtSurveyStep1(){
+  const T=window.t, teaser=btSurveyState.from==='sidebar';
+  document.getElementById('bts-title').textContent=teaser?'Backtesting':T('Una pregunta rápida');
+  document.getElementById('bts-body').innerHTML=`
+    ${teaser?`<span class="bts-tag"><i class="ti ti-sparkles"></i>${T('Próximamente')}</span>`:''}
+    <p class="bts-lead" style="margin-top:${teaser?'12px':'0'}">${T('Estamos valorando añadir Backtesting a TradeDay para que puedas practicar tu estrategia con el mercado del pasado:')}</p>
+    ${btFeatList()}
+    <div class="bts-q">${T('¿Te gustaría tenerlo dentro de TradeDay?')}</div>
+    <div class="bts-opts">
+      <button class="bts-opt" onclick="btAnswer('yes')"><i class="ti ti-circle-check"></i>${T('Sí, lo usaría')}</button>
+      <button class="bts-opt" onclick="btAnswer('maybe')"><i class="ti ti-help-circle"></i>${T('Puede que sí')}</button>
+      <button class="bts-opt" onclick="btAnswer('no')"><i class="ti ti-circle-x"></i>${T('No me interesa')}</button>
+    </div>
+    <div class="bts-foot"><button class="bts-skip" onclick="btSurveyClose(true)">${T('Ahora no')}</button><span style="font-size:11.5px;color:var(--text3)">${T('Solo te lo preguntaremos una vez')}</span></div>`;
+}
+async function btAnswer(a){
+  btSurveyState.answer=a;
+  await saveBtInterest({answer:a,source:btSurveyState.from,dismissed:false});
+  if(a==='no'){renderBtThanks(false);return;}
+  renderBtSurveyStep2();
+}
+function renderBtSurveyStep2(){
+  const T=window.t, tools=[['fxreplay','FX Replay'],['tradingview','Replay de TradingView'],['mt','MT4 / MT5'],['manual','A mano / Excel'],['none','No hago backtesting'],['other','Otro']];
+  document.getElementById('bts-body').innerHTML=`
+    <div class="bts-q" style="margin-top:0">${T('¿Qué usas ahora para hacer backtesting?')}</div>
+    <div class="bts-chips" id="bts-tools">${tools.map(([k,n])=>`<button class="bts-chip" data-k="${k}" onclick="btPick('tool','${k}',this)">${T(n)}</button>`).join('')}</div>
+    <div class="bts-q">${T('Si estuviera incluido en Premium, ¿lo usarías?')}</div>
+    <div class="bts-chips" id="bts-prem">${[['yes','Sí'],['depends','Depende'],['no','No']].map(([k,n])=>`<button class="bts-chip" data-k="${k}" onclick="btPick('prem','${k}',this)">${T(n)}</button>`).join('')}</div>
+    <div class="bts-foot"><button class="bts-skip" onclick="renderBtThanks(true)">${T('Saltar')}</button><button class="btn btn-primary btn-sm" onclick="btSubmitStep2()"><i class="ti ti-send"></i>${T('Enviar')}</button></div>`;
+}
+function btPick(kind,k,el){
+  btSurveyState[kind]=k;
+  el.parentElement.querySelectorAll('.bts-chip').forEach(b=>b.classList.toggle('sel',b===el));
+}
+async function btSubmitStep2(){
+  const patch={};
+  if(btSurveyState.tool)patch.current_tool=btSurveyState.tool;
+  if(btSurveyState.prem)patch.would_use_premium=btSurveyState.prem;
+  if(Object.keys(patch).length)await saveBtInterest(patch);
+  renderBtThanks(true);
+}
+function renderBtThanks(interested){
+  const T=window.t, onList=btInterest&&btInterest.waitlist;
+  try{localStorage.setItem(BT_SURVEY_LS+'_'+currentUser.id,'1');}catch(_){}
+  document.getElementById('bts-body').innerHTML=`
+    <div style="text-align:center;padding:8px 4px 2px">
+      <div style="width:46px;height:46px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);display:grid;place-items:center;margin:0 auto 12px"><i class="ti ti-heart-handshake" style="font-size:22px;color:var(--green)"></i></div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">${T('¡Gracias por tu respuesta!')}</div>
+      <p class="bts-lead">${interested?T('Nos ayuda muchísimo a decidir qué construir. ¿Quieres que te avisemos cuando el backtesting esté listo?'):T('Nos ayuda muchísimo a decidir qué construir.')}</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+        ${interested?(onList?`<span class="bts-tag" style="color:var(--green);background:var(--green-bg);border-color:var(--green-border)"><i class="ti ti-check"></i>${T('Ya estás en la lista')}</span>`:`<button class="btn btn-primary btn-sm" onclick="btJoinWaitlist()"><i class="ti ti-bell"></i>${T('Avísame')}</button>`):''}
+        <button class="btn btn-ghost btn-sm" onclick="btSurveyClose(false)">${T('Cerrar')}</button>
+      </div>
+    </div>`;
+}
+async function btJoinWaitlist(){
+  await saveBtInterest({waitlist:true});
+  toast(window.t('Te avisaremos en cuanto el backtesting esté disponible'));
+  btSurveyClose(false);
+}
+async function btSurveyClose(skip){
+  closeModal('modal-btsurvey');
+  if(skip&&!(btInterest&&btInterest.answer)){
+    await saveBtInterest({dismissed:true,source:btSurveyState.from||'modal'});
+    try{localStorage.setItem(BT_SURVEY_LS+'_'+currentUser.id,'1');}catch(_){}
+  }
+}
+/* Barra lateral: "Backtesting · Próximamente" (cuenta clics como señal de interés) */
+async function openBacktestTeaser(){
+  if(typeof closeMobileSidebar==='function')closeMobileSidebar();
+  if(!btInterest)await loadBtInterest();
+  await saveBtInterest({sidebar_clicks:((btInterest&&btInterest.sidebar_clicks)||0)+1});
+  btSurveyState={from:'sidebar'};
+  if(btInterest&&btInterest.answer){renderBtThanks(btInterest.answer!=='no');document.getElementById('bts-title').textContent='Backtesting';}
+  else renderBtSurveyStep1();
+  openModal('modal-btsurvey');
+}
+
 const NAV_NEW_BADGES=[
   {view:'metrics',key:'metrics-redesign-2026-09',until:'2026-10-11T23:59:59+02:00'},
   {view:'analysis',key:'analysis-section-2026-09',until:'2026-10-11T23:59:59+02:00'}
@@ -6083,6 +6227,7 @@ function renderAll(){
   if(dashMetricsOpen)renderDashMetricsFull();
   renderAccountsSidebar();
   initDisciplineScore();
+  maybeShowBtSurvey();
 }
 
 function updateDashboardAccountInfo(){
@@ -11555,6 +11700,39 @@ document.addEventListener('visibilitychange',()=>{
    Los datos que escribe el trader NUNCA se traducen. */
 
 var I18N_EN = {
+  /* ── Encuesta de backtesting ── */
+  'Backtesting':'Backtesting',
+  'Pronto':'Soon',
+  'Una pregunta rápida':'A quick question',
+  'Próximamente':'Coming soon',
+  'Estamos valorando añadir Backtesting a TradeDay para que puedas practicar tu estrategia con el mercado del pasado:':'We are considering adding Backtesting to TradeDay so you can practise your strategy on past market data:',
+  'Elige un activo y una fecha del pasado; el futuro queda oculto.':'Pick an asset and a past date; the future stays hidden.',
+  'Las velas avanzan como en directo: pausa, vela a vela o a la velocidad que quieras.':'Candles play out like live: pause, step candle by candle or at any speed.',
+  'Coloca entradas, Stop Loss y Take Profit directamente sobre el gráfico.':'Place entries, Stop Loss and Take Profit right on the chart.',
+  'Estadísticas propias del backtesting, separadas de tu diario real.':'Dedicated backtesting stats, kept separate from your real journal.',
+  '¿Te gustaría tenerlo dentro de TradeDay?':'Would you like to have it inside TradeDay?',
+  'Sí, lo usaría':'Yes, I would use it',
+  'Puede que sí':'Maybe',
+  'No me interesa':'Not interested',
+  'Ahora no':'Not now',
+  'Solo te lo preguntaremos una vez':'We will only ask once',
+  '¿Qué usas ahora para hacer backtesting?':'What do you use for backtesting now?',
+  'Replay de TradingView':'TradingView Replay',
+  'A mano / Excel':'Manually / Excel',
+  'No hago backtesting':'I don’t backtest',
+  'Si estuviera incluido en Premium, ¿lo usarías?':'If it were included in Premium, would you use it?',
+  'Sí':'Yes',
+  'Depende':'It depends',
+  'No':'No',
+  'Saltar':'Skip',
+  'Enviar':'Send',
+  '¡Gracias por tu respuesta!':'Thanks for your answer!',
+  'Nos ayuda muchísimo a decidir qué construir. ¿Quieres que te avisemos cuando el backtesting esté listo?':'It really helps us decide what to build. Want us to let you know when backtesting is ready?',
+  'Nos ayuda muchísimo a decidir qué construir.':'It really helps us decide what to build.',
+  'Ya estás en la lista':'You are on the list',
+  'Avísame':'Notify me',
+  'Cerrar':'Close',
+  'Te avisaremos en cuanto el backtesting esté disponible':'We will let you know as soon as backtesting is available',
   /* ── Disciplina Score (rediseño) ── */
   'Sobresaliente':'Outstanding',
   'Sólida':'Solid',
