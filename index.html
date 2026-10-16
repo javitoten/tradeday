@@ -353,6 +353,15 @@ html.bt-on .bt-prelaunch{display:none!important}
 .ld-badge.bt-new:hover{background:var(--bg4,var(--bg3))}
 .ld-price-alt{font-size:13px;color:var(--text2);margin:-6px 0 12px}.ld-price-alt b{color:var(--text)}
 .ld-annual-rise,.pp-annual-rise{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.45;color:var(--text2);background:color-mix(in srgb,#f59e0b 10%,transparent);border:1px solid color-mix(in srgb,#f59e0b 40%,transparent);border-radius:10px;padding:9px 11px;margin:0 0 12px}
+.pp-annual-rise{align-items:center;gap:12px;padding:11px 14px;margin:0 0 14px;border-radius:12px;background:linear-gradient(90deg,color-mix(in srgb,#f59e0b 14%,transparent),color-mix(in srgb,#f59e0b 4%,transparent));border-color:color-mix(in srgb,#f59e0b 35%,transparent)}
+.pp-annual-rise .ar-ic{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,#f59e0b 18%,transparent)}
+.pp-annual-rise .ar-ic i{margin:0;font-size:18px}
+.pp-annual-rise .ar-t{display:block;font-size:13px;font-weight:700;color:var(--text);line-height:1.3}
+.pp-annual-rise .ar-s{display:block;font-size:12px;color:var(--text2);margin-top:2px}
+.pp-annual-rise .ar-d{margin-left:auto;flex-shrink:0;text-align:center;padding:5px 9px;border-radius:9px;background:var(--bg3);border:1px solid var(--border2);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);line-height:1.15}
+.pp-annual-rise .ar-d b{display:block;font-size:16px;letter-spacing:0;color:#f59e0b}
+.pp-annual-note{margin-top:8px;font-size:11px;font-weight:600;color:#f59e0b}.pp-annual-note s{color:var(--text3);font-weight:500}
+.pp-annual-note[hidden]{display:none}
 .ld-annual-rise[hidden],.pp-annual-rise[hidden]{display:none}.ld-annual-rise i,.pp-annual-rise i{color:#f59e0b;font-size:16px;margin-top:1px}.ld-annual-rise b,.pp-annual-rise b{color:var(--text)}
 .ld-bt{max-width:1180px;margin:0 auto;padding:8px 24px 0}
 .ld-bt-list{list-style:none;margin:20px 0 26px;padding:0;display:grid;gap:11px}
@@ -4285,8 +4294,8 @@ function initLandingFX(){
         <div class="pp-back" onclick="showPricingScreen(1)"><i class="ti ti-arrow-left"></i>Volver</div>
         <div id="pp-offer-strip" class="pp-offer-strip" style="display:none"><i class="ti ti-flame"></i><div><strong><span>−25% de por vida</span></strong> <span>en el plan Mensual con</span> <strong data-no-i18n>SEMANA25</strong> <span>· termina en</span> <strong id="pp-offer-countdown" data-no-i18n>—</strong></div></div>
         <div id="pp-trial-banner" style="display:none;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin-bottom:14px"><i class="ti ti-gift" style="color:var(--green);font-size:18px"></i><div style="font-size:12.5px;color:var(--text2);line-height:1.45"><strong style="color:var(--text)">7 días gratis.</strong> No se te cobra hasta el día 7. Cancela antes y no pagas nada.</div></div>
+        <div class="pp-annual-rise" id="pp-annual-rise" data-no-i18n hidden></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          <div class="pp-annual-rise" id="pp-annual-rise" data-no-i18n hidden></div>
           <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
             <div class="pricing-card-title">Plan Mensual</div>
             <div class="pricing-card-price" id="pp-price-monthly">9,99€<span>/mes</span></div>
@@ -4297,6 +4306,7 @@ function initLandingFX(){
             <div class="pricing-card-title">Plan Anual</div>
             <div class="pricing-card-price" id="pp-price-annual">69€<span>/año</span></div>
             <div class="pricing-card-sub" id="pp-sub-annual">Solo 5,75€/mes</div>
+            <div class="pp-annual-note" id="pp-annual-note" data-no-i18n hidden></div>
           </div>
         </div>
         <div class="pp-coupon" style="margin-top:14px">
@@ -5437,7 +5447,16 @@ function applyAnnualPrice(){
   const d=new Date(ANNUAL_NEW_FROM).toLocaleDateString(en?'en-GB':'es-ES',{day:'numeric',month:'long',timeZone:'Europe/Madrid'});
   const msg=en?('<i class="ti ti-clock-exclamation"></i><span>The yearly plan goes up to <b>€'+ANNUAL_NEW+'</b> on '+d+'. Subscribe before then and keep <b>€'+ANNUAL_OLD+'/year</b> for as long as you stay subscribed.</span>')
               :('<i class="ti ti-clock-exclamation"></i><span>El plan anual sube a <b>'+ANNUAL_NEW+'€</b> el '+d+'. Si te suscribes antes, mantienes <b>'+ANNUAL_OLD+'€/año</b> mientras sigas suscrito.</span>');
-  ['ld-annual-rise','pp-annual-rise'].forEach(id=>{const e=document.getElementById(id);if(!e)return;e.hidden=!soon;if(soon)e.innerHTML=msg;});
+  const le=document.getElementById('ld-annual-rise'); if(le){le.hidden=!soon;if(soon)le.innerHTML=msg;}
+  // Dentro de la app: franja propia (título + subtítulo + días que quedan) y nota en la tarjeta anual
+  const days=Math.max(1,Math.ceil((new Date(ANNUAL_NEW_FROM).getTime()-Date.now())/86400000));
+  const pe=document.getElementById('pp-annual-rise');
+  if(pe){pe.hidden=!soon;if(soon)pe.innerHTML='<span class="ar-ic"><i class="ti ti-clock-exclamation"></i></span><span><span class="ar-t">'
+    +(en?('The yearly plan goes up to €'+ANNUAL_NEW+' on '+d):('El plan anual sube a '+ANNUAL_NEW+'€ el '+d))+'</span><span class="ar-s">'
+    +(en?('Subscribe now and keep €'+ANNUAL_OLD+'/year for as long as you stay subscribed.'):('Suscríbete ahora y mantén '+ANNUAL_OLD+'€/año mientras sigas suscrito.'))+'</span></span>'
+    +'<span class="ar-d"><b>'+days+'</b>'+(en?(days===1?'day left':'days left'):(days===1?'día':'días'))+'</span>';}
+  const ne=document.getElementById('pp-annual-note');
+  if(ne){ne.hidden=!soon;if(soon)ne.innerHTML=en?('Launch price · then €'+ANNUAL_NEW):('Precio de lanzamiento · luego '+ANNUAL_NEW+'€');}
 }
 if(document.readyState!=='loading')applyAnnualPrice();else document.addEventListener('DOMContentLoaded',applyAnnualPrice);
 const PP_BASE={monthly:9.99, get annual(){return annualPrice();}};
