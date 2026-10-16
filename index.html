@@ -126,7 +126,7 @@
         },
         {
           "@type": "Offer",
-          "name": "Pro",
+          "name": "Premium",
           "price": "9.99",
           "priceCurrency": "EUR",
           "description": "Cuentas ilimitadas, métricas y análisis avanzado, plan de trading y rutina personalizados y exportación de datos.",
@@ -149,7 +149,7 @@
         {
           "@type": "Question",
           "name": "¿TradeDay es gratis?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Sí. El plan Free es gratis para siempre e incluye una cuenta de trading con journal, calendario y métricas básicas, sin tarjeta de crédito. El plan Pro (9,99€/mes) añade cuentas ilimitadas y análisis avanzado para quienes gestionan varias cuentas." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. El plan Free es gratis para siempre e incluye una cuenta de trading con journal, calendario y métricas básicas, sin tarjeta de crédito. El plan Premium (9,99€/mes) añade cuentas ilimitadas y análisis avanzado para quienes gestionan varias cuentas." }
         },
         {
           "@type": "Question",
@@ -179,7 +179,7 @@
         {
           "@type": "Question",
           "name": "¿Puedo cancelar cuando quiera?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Sí. El plan Pro es una suscripción mensual que puedes cancelar en cualquier momento; mantienes el acceso hasta el final del periodo ya pagado y después tu cuenta pasa al plan Free. Tus datos siguen siendo tuyos." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. El plan Premium (mensual o anual) no tiene permanencia y puedes cancelarlo en cualquier momento; mantienes el acceso hasta el final del periodo ya pagado y después tu cuenta pasa al plan Free. Tus datos siguen siendo tuyos." }
         }
       ]
     }
@@ -295,7 +295,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .ld-feat,.ld-step{transition:background .25s,transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s}
 .ld-feat:hover,.ld-step:hover{transform:translateY(-4px);box-shadow:0 22px 44px -26px rgba(0,0,0,.85)}
 
-/* Pricing: elevación y realce del plan Pro */
+/* Pricing: elevación y realce del plan Premium */
 .ld-price-card{transition:transform .4s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .4s}
 .ld-price-card:hover{transform:translateY(-6px);border-color:var(--border3);box-shadow:0 28px 56px -30px rgba(0,0,0,.9)}
 .ld-price-card.pro:hover{border-color:rgba(34,197,94,.45);box-shadow:0 28px 60px -28px rgba(34,197,94,.30)}
@@ -345,6 +345,20 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
   #screen-home .ld-spot::before{display:none}
   .ld-feat:hover,.ld-step:hover,.ld-price-card:hover{transform:none;box-shadow:none}
 }
+/* ── Backtesting en la landing (oculto hasta BT_LAUNCH=true → html.bt-on) ── */
+html:not(.bt-on) .bt-launch{display:none!important}
+html.bt-on .bt-prelaunch{display:none!important}
+.ld-badge.bt-new{cursor:pointer;border-color:color-mix(in srgb,var(--accent) 45%,transparent);color:var(--text)}
+.ld-badge.bt-new b{color:var(--accent);font-weight:800}.ld-badge.bt-new i{font-size:13px;color:var(--accent)}
+.ld-badge.bt-new:hover{background:var(--bg4,var(--bg3))}
+.ld-price-alt{font-size:13px;color:var(--text2);margin:-6px 0 12px}.ld-price-alt b{color:var(--text)}
+.ld-annual-rise,.pp-annual-rise{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.45;color:var(--text2);background:color-mix(in srgb,#f59e0b 10%,transparent);border:1px solid color-mix(in srgb,#f59e0b 40%,transparent);border-radius:10px;padding:9px 11px;margin:0 0 12px}
+.ld-annual-rise[hidden],.pp-annual-rise[hidden]{display:none}.ld-annual-rise i,.pp-annual-rise i{color:#f59e0b;font-size:16px;margin-top:1px}.ld-annual-rise b,.pp-annual-rise b{color:var(--text)}
+.ld-bt{max-width:1180px;margin:0 auto;padding:8px 24px 0}
+.ld-bt-list{list-style:none;margin:20px 0 26px;padding:0;display:grid;gap:11px}
+.ld-bt-list li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--text2);line-height:1.55}
+.ld-bt-list li i{color:var(--accent);font-size:17px;margin-top:2px;flex-shrink:0}.ld-bt-list b{color:var(--text)}
+.ld-bt-note{font-size:12.5px;color:var(--text3);margin-top:12px}
 /* ── Capturas reales del producto ──────────────────────────────────── */
 .ld-mock-img{display:block;width:100%;height:auto;border-top:1px solid var(--border)}
 .ld-shots{max-width:1180px;margin:0 auto;padding:40px 24px 0;display:flex;flex-direction:column;gap:104px}
@@ -2118,7 +2132,8 @@ function initLandingFX(){
   <!-- HERO -->
   <div class="ld-hero">
     <div class="ld-hero-glow"></div>
-    <div class="ld-badge ld-reveal"><span class="dot"></span>Diario de trading con análisis de comportamiento</div>
+    <div class="ld-badge bt-new bt-launch ld-reveal" role="link" tabindex="0" onclick="document.getElementById('backtesting').scrollIntoView({behavior:'smooth'})"><i class="ti ti-sparkles"></i><b>Nuevo</b>Backtesting con velas reales<i class="ti ti-arrow-right"></i></div>
+    <div class="ld-badge ld-reveal bt-prelaunch"><span class="dot"></span>Diario de trading con análisis de comportamiento</div>
     <h1 class="ld-h1 ld-reveal ld-reveal-1">Tu bróker sabe qué hiciste.<br><span class="accent">TradeDay sabe por qué.</span></h1>
     <p class="ld-sub ld-reveal ld-reveal-2">Registra cada operación —y cada día que decides no operar— con la decisión que había detrás. TradeDay lo convierte en métricas, patrones y un índice de disciplina que compara tu plan con lo que de verdad hiciste.</p>
     <div class="ld-cta-row ld-reveal ld-reveal-3">
@@ -2194,12 +2209,40 @@ function initLandingFX(){
     </div>
   </div>
 
+  <!-- BACKTESTING (oculto hasta el lanzamiento: BT_LAUNCH=true) -->
+  <div class="ld-section bt-launch" id="backtesting" style="padding-bottom:0">
+    <div class="ld-section-head ld-reveal">
+      <div class="ld-eyebrow">Nuevo · Backtesting</div>
+      <h2 class="ld-h2">Practica tu estrategia<br>en el pasado, vela a vela</h2>
+      <p class="ld-section-desc">Elige un activo y un día, y el mercado avanza como si fuera en directo. El futuro está oculto: solo ves lo que ya ha pasado.</p>
+    </div>
+  </div>
+  <div class="ld-bt bt-launch">
+    <div class="ld-shot ld-reveal">
+      <div class="ld-shot-txt">
+        <ul class="ld-bt-list">
+          <li><i class="ti ti-chart-candle"></i><span><b>Velas reales de 1 minuto desde 2015</b> en NAS100, S&amp;P 500, oro, EURUSD, GBPUSD y USDJPY.</span></li>
+          <li><i class="ti ti-player-play"></i><span><b>Replay a tu ritmo:</b> vela a vela o en reproducción, con saltos a la apertura de Londres o Nueva York.</span></li>
+          <li><i class="ti ti-box"></i><span><b>Opera como en tu plataforma:</b> cajas Long/Short, SL y TP arrastrables, órdenes límite, break-even y cierres parciales.</span></li>
+          <li><i class="ti ti-trophy"></i><span><b>Modo reto de fondeo</b> de 1 o 2 fases con las reglas de tu prop firm.</span></li>
+          <li><i class="ti ti-chart-pie"></i><span><b>Las mismas métricas que tu diario</b>, Monte Carlo incluido, sin mezclar tus datos reales.</span></li>
+        </ul>
+        <button class="ld-btn ld-btn-primary" onclick="showScreen('signup')"><i class="ti ti-arrow-right"></i>Pruébalo gratis una semana</button>
+        <div class="ld-bt-note">Una semana de mercado en el gráfico gratis. Ilimitado con Premium.</div>
+      </div>
+      <div class="ld-shot-frame ld-spot" data-tilt="2.2">
+        <img src="/tradeday-backtesting.webp" width="1600" height="857" loading="lazy" decoding="async"
+             alt="Backtesting de TradeDay: gráfico de velas reales con una operación abierta, su stop loss y su take profit">
+      </div>
+    </div>
+  </div>
+
   <!-- PRICING (subida justo tras el hero para que se vea sin apenas scroll) -->
   <div class="ld-pricing" id="precios">
     <div class="ld-section-head ld-reveal">
       <div class="ld-eyebrow">Precios</div>
       <h2 class="ld-h2" style="font-size:clamp(30px,3.2vw,44px)">Tu primera cuenta,<br>gratis para siempre</h2>
-      <p class="ld-section-desc">Sin prueba con caducidad ni tarjeta al registrarte. Si además operas con varias cuentas — reales, fondeadas o demo — Pro te lo desbloquea todo por 9,99€/mes.</p>
+      <p class="ld-section-desc">Sin prueba con caducidad ni tarjeta al registrarte. Si además operas con varias cuentas — reales, fondeadas o demo — Premium te lo desbloquea todo por 9,99€/mes.</p>
     </div>
     <div class="ld-pricing-grid">
       <div class="ld-price-card ld-spot ld-reveal">
@@ -2210,21 +2253,25 @@ function initLandingFX(){
           <li><i class="ti ti-check"></i>1 cuenta de trading</li>
           <li><i class="ti ti-check"></i>Journal y calendario</li>
           <li><i class="ti ti-check"></i>Métricas básicas</li>
+          <li class="bt-launch"><i class="ti ti-check"></i>Backtesting: 1 semana de prueba</li>
         </ul>
         <button class="ld-btn ld-btn-ghost" style="width:100%;justify-content:center" onclick="showScreen('signup')">Empezar gratis</button>
       </div>
       <div class="ld-price-card pro ld-spot ld-reveal ld-reveal-1">
         <div class="ld-price-badge">Para multi-cuenta</div>
-        <div class="ld-price-tier">Pro</div>
+        <div class="ld-price-tier">Premium</div>
         <div class="ld-price-amount">9,99€<span>/mes</span></div>
+        <div class="ld-price-alt" id="ld-annual-alt">Anual: <b>69€/año</b> · solo 5,75€/mes</div>
+        <div class="ld-annual-rise" id="ld-annual-rise" data-no-i18n hidden></div>
         <p class="ld-price-desc">Cuando gestionas más de una cuenta — o quieres análisis más a fondo.</p>
         <ul class="ld-price-list">
           <li><i class="ti ti-check"></i>Cuentas ilimitadas</li>
+          <li class="bt-launch"><i class="ti ti-check"></i>Backtesting ilimitado</li>
           <li><i class="ti ti-check"></i>Métricas y análisis avanzado</li>
           <li><i class="ti ti-check"></i>Plan de trading y rutina personalizados</li>
           <li><i class="ti ti-check"></i>Exportación de datos</li>
         </ul>
-        <button class="ld-btn ld-btn-primary" style="width:100%;justify-content:center" onclick="showScreen('signup')">Empezar prueba gratis</button>
+        <button class="ld-btn ld-btn-primary" style="width:100%;justify-content:center" onclick="showScreen('signup')">Empezar con Premium</button>
       </div>
     </div>
   </div>
@@ -2276,7 +2323,8 @@ function initLandingFX(){
     <div class="ld-feat ld-spot ld-reveal ld-reveal-3"><div class="ld-feat-icon"><i class="ti ti-shield-lock"></i></div><div class="ld-feat-title">Multi-cuenta</div><div class="ld-feat-desc">Gestiona cuentas reales y fondeadas. Cada una con su propio diario y métricas.</div></div>
     <div class="ld-feat ld-spot ld-reveal"><div class="ld-feat-icon"><i class="ti ti-target-arrow"></i></div><div class="ld-feat-title">Índice de disciplina</div><div class="ld-feat-desc">Un porcentaje que compara tus reglas con lo que realmente ejecutaste.</div></div>
     <div class="ld-feat ld-spot ld-reveal ld-reveal-1"><div class="ld-feat-icon"><i class="ti ti-clipboard-check"></i></div><div class="ld-feat-title">Plan y rutina</div><div class="ld-feat-desc">Define tus reglas dentro de la app y mide si las cumples, operación a operación.</div></div>
-    <div class="ld-feat ld-spot ld-reveal ld-reveal-2"><div class="ld-feat-icon"><i class="ti ti-moon"></i></div><div class="ld-feat-title">Días sin operar</div><div class="ld-feat-desc">Registrar la paciencia cuenta tanto como registrar los trades. Aquí se ve.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-2 bt-launch"><div class="ld-feat-icon"><i class="ti ti-history"></i></div><div class="ld-feat-title">Backtesting</div><div class="ld-feat-desc">Practica con velas reales del pasado, vela a vela, sin ver el futuro.</div></div>
+    <div class="ld-feat ld-spot ld-reveal ld-reveal-2 bt-prelaunch"><div class="ld-feat-icon"><i class="ti ti-moon"></i></div><div class="ld-feat-title">Días sin operar</div><div class="ld-feat-desc">Registrar la paciencia cuenta tanto como registrar los trades. Aquí se ve.</div></div>
     <div class="ld-feat ld-spot ld-reveal ld-reveal-3"><div class="ld-feat-icon"><i class="ti ti-plug-off"></i></div><div class="ld-feat-title">Sin conectar el bróker</div><div class="ld-feat-desc">Funciona con cualquier bróker y mercado. Tus datos no salen de tu cuenta.</div></div>
   </div>
 
@@ -2357,7 +2405,7 @@ function initLandingFX(){
     </details>
     <details class="ld-faq-item">
       <summary>¿TradeDay es gratis?<span class="ld-faq-plus"></span></summary>
-      <div class="ld-faq-answer">Sí. El plan Free es gratis para siempre e incluye una cuenta de trading con journal, calendario y métricas básicas, sin tarjeta de crédito. El plan Pro (9,99€/mes) añade cuentas ilimitadas y análisis avanzado para quienes gestionan varias cuentas.</div>
+      <div class="ld-faq-answer">Sí. El plan Free es gratis para siempre e incluye una cuenta de trading con journal, calendario y métricas básicas, sin tarjeta de crédito. El plan Premium (9,99€/mes) añade cuentas ilimitadas y análisis avanzado para quienes gestionan varias cuentas.</div>
     </details>
     <details class="ld-faq-item">
       <summary>¿Qué es un diario de trading y para qué sirve?<span class="ld-faq-plus"></span></summary>
@@ -2379,9 +2427,13 @@ function initLandingFX(){
       <summary>¿En qué se diferencia de una hoja de Excel?<span class="ld-faq-plus"></span></summary>
       <div class="ld-faq-answer">Además de guardar tus operaciones, TradeDay analiza tu comportamiento emocional, calcula tus métricas automáticamente, te muestra un calendario visual de consistencia y mide tu disciplina. Todo pensado para traders, sin fórmulas que mantener.</div>
     </details>
+    <details class="ld-faq-item bt-launch">
+      <summary>¿TradeDay tiene backtesting?<span class="ld-faq-plus"></span></summary>
+      <div class="ld-faq-answer">Sí. Puedes practicar tu estrategia con velas reales de 1 minuto desde 2015 (índices, oro y divisas), avanzando vela a vela sin ver el futuro, con modo reto de fondeo y las mismas métricas que tu diario. Tienes una semana de mercado gratis para probarlo; con Premium es ilimitado.</div>
+    </details>
     <details class="ld-faq-item">
       <summary>¿Puedo cancelar cuando quiera?<span class="ld-faq-plus"></span></summary>
-      <div class="ld-faq-answer">Sí. El plan Pro es una suscripción mensual que puedes cancelar en cualquier momento; mantienes el acceso hasta el final del periodo ya pagado y después tu cuenta pasa al plan Free. Tus datos siguen siendo tuyos.</div>
+      <div class="ld-faq-answer">Sí. El plan Premium (mensual o anual) no tiene permanencia y puedes cancelarlo en cualquier momento; mantienes el acceso hasta el final del periodo ya pagado y después tu cuenta pasa al plan Free. Tus datos siguen siendo tuyos.</div>
     </details>
   </div>
 
@@ -2534,7 +2586,7 @@ function initLandingFX(){
       <h3>4. Conservación</h3>
       <p>Mientras mantengas tu cuenta activa. Puedes solicitar la eliminación de tu cuenta y tus datos en cualquier momento desde Configuración.</p>
       <h3>5. Terceros</h3>
-      <p>Trabajamos con los siguientes encargados del tratamiento: <strong>Supabase</strong> (base de datos y autenticación), <strong>Stripe</strong> (procesamiento de pagos del plan Pro), <strong>Brevo</strong> (envío de emails transaccionales como recordatorios y resúmenes), <strong>Google Analytics</strong> y <strong>PostHog</strong> (analítica de uso de la web y la aplicación). No vendemos ni cedemos tus datos a nadie más, y en ningún caso compartimos el contenido de tu journal ni tus operaciones.</p>
+      <p>Trabajamos con los siguientes encargados del tratamiento: <strong>Supabase</strong> (base de datos y autenticación), <strong>Stripe</strong> (procesamiento de pagos del plan Premium), <strong>Brevo</strong> (envío de emails transaccionales como recordatorios y resúmenes), <strong>Google Analytics</strong> y <strong>PostHog</strong> (analítica de uso de la web y la aplicación). No vendemos ni cedemos tus datos a nadie más, y en ningún caso compartimos el contenido de tu journal ni tus operaciones.</p>
       <h3>6. Tus derechos</h3>
       <p>Puedes ejercer tus derechos de acceso, rectificación, supresión, portabilidad, limitación y oposición escribiendo a <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a>. También puedes eliminar tu cuenta y todos tus datos directamente desde Configuración, sin necesidad de solicitarlo. Si consideras que no hemos atendido tu solicitud correctamente, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (aepd.es).</p>
       <p class="legal-disclaimer">Si tienes cualquier duda sobre cómo tratamos tus datos, escríbenos a <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a> y te respondemos.</p>
@@ -2557,7 +2609,7 @@ function initLandingFX(){
       <h3>3. Cuenta de usuario</h3>
       <p>Eres responsable de mantener la confidencialidad de tu contraseña y de toda actividad realizada desde tu cuenta.</p>
       <h3>4. Planes y pagos</h3>
-      <p>El plan Free es gratuito y no tiene fecha de caducidad. El plan Pro cuesta 9,99&nbsp;€ al mes o 69&nbsp;€ al año (IVA incluido) y se renueva automáticamente al final de cada periodo. Puedes cancelarlo cuando quieras desde Configuración: la cancelación es inmediata pero mantienes el acceso Pro hasta el final del periodo ya pagado, momento en el que tu cuenta pasa al plan Free sin perder ningún dato. Los pagos se procesan a través de Stripe; nosotros no almacenamos los datos de tu tarjeta. Para solicitudes de reembolso, escríbenos a <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a>.</p>
+      <p>El plan Free es gratuito y no tiene fecha de caducidad. El plan Premium cuesta 9,99&nbsp;€ al mes o el precio anual que se muestra en la página de precios en el momento de contratarlo (IVA incluido) y se renueva automáticamente al final de cada periodo. Puedes cancelarlo cuando quieras desde Configuración: la cancelación es inmediata pero mantienes el acceso Premium hasta el final del periodo ya pagado, momento en el que tu cuenta pasa al plan Free sin perder ningún dato. Los pagos se procesan a través de Stripe; nosotros no almacenamos los datos de tu tarjeta. Para solicitudes de reembolso, escríbenos a <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a>.</p>
       <h3>5. Disponibilidad</h3>
       <p>Intentamos mantener el servicio disponible de forma continua, pero no garantizamos un funcionamiento ininterrumpido o libre de errores.</p>
       <h3>6. Limitación de responsabilidad</h3>
@@ -2689,7 +2741,7 @@ function initLandingFX(){
         </div>
         <div class="sidebar-item" onclick="gotoView('balance')" id="si-balance"><i class="ti ti-wallet"></i>Balance</div>
         <div class="sidebar-item" onclick="gotoView('global')" id="si-global"><i class="ti ti-world"></i>Resumen global</div>
-        <div class="sidebar-item" onclick="openBacktestTeaser()" id="si-backtest"><i class="ti ti-history"></i>Backtesting<span class="nav-soon">Pronto</span></div>
+        <div class="sidebar-item" onclick="openBacktesting()" id="si-backtest"><i class="ti ti-history"></i>Backtesting<span class="nav-soon">Pronto</span></div>
         <div class="sidebar-divider"></div>
         <div class="sidebar-item" onclick="gotoView('plan')" id="si-plan"><i class="ti ti-target"></i>Mi plan</div>
         <div class="sidebar-item" onclick="gotoView('routine')" id="si-routine"><i class="ti ti-sun"></i>Mi rutina</div>
@@ -4206,6 +4258,7 @@ function initLandingFX(){
             <tr><td>Análisis del Journal</td><td>Básico</td><td>Completo</td></tr>
             <tr><td>Métricas avanzadas</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
             <tr><td>Índice de Disciplina</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
+            <tr class="bt-launch"><td>Backtesting con velas reales</td><td>1 semana</td><td><i class="ti ti-infinity pp-check"></i></td></tr>
             <tr><td>Eliminar operaciones y entradas</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
             <tr><td>Futuras funciones Premium</td><td><i class="ti ti-minus pp-cross"></i></td><td><i class="ti ti-check pp-check"></i></td></tr>
           </tbody>
@@ -4233,13 +4286,14 @@ function initLandingFX(){
         <div id="pp-offer-strip" class="pp-offer-strip" style="display:none"><i class="ti ti-flame"></i><div><strong><span>−25% de por vida</span></strong> <span>en el plan Mensual con</span> <strong data-no-i18n>SEMANA25</strong> <span>· termina en</span> <strong id="pp-offer-countdown" data-no-i18n>—</strong></div></div>
         <div id="pp-trial-banner" style="display:none;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin-bottom:14px"><i class="ti ti-gift" style="color:var(--green);font-size:18px"></i><div style="font-size:12.5px;color:var(--text2);line-height:1.45"><strong style="color:var(--text)">7 días gratis.</strong> No se te cobra hasta el día 7. Cancela antes y no pagas nada.</div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="pp-annual-rise" id="pp-annual-rise" data-no-i18n hidden></div>
           <div class="pricing-card" id="pp-card-monthly" onclick="selectPricingPlan('monthly')">
             <div class="pricing-card-title">Plan Mensual</div>
             <div class="pricing-card-price" id="pp-price-monthly">9,99€<span>/mes</span></div>
             <div class="pricing-card-sub">Facturación mensual · cancela cuando quieras</div>
           </div>
           <div class="pricing-card selected" id="pp-card-annual" onclick="selectPricingPlan('annual')">
-            <div class="pricing-badge">Ahorra 42%</div>
+            <div class="pricing-badge" id="pp-badge-annual">Ahorra 42%</div>
             <div class="pricing-card-title">Plan Anual</div>
             <div class="pricing-card-price" id="pp-price-annual">69€<span>/año</span></div>
             <div class="pricing-card-sub" id="pp-sub-annual">Solo 5,75€/mes</div>
@@ -5362,7 +5416,31 @@ function selectPricingPlan(plan){
   if(aCard)aCard.classList.toggle('selected',plan==='annual');
 }
 let ppCoupon=null; // {code, percent_off, amount_off, currency}
-const PP_BASE={monthly:9.99, annual:69};
+/* ── Precio anual: 69€ → 80€ desde ANNUAL_NEW_FROM (null = sin subida programada: todo sigue a 69€).
+   Antes de la fecha se muestra el aviso «el anual sube a 80€ el …»; desde la fecha se muestra 80€.
+   Quien ya paga el anual mantiene su precio (Stripe no cambia suscripciones existentes).
+   ⚠️ La MISMA fecha va en create-checkout-session (ANNUAL_NEW_FROM) junto al price id de 80€. ── */
+const ANNUAL_NEW_FROM='2026-10-26T00:00:00+01:00'; // p. ej. '2026-11-10T00:00:00+01:00'
+const ANNUAL_OLD=69, ANNUAL_NEW=80;
+function annualNewActive(){return !!ANNUAL_NEW_FROM&&Date.now()>=new Date(ANNUAL_NEW_FROM).getTime();}
+function annualPrice(){return annualNewActive()?ANNUAL_NEW:ANNUAL_OLD;}
+function annualPerMonthTxt(){const v=(Math.round(annualPrice()/12*100)/100).toFixed(2);return lang==='en'?'€'+v:v.replace('.',',')+'€';}
+function annualSavePct(){return Math.round((1-annualPrice()/(9.99*12))*100);}
+function applyAnnualPrice(){
+  if(!ANNUAL_NEW_FROM)return; // sin subida programada: se queda el HTML original (69€)
+  const en=lang==='en', p=annualPrice(), soon=!annualNewActive();
+  const set=(id,h)=>{const e=document.getElementById(id);if(e){e.setAttribute('data-no-i18n','');e.innerHTML=h;}};
+  set('pp-price-annual',(en?'€'+p:p+'€')+'<span>'+(en?'/year':'/año')+'</span>');
+  set('pp-sub-annual',(en?'Just ':'Solo ')+annualPerMonthTxt()+(en?'/month':'/mes'));
+  set('pp-badge-annual',(en?'Save ':'Ahorra ')+annualSavePct()+'%');
+  set('ld-annual-alt',en?('Yearly: <b>€'+p+'/year</b> · only '+annualPerMonthTxt()+'/month'):('Anual: <b>'+p+'€/año</b> · solo '+annualPerMonthTxt()+'/mes'));
+  const d=new Date(ANNUAL_NEW_FROM).toLocaleDateString(en?'en-GB':'es-ES',{day:'numeric',month:'long',timeZone:'Europe/Madrid'});
+  const msg=en?('<i class="ti ti-clock-exclamation"></i><span>The yearly plan goes up to <b>€'+ANNUAL_NEW+'</b> on '+d+'. Subscribe before then and keep <b>€'+ANNUAL_OLD+'/year</b> for as long as you stay subscribed.</span>')
+              :('<i class="ti ti-clock-exclamation"></i><span>El plan anual sube a <b>'+ANNUAL_NEW+'€</b> el '+d+'. Si te suscribes antes, mantienes <b>'+ANNUAL_OLD+'€/año</b> mientras sigas suscrito.</span>');
+  ['ld-annual-rise','pp-annual-rise'].forEach(id=>{const e=document.getElementById(id);if(!e)return;e.hidden=!soon;if(soon)e.innerHTML=msg;});
+}
+if(document.readyState!=='loading')applyAnnualPrice();else document.addEventListener('DOMContentLoaded',applyAnnualPrice);
+const PP_BASE={monthly:9.99, get annual(){return annualPrice();}};
 function ppFmtEuro(n){
   if(Math.abs(n-Math.round(n))<0.005) return Math.round(n)+'€';
   return n.toFixed(2).replace('.',',')+'€';
@@ -5371,6 +5449,7 @@ function ppResetPrices(){
   const m=document.getElementById('pp-price-monthly'); if(m)m.innerHTML='9,99€<span>/mes</span>';
   const a=document.getElementById('pp-price-annual'); if(a)a.innerHTML='69€<span>'+window.t('/año')+'</span>';
   const as=document.getElementById('pp-sub-annual'); if(as)as.textContent='Solo 5,75€/mes';
+  applyAnnualPrice();
 }
 function ppDisc(base){
   if(!ppCoupon) return base;
@@ -5388,6 +5467,7 @@ function ppApplyPricesPreview(){
   if(aEl)aEl.innerHTML='69€<span>'+window.t('/año')+'</span>';
   const asEl=document.getElementById('pp-sub-annual');
   if(asEl)asEl.textContent='Solo 5,75€/mes';
+  applyAnnualPrice();
 }
 function onCouponInput(){
   if(ppCoupon){ppCoupon=null;ppResetPrices();const m=document.getElementById('pp-coupon-msg');if(m)m.style.display='none';}
@@ -5412,7 +5492,7 @@ async function applyCoupon(){
       ppCoupon={code,percent_off:data.percent_off,amount_off:data.amount_off,currency:data.currency};
       ppApplyPricesPreview();
       const label=data.percent_off!=null?('−'+data.percent_off+'%'):(data.amount_off!=null?('−'+ppFmtEuro(data.amount_off/100)):'descuento');
-      show('var(--green)','<i class="ti ti-discount-2"></i> Código aplicado: '+label+' en el plan Mensual. Se aplica al pago del plan de 9,99€ (el Anual se queda en 69€).');
+      show('var(--green)','<i class="ti ti-discount-2"></i> Código aplicado: '+label+' en el plan Mensual. Se aplica al pago del plan de 9,99€ (el Anual se queda en '+annualPrice()+'€).');
     }
   }catch(e){
     show('var(--red)',(e&&e.message)||'No se pudo validar el código.');
@@ -5466,6 +5546,7 @@ function handleCheckoutRedirect(){
   else{try{if(sessionStorage.getItem('td_trial')==='1')trialOffer=true;}catch(_){}}
   // Enlace del email de la oferta SEMANA25: al entrar, se abren los planes con el código ya aplicado.
   if(params.get('offer')==='semana25'){try{sessionStorage.setItem('td_open_offer','1');}catch(_){}}
+  if(params.get('upgrade')==='backtesting'){try{sessionStorage.setItem('td_open_upgrade','backtesting');}catch(_){}history.replaceState(null,'',window.location.pathname);}
   const checkout=params.get('checkout');
   if(!checkout)return;
   history.replaceState(null,'',window.location.pathname);
@@ -6124,6 +6205,7 @@ async function saveBtInterest(patch){
   try{if(window.posthog)posthog.capture('backtesting_interest',patch);}catch(_){}
 }
 function maybeShowBtSurvey(){
+  if(BT_LAUNCH)return; // ya lanzado: no se pregunta el interés
   if(btSurveyScheduled||!currentUser)return;
   btSurveyScheduled=true;
   try{if(localStorage.getItem(BT_SURVEY_LS+'_'+currentUser.id))return;}catch(_){}
@@ -6213,6 +6295,36 @@ async function btSurveyClose(skip){
     try{localStorage.setItem(BT_SURVEY_LS+'_'+currentUser.id,'1');}catch(_){}
   }
 }
+/* ══ Lanzamiento del Backtesting ══
+   BT_LAUNCH=false → todo sigue como hasta ahora (item «Pronto» + encuesta de interés).
+   El día del lanzamiento: poner BT_LAUNCH=true y subir también backtesting.html (sale de 2_BACKTEST_DEV/dist).
+   Con true: el item abre tradeday.me/backtesting.html a pantalla completa para TODOS: Premium sin límite y el resto con
+   una prueba gratis de 1 semana de mercado en el gráfico (la controla el servidor, bt-candles; al agotarse, pantalla «Hazte Premium»),
+   la etiqueta pasa de «Pronto» a «Nuevo» y la encuesta deja de mostrarse. */
+const BT_LAUNCH=true;
+if(BT_LAUNCH)document.documentElement.classList.add('bt-on'); // muestra los bloques .bt-launch de la landing y oculta los .bt-prelaunch
+function openBacktesting(){
+  if(!BT_LAUNCH)return openBacktestTeaser();
+  if(typeof closeMobileSidebar==='function')closeMobileSidebar();
+  try{if(window.posthog)posthog.capture('backtesting_open',{premium:isPremiumUser()});}catch(_){}
+  window.location.href='/backtesting.html'; // sin Premium: prueba gratis de 1 semana de gráfico (límite en el servidor)
+}
+function applyBtLaunchUI(){
+  if(!BT_LAUNCH)return;
+  const el=document.getElementById('si-backtest');if(!el)return;
+  const soon=el.querySelector('.nav-soon');if(soon)soon.remove();
+  if(!el.querySelector('.nav-new')){const tag=document.createElement('span');tag.className='nav-new';tag.textContent=window.t('Nuevo');el.appendChild(tag);}
+}
+if(document.readyState!=='loading')applyBtLaunchUI();else document.addEventListener('DOMContentLoaded',applyBtLaunchUI);
+// Enlace desde backtesting.html para quien no es Premium (?upgrade=backtesting): al entrar se abre el paywall
+// (o, si ya es Premium, se le lleva directamente al backtesting).
+function maybeOpenBtUpgrade(){
+  let p=null;try{p=sessionStorage.getItem('td_open_upgrade');}catch(_){}
+  if(p!=='backtesting'||!currentUser)return;
+  try{sessionStorage.removeItem('td_open_upgrade');}catch(_){}
+  if(isPremiumUser()){if(BT_LAUNCH)window.location.href='/backtesting.html';return;}
+  setTimeout(()=>showUpgradePrompt('El backtesting'),400);
+}
 /* Barra lateral: "Backtesting · Próximamente" (cuenta clics como señal de interés) */
 async function openBacktestTeaser(){
   if(typeof closeMobileSidebar==='function')closeMobileSidebar();
@@ -6261,6 +6373,7 @@ function renderAll(){
   renderAccountsSidebar();
   initDisciplineScore();
   maybeShowBtSurvey();
+  maybeOpenBtUpgrade();
 }
 
 function updateDashboardAccountInfo(){
@@ -11797,6 +11910,9 @@ var I18N_EN = {
   'Ya tengo cuenta':'I already have an account',
   'Crear cuenta gratis':'Create free account',
   'Empezar prueba gratis':'Start free trial',
+  'Empezar con Premium':'Start with Premium',
+  '1 semana':'1 week','Backtesting: 1 semana de prueba':'Backtesting: 1-week trial','Backtesting ilimitado':'Unlimited backtesting',
+  'Anual:':'Yearly:','69€/año':'€69/year','· solo 5,75€/mes':'· only €5.75/month',
   'English':'Español',
 
   /* ── Hero ── */
@@ -11846,7 +11962,7 @@ var I18N_EN = {
   'Precios':'Pricing',
   'Tu primera cuenta,':'Your first account,',
   'gratis para siempre':'free forever',
-  'Sin prueba con caducidad ni tarjeta al registrarte. Si además operas con varias cuentas — reales, fondeadas o demo — Pro te lo desbloquea todo por 9,99€/mes.':'No expiring trial and no card at sign-up. And if you run several accounts — live, funded or demo — Pro unlocks all of them for €9.99 a month.',
+  'Sin prueba con caducidad ni tarjeta al registrarte. Si además operas con varias cuentas — reales, fondeadas o demo — Premium te lo desbloquea todo por 9,99€/mes.':'No expiring trial and no card at sign-up. And if you run several accounts — live, funded or demo — Premium unlocks all of them for €9.99 a month.',
   'Tu primera cuenta de trading, completa y sin fecha de caducidad.':'Your first trading account, complete and with no expiry date.',
   '1 cuenta de trading':'1 trading account',
   'Journal y calendario':'Journal and calendar',
@@ -11904,6 +12020,19 @@ var I18N_EN = {
   'Por dentro':'Inside',
   'Esto es la aplicación,':'This is the app,',
   'no una maqueta':'not a mockup',
+  'Backtesting con velas reales':'Backtesting with real candles','Nuevo · Backtesting':'New · Backtesting',
+  'Practica tu estrategia':'Practise your strategy','en el pasado, vela a vela':'in the past, candle by candle',
+  'Elige un activo y un día, y el mercado avanza como si fuera en directo. El futuro está oculto: solo ves lo que ya ha pasado.':'Pick an asset and a day, and the market moves as if it were live. The future stays hidden: you only see what has already happened.',
+  'Velas reales de 1 minuto desde 2015':'Real 1-minute candles since 2015','en NAS100, S&P 500, oro, EURUSD, GBPUSD y USDJPY.':'on NAS100, S&P 500, gold, EURUSD, GBPUSD and USDJPY.',
+  'Replay a tu ritmo:':'Replay at your own pace:','vela a vela o en reproducción, con saltos a la apertura de Londres o Nueva York.':'candle by candle or playing, with jumps to the London or New York open.',
+  'Opera como en tu plataforma:':'Trade like on your platform:','cajas Long/Short, SL y TP arrastrables, órdenes límite, break-even y cierres parciales.':'Long/Short boxes, draggable SL and TP, limit orders, break-even and partial closes.',
+  'Modo reto de fondeo':'Prop firm challenge mode','de 1 o 2 fases con las reglas de tu prop firm.':'with 1 or 2 phases and your prop firm rules.',
+  'Las mismas métricas que tu diario':'The same metrics as your journal',', Monte Carlo incluido, sin mezclar tus datos reales.':', Monte Carlo included, without mixing your real data.',
+  'Pruébalo gratis una semana':'Try it free for a week','Una semana de mercado en el gráfico gratis. Ilimitado con Premium.':'One week of market time on the chart for free. Unlimited with Premium.',
+  'Practica con velas reales del pasado, vela a vela, sin ver el futuro.':'Practise with real past candles, one at a time, without seeing the future.',
+  '¿TradeDay tiene backtesting?':'Does TradeDay have backtesting?',
+  'Sí. Puedes practicar tu estrategia con velas reales de 1 minuto desde 2015 (índices, oro y divisas), avanzando vela a vela sin ver el futuro, con modo reto de fondeo y las mismas métricas que tu diario. Tienes una semana de mercado gratis para probarlo; con Premium es ilimitado.':'Yes. You can practise your strategy with real 1-minute candles since 2015 (indices, gold and forex), moving candle by candle without seeing the future, with a prop firm challenge mode and the same metrics as your journal. You get one week of market time free to try it; with Premium it is unlimited.',
+  'Backtesting de TradeDay: gráfico de velas reales con una operación abierta, su stop loss y su take profit':'TradeDay backtesting: real candle chart with an open trade, its stop loss and take profit',
   'Capturas reales de TradeDay funcionando. Sin retoques y sin pantallas de mentira.':'Real screenshots of TradeDay running. No retouching, no invented screens.',
   'Mis operaciones':'My trades',
   'Cada operación, con su gráfico y su contexto':'Every trade, with its chart and its context',
@@ -11921,7 +12050,7 @@ var I18N_EN = {
   '¿Qué es TradeDay?':'What is TradeDay?',
   'TradeDay es un diario de trading (trading journal) online. Registras cada operación —y también los días que decides no operar— y la aplicación analiza tu comportamiento, tus métricas y tu disciplina para ayudarte a mejorar como trader.':'TradeDay is an online trading journal. You log every trade — and the days you choose not to trade — and the app analyses your behaviour, your metrics and your discipline to help you improve as a trader.',
   '¿TradeDay es gratis?':'Is TradeDay free?',
-  'Sí. El plan Free es gratis para siempre e incluye una cuenta de trading con journal, calendario y métricas básicas, sin tarjeta de crédito. El plan Pro (9,99€/mes) añade cuentas ilimitadas y análisis avanzado para quienes gestionan varias cuentas.':'Yes. The Free plan is free forever and includes one trading account with journal, calendar and core metrics, with no credit card. Pro (€9.99/month) adds unlimited accounts and advanced analysis for traders running several at once.',
+  'Sí. El plan Free es gratis para siempre e incluye una cuenta de trading con journal, calendario y métricas básicas, sin tarjeta de crédito. El plan Premium (9,99€/mes) añade cuentas ilimitadas y análisis avanzado para quienes gestionan varias cuentas.':'Yes. The Free plan is free forever and includes one trading account with journal, calendar and core metrics, with no credit card. Premium (€9.99/month) adds unlimited accounts and advanced analysis for traders running several at once.',
   '¿Qué es un diario de trading y para qué sirve?':'What is a trading journal and what is it for?',
   'Un diario de trading es un registro de todas tus operaciones y decisiones. Sirve para detectar patrones, medir tu rendimiento real —win rate, ratio riesgo/beneficio, sesiones más rentables— y construir la disciplina que separa a los traders consistentes de los que no lo son.':'A trading journal is a record of every trade and every decision you make. It lets you spot patterns, measure your real performance — win rate, risk/reward, most profitable sessions — and build the discipline that separates consistent traders from the rest.',
   '¿Qué métricas y estadísticas puedo analizar?':'Which metrics and statistics can I analyse?',
@@ -11933,7 +12062,7 @@ var I18N_EN = {
   '¿En qué se diferencia de una hoja de Excel?':'How is it different from a spreadsheet?',
   'Además de guardar tus operaciones, TradeDay analiza tu comportamiento emocional, calcula tus métricas automáticamente, te muestra un calendario visual de consistencia y mide tu disciplina. Todo pensado para traders, sin fórmulas que mantener.':'Beyond storing your trades, TradeDay analyses your emotional behaviour, calculates your metrics automatically, shows a visual consistency calendar and measures your discipline. Built for traders, with no formulas to maintain.',
   '¿Puedo cancelar cuando quiera?':'Can I cancel whenever I want?',
-  'Sí. El plan Pro es una suscripción mensual que puedes cancelar en cualquier momento; mantienes el acceso hasta el final del periodo ya pagado y después tu cuenta pasa al plan Free. Tus datos siguen siendo tuyos.':'Yes. Pro is a monthly subscription you can cancel at any time. You keep access until the end of the period you already paid for, then your account moves to the Free plan. Your data stays yours.',
+  'Sí. El plan Premium (mensual o anual) no tiene permanencia y puedes cancelarlo en cualquier momento; mantienes el acceso hasta el final del periodo ya pagado y después tu cuenta pasa al plan Free. Tus datos siguen siendo tuyos.':'Yes. Premium (monthly or yearly) has no commitment and you can cancel it at any time. You keep access until the end of the period you already paid for, then your account moves to the Free plan. Your data stays yours.',
 
   /* ── Confianza y cierre ── */
   'Confianza':'Trust',
@@ -12574,7 +12703,7 @@ var I18N_EN = {
   'Acierto':'Accuracy','Rentabilidad':'Profitability','Ratio R:R':'R:R ratio','Consistencia':'Consistency','Control del DD':'Drawdown control','Disciplina':'Discipline','Sin datos':'No data',
   'Registra "¿Seguiste el plan?" en tus operaciones':'Log "Did you follow the plan?" on your trades',
   'Media de los ejes con datos (0–100)':'Average of the axes with data (0–100)',
-  'Nuevo':'New','Análisis de rendimiento':'Performance analysis','Ver métricas':'View metrics','Qué está pasando en tu trading':'What is happening in your trading','Lo que dicen tus datos, ordenado por importancia —':'What your data says, ordered by importance —','Mostrar subapartados de Métricas':'Show Metrics subsections','Sección mejorada recientemente':'Recently improved section',
+  'Nuevo':'New','El backtesting':'Backtesting','Análisis de rendimiento':'Performance analysis','Ver métricas':'View metrics','Qué está pasando en tu trading':'What is happening in your trading','Lo que dicen tus datos, ordenado por importancia —':'What your data says, ordered by importance —','Mostrar subapartados de Métricas':'Show Metrics subsections','Sección mejorada recientemente':'Recently improved section',
   'Mejor':'Best','Peor':'Worst','Ver menos':'Show less','Sin operaciones':'No trades','Pérdida':'Loss','Ganancia':'Profit','mejor día':'best day',
   'Acumulado':'Cumulative','Mes':'Month','Consistencia mensual':'Monthly consistency','Consistencia semanal':'Weekly consistency',
   '% de meses cerrados en positivo':'% of months closed in profit','% de semanas cerradas en positivo':'% of weeks closed in profit',
@@ -13052,7 +13181,7 @@ var LEGAL_EN={
 '<h3>4. Retention</h3>'+
 '<p>For as long as your account stays active. You can ask us to delete your account and your data at any time from Settings.</p>'+
 '<h3>5. Third parties</h3>'+
-'<p>We work with the following data processors: <strong>Supabase</strong> (database and authentication), <strong>Stripe</strong> (payment processing for the Pro plan), <strong>Brevo</strong> (transactional email such as reminders and summaries), <strong>Google Analytics</strong> and <strong>PostHog</strong> (usage analytics for the site and the app). We do not sell or hand your data to anyone else, and under no circumstances do we share the contents of your journal or your trades.</p>'+
+'<p>We work with the following data processors: <strong>Supabase</strong> (database and authentication), <strong>Stripe</strong> (payment processing for the Premium plan), <strong>Brevo</strong> (transactional email such as reminders and summaries), <strong>Google Analytics</strong> and <strong>PostHog</strong> (usage analytics for the site and the app). We do not sell or hand your data to anyone else, and under no circumstances do we share the contents of your journal or your trades.</p>'+
 '<h3>6. Your rights</h3>'+
 '<p>You can exercise your rights of access, rectification, erasure, portability, restriction and objection by writing to <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a>. You can also delete your account and all your data directly from Settings, without having to ask. If you believe we have not handled your request properly, you can complain to the Spanish Data Protection Agency (aepd.es).</p>'+
 '<p class="legal-disclaimer">If you have any question about how we handle your data, write to us at <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a> and we will reply. This is a translation for convenience; the Spanish version is the binding one.</p>'+
@@ -13068,7 +13197,7 @@ var LEGAL_EN={
 '<h3>3. Your account</h3>'+
 '<p>You are responsible for keeping your password confidential and for all activity carried out from your account.</p>'+
 '<h3>4. Plans and payments</h3>'+
-'<p>The Free plan is free and does not expire. The Pro plan costs €9.99 a month or €69 a year (VAT included) and renews automatically at the end of each period. You can cancel it whenever you like from Settings: cancellation takes effect immediately, but you keep Pro access until the end of the period you have already paid for, at which point your account moves to the Free plan without losing any data. Payments are processed through Stripe; we do not store your card details. For refund requests, write to us at <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a>.</p>'+
+'<p>The Free plan is free and does not expire. The Premium plan costs €9.99 a month or the yearly price shown on the pricing page at the time you subscribe (VAT included) and renews automatically at the end of each period. You can cancel it whenever you like from Settings: cancellation takes effect immediately, but you keep Premium access until the end of the period you have already paid for, at which point your account moves to the Free plan without losing any data. Payments are processed through Stripe; we do not store your card details. For refund requests, write to us at <a href="mailto:soporte@tradeday.me">soporte@tradeday.me</a>.</p>'+
 '<h3>5. Availability</h3>'+
 '<p>We aim to keep the service continuously available, but we do not guarantee uninterrupted or error-free operation.</p>'+
 '<h3>6. Limitation of liability</h3>'+
@@ -13202,6 +13331,7 @@ function applyLang(){
     if(l) l.textContent = toEN ? 'EN' : 'ES';
   });
   _i18nStartObserver();
+  try{ applyAnnualPrice(); }catch(e){}
 }
 
 /* Traducción para textos generados desde JavaScript.
