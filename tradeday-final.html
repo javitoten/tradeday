@@ -345,6 +345,9 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
   #screen-home .ld-spot::before{display:none}
   .ld-feat:hover,.ld-step:hover,.ld-price-card:hover{transform:none;box-shadow:none}
 }
+.jimg-strip{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.jimg-strip-img{width:92px;height:62px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:zoom-in;background:var(--bg3);transition:transform .15s}
+.jimg-strip-img:hover{transform:scale(1.04)}
 /* ── Backtesting en la landing (oculto hasta BT_LAUNCH=true → html.bt-on) ── */
 html:not(.bt-on) .bt-launch{display:none!important}
 html.bt-on .bt-prelaunch{display:none!important}
@@ -4136,6 +4139,15 @@ function initLandingFX(){
         <div id="j-tech-dropdowns"></div>
         <textarea class="form-input" id="j-tech-notes" rows="2" placeholder="Describe tu lectura técnica del día: qué estructura viste, qué confirmaciones tenías, qué zona observabas..." maxlength="1000" style="margin-top:10px"></textarea>
       </div>
+      <div class="form-group">
+        <label class="form-label">Capturas del día (opcional)</label>
+        <div class="form-hint" style="margin:-4px 0 8px">El gráfico que viste, el setup que esperabas, tu análisis... Añade las que quieras y marca una como portada (<i class="ti ti-star" style="vertical-align:-2px"></i>).</div>
+        <div class="timg-grid" id="jimg-grid"></div>
+        <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);margin-top:10px;width:fit-content">
+          <i class="ti ti-photo-up" style="font-size:16px"></i>Añadir imágenes
+          <input type="file" id="j-image-input" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="display:none" onchange="handleTradeImageFiles(event,'j')">
+        </label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="confirmCloseJournal()">Cancelar</button>
@@ -4357,6 +4369,9 @@ let currentAccountId=null;
    El orden del array ES el orden de visualización. */
 let tradeImagesDraft=[];
 let originalTradeImageUrls=[]; // urls que tenía el trade ANTES de editar, para poder limpiar Storage al guardar
+// Fotos de las entradas de diario (días sin operar): mismo composer y mismo bucket que los trades
+let journalImagesDraft=[];
+let originalJournalImageUrls=[];
 let _timgLocalIdSeq=1;
 let _timgDragSrcIdx=null;
 let obStep=0, obAccountType='real';
@@ -4847,6 +4862,8 @@ async function confirmDeleteAccount(){
   try{
     const{data:accTrades}=await sb.from('trades').select('images,image_url').eq('account_id',id);
     (accTrades||[]).forEach(t=>tradeAllImageUrls(t).forEach(u=>{const p=tradeImageStoragePath(u);if(p)imgPaths.push(p);}));
+    const{data:accJournals}=await sb.from('journals').select('images').eq('account_id',id);
+    (accJournals||[]).forEach(j=>tradeAllImageUrls(j).forEach(u=>{const p=tradeImageStoragePath(u);if(p)imgPaths.push(p);}));
   }catch(_){}
   await sb.from('trades').delete().eq('account_id',id);
   await sb.from('journals').delete().eq('account_id',id);
@@ -5769,6 +5786,23 @@ async function saveTrade(){
   });
 }
 
+/* Sube las imágenes nuevas de un borrador (las que ya tenían url no se vuelven a subir).
+   Comprime antes de subir (compressImageFile). Devuelve true si todo fue bien. */
+async function uploadDraftImages(draft){
+  for(const img of draft){
+    if(!img.file)continue;
+    if(!isAllowedImageFile(img.file)){toast('Solo se permiten imágenes JPG, PNG, WEBP o GIF de hasta 8 MB.');return false;}
+    let uploadFile=img.file;
+    try{uploadFile=await compressImageFile(img.file);}catch(_){uploadFile=img.file;}
+    const safeExt=IMAGE_MIME_EXT[uploadFile.type]||'jpg';
+    const fileName=`${currentUser.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${safeExt}`;
+    const{error:uploadErr}=await sb.storage.from('trade-images').upload(fileName,uploadFile,{upsert:false,contentType:uploadFile.type});
+    if(uploadErr){toast('Error subiendo una imagen. Inténtalo de nuevo.');console.error('[Storage error]',uploadErr);return false;}
+    const{data:urlData}=sb.storage.from('trade-images').getPublicUrl(fileName);
+    img.url=urlData.publicUrl;
+  }
+  return true;
+}
 /* Extrae la ruta dentro del bucket 'trade-images' a partir de la URL pública,
    para poder borrar el archivo de Storage cuando el usuario quita una imagen. */
 function tradeImageStoragePath(url){
@@ -5847,37 +5881,42 @@ function hydrateTradeImages(root){
    tradeImagesDraft guarda el estado en memoria mientras el modal está abierto;
    nada se sube a Storage hasta que se pulsa "Guardar trade" (ver saveTrade). */
 const MAX_TRADE_IMAGES=10;
-function handleTradeImageFiles(event){
+const imgDraft=k=>k==='j'?journalImagesDraft:tradeImagesDraft;
+const imgKArg=k=>k==='j'?",'j'":'';
+function handleTradeImageFiles(event,k){
   const files=Array.from(event.target.files||[]);
   event.target.value=''; // permite volver a elegir el mismo archivo más tarde
   if(!files.length)return;
+  const draft=imgDraft(k);
   let rejected=false, limitHit=false;
   files.forEach(file=>{
-    if(tradeImagesDraft.length>=MAX_TRADE_IMAGES){limitHit=true;return;}
+    if(draft.length>=MAX_TRADE_IMAGES){limitHit=true;return;}
     if(!isAllowedImageFile(file)){rejected=true;return;}
     const previewUrl=URL.createObjectURL(file);
-    tradeImagesDraft.push({localId:_timgLocalIdSeq++,url:null,file,previewUrl,isCover:tradeImagesDraft.length===0});
+    draft.push({localId:_timgLocalIdSeq++,url:null,file,previewUrl,isCover:draft.length===0});
   });
   if(rejected)toast('Solo se permiten imágenes JPG, PNG, WEBP o GIF de hasta 8 MB.');
-  else if(limitHit)toast(lang==='en'?`Maximum ${MAX_TRADE_IMAGES} images per trade.`:`Máximo ${MAX_TRADE_IMAGES} imágenes por trade.`);
-  renderTradeImagesComposer();
+  else if(limitHit)toast(lang==='en'?`Maximum ${MAX_TRADE_IMAGES} images per ${k==='j'?'entry':'trade'}.`:`Máximo ${MAX_TRADE_IMAGES} imágenes por ${k==='j'?'entrada':'trade'}.`);
+  renderTradeImagesComposer(k);
 }
-function setTradeImageCover(idx){
-  tradeImagesDraft.forEach((img,i)=>{img.isCover=(i===idx);});
-  renderTradeImagesComposer();
+function setTradeImageCover(idx,k){
+  imgDraft(k).forEach((img,i)=>{img.isCover=(i===idx);});
+  renderTradeImagesComposer(k);
 }
-function removeTradeImageAt(idx){
-  const[removed]=tradeImagesDraft.splice(idx,1);
+function removeTradeImageAt(idx,k){
+  const draft=imgDraft(k);
+  const[removed]=draft.splice(idx,1);
   if(removed&&removed.file&&removed.previewUrl)URL.revokeObjectURL(removed.previewUrl);
-  if(removed&&removed.isCover&&tradeImagesDraft.length)tradeImagesDraft[0].isCover=true;
-  renderTradeImagesComposer();
+  if(removed&&removed.isCover&&draft.length)draft[0].isCover=true;
+  renderTradeImagesComposer(k);
 }
-function moveTradeImage(idx,dir){
+function moveTradeImage(idx,dir,k){
+  const draft=imgDraft(k);
   const target=idx+dir;
-  if(target<0||target>=tradeImagesDraft.length)return;
-  const[item]=tradeImagesDraft.splice(idx,1);
-  tradeImagesDraft.splice(target,0,item);
-  renderTradeImagesComposer();
+  if(target<0||target>=draft.length)return;
+  const[item]=draft.splice(idx,1);
+  draft.splice(target,0,item);
+  renderTradeImagesComposer(k);
 }
 function timgDragStart(ev,idx){
   _timgDragSrcIdx=idx;
@@ -5886,7 +5925,7 @@ function timgDragStart(ev,idx){
 }
 function timgDragEnd(ev){
   ev.currentTarget.classList.remove('dragging');
-  document.querySelectorAll('#timg-grid .timg-thumb').forEach(el=>el.classList.remove('drag-over'));
+  document.querySelectorAll('#timg-grid .timg-thumb,#jimg-grid .timg-thumb').forEach(el=>el.classList.remove('drag-over'));
   _timgDragSrcIdx=null;
 }
 function timgDragOver(ev){
@@ -5897,32 +5936,35 @@ function timgDragOver(ev){
 function timgDragLeave(ev){
   ev.currentTarget.classList.remove('drag-over');
 }
-function timgDrop(ev,idx){
+function timgDrop(ev,idx,k){
   ev.preventDefault();
   ev.currentTarget.classList.remove('drag-over');
   if(_timgDragSrcIdx===null||_timgDragSrcIdx===idx){_timgDragSrcIdx=null;return;}
-  const[item]=tradeImagesDraft.splice(_timgDragSrcIdx,1);
-  tradeImagesDraft.splice(idx,0,item);
+  const draft=imgDraft(k);
+  if(_timgDragSrcIdx>=draft.length){_timgDragSrcIdx=null;return;}
+  const[item]=draft.splice(_timgDragSrcIdx,1);
+  draft.splice(idx,0,item);
   _timgDragSrcIdx=null;
-  renderTradeImagesComposer();
+  renderTradeImagesComposer(k);
 }
-function renderTradeImagesComposer(){
-  const grid=document.getElementById('timg-grid');
+function renderTradeImagesComposer(k){
+  const grid=document.getElementById(k==='j'?'jimg-grid':'timg-grid');
   if(!grid)return;
-  grid.innerHTML=tradeImagesDraft.map((img,idx)=>`
+  const draft=imgDraft(k), K=imgKArg(k);
+  grid.innerHTML=draft.map((img,idx)=>`
     <div class="timg-thumb${img.isCover?' cover':''}" draggable="true"
       ondragstart="timgDragStart(event,${idx})" ondragend="timgDragEnd(event)"
-      ondragover="timgDragOver(event)" ondragleave="timgDragLeave(event)" ondrop="timgDrop(event,${idx})">
+      ondragover="timgDragOver(event)" ondragleave="timgDragLeave(event)" ondrop="timgDrop(event,${idx}${K})">
       ${img.isCover?'<span class="timg-cover-badge">Portada</span>':''}
-      <img data-tsrc="${esc(img.previewUrl)}" src="${TRADE_IMG_PLACEHOLDER}" alt="Imagen del trade" onclick="openImageLightbox('${esc(img.previewUrl)}')">
+      <img data-tsrc="${esc(img.previewUrl)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${k==='j'?'Imagen del diario':'Imagen del trade'}" onclick="openImageLightbox('${esc(img.previewUrl)}')">
       <div class="timg-thumb-actions">
         <div class="timg-btn-row">
-          <div class="timg-btn timg-cover-btn${img.isCover?' is-cover':''}" title="Marcar como portada" onclick="event.stopPropagation();setTradeImageCover(${idx})"><i class="ti ti-star"></i></div>
-          <div class="timg-btn" title="Eliminar" onclick="event.stopPropagation();removeTradeImageAt(${idx})"><i class="ti ti-trash"></i></div>
+          <div class="timg-btn timg-cover-btn${img.isCover?' is-cover':''}" title="Marcar como portada" onclick="event.stopPropagation();setTradeImageCover(${idx}${K})"><i class="ti ti-star"></i></div>
+          <div class="timg-btn" title="Eliminar" onclick="event.stopPropagation();removeTradeImageAt(${idx}${K})"><i class="ti ti-trash"></i></div>
         </div>
         <div class="timg-move-row">
-          ${idx>0?`<div class="timg-btn" title="Mover a la izquierda" onclick="event.stopPropagation();moveTradeImage(${idx},-1)"><i class="ti ti-chevron-left"></i></div>`:''}
-          ${idx<tradeImagesDraft.length-1?`<div class="timg-btn" title="Mover a la derecha" onclick="event.stopPropagation();moveTradeImage(${idx},1)"><i class="ti ti-chevron-right"></i></div>`:''}
+          ${idx>0?`<div class="timg-btn" title="Mover a la izquierda" onclick="event.stopPropagation();moveTradeImage(${idx},-1${K})"><i class="ti ti-chevron-left"></i></div>`:''}
+          ${idx<draft.length-1?`<div class="timg-btn" title="Mover a la derecha" onclick="event.stopPropagation();moveTradeImage(${idx},1${K})"><i class="ti ti-chevron-right"></i></div>`:''}
         </div>
       </div>
     </div>
@@ -5939,7 +5981,7 @@ function openImageLightbox(url){
   openModal('modal-lightbox');
 }
 function openTradeGallery(tradeId){
-  const t=allTrades.find(x=>x.id===tradeId);
+  const t=allTrades.find(x=>x.id===tradeId)||allJournals.find(x=>x.id===tradeId);
   if(!t)return;
   let imgs=[];
   let startIdx=0;
@@ -6020,20 +6062,32 @@ async function saveJournal(){
   document.getElementById('j-reason').classList.remove('field-invalid');
   document.getElementById('j-content').classList.remove('field-invalid');
   const btn=document.getElementById('j-save-btn');btn.disabled=true;
+  const btnLabel=editingJournalId?'Guardar cambios':'Guardar diario';
+  if(journalImagesDraft.some(i=>i.file))btn.innerHTML='<i class="ti ti-loader ti-spin"></i>Subiendo fotos...';
+  if(!(await uploadDraftImages(journalImagesDraft))){btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>'+btnLabel;return;}
+  const images=journalImagesDraft.map(img=>({url:img.url,isCover:!!img.isCover}));
+  const jPayload={date,reason,mood,content,tomorrow,technical_tags:techTags,technical_notes:techNotes,images:images.length?images:null};
   const{error}=editingJournalId
-    ? await sb.from('journals').update({date,reason,mood,content,tomorrow,technical_tags:techTags,technical_notes:techNotes}).eq('id',editingJournalId)
-    : await sb.from('journals').insert({user_id:currentUser.id,account_id:currentAccountId,date,reason,mood,content,tomorrow,technical_tags:techTags,technical_notes:techNotes});
-  btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar diario';
+    ? await sb.from('journals').update(jPayload).eq('id',editingJournalId)
+    : await sb.from('journals').insert({user_id:currentUser.id,account_id:currentAccountId,...jPayload});
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>'+btnLabel;
   if(error){toast(friendlyDbError(error));return;}
+  // Limpieza best-effort en Storage: fotos que el usuario quitó al editar
+  const keptJ=new Set(images.map(i=>i.url));
+  const removedJ=originalJournalImageUrls.filter(u=>u&&!keptJ.has(u)).map(tradeImageStoragePath).filter(Boolean);
+  if(removedJ.length)sb.storage.from('trade-images').remove(removedJ).catch(()=>{});
+  journalImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
+  journalImagesDraft=[];originalJournalImageUrls=[];
   closeModal('modal-journal');
   editingJournalId=null;
   await loadData();
+  const jCover=images.find(i=>i.isCover)||images[0];
   showSaveConfirmation({
     type:'journal',date,
     resultLabel:'',resultClass:'',
     emotion:mood,
     summary:content?esc(content.slice(0,140)):esc(reason||''),
-    imageUrl:''
+    imageUrl:jCover?jCover.url:''
   });
 }
 
@@ -6043,7 +6097,11 @@ async function deleteTrade(id){if(!requirePremium('Eliminar operaciones'))return
   // Limpieza best-effort en Storage: borra las fotos del trade para no dejar archivos huérfanos.
   try{const paths=tradeAllImageUrls(t).map(tradeImageStoragePath).filter(Boolean);if(paths.length)await sb.storage.from('trade-images').remove(paths);}catch(_){}
   toast('Trade eliminado');await loadData();}
-async function deleteJournal(id){if(!requirePremium('Eliminar entradas del Journal'))return;if(!confirm('¿Eliminar?'))return;await sb.from('journals').delete().eq('id',id);toast('Entrada eliminada');await loadData();}
+async function deleteJournal(id){if(!requirePremium('Eliminar entradas del Journal'))return;if(!confirm('¿Eliminar?'))return;
+  const j=allJournals.find(x=>x.id===id);
+  await sb.from('journals').delete().eq('id',id);
+  try{const paths=tradeAllImageUrls(j).map(tradeImageStoragePath).filter(Boolean);if(paths.length)await sb.storage.from('trade-images').remove(paths);}catch(_){}
+  toast('Entrada eliminada');await loadData();}
 
 async function saveConfig(){
   if(!currentUser)return;
@@ -7690,6 +7748,18 @@ function analysisBlockHTML(g){
     </div>`;
 }
 
+function journalImagesStripHTML(j){
+  const imgs=Array.isArray(j&&j.images)?j.images.filter(i=>i&&i.url):[];
+  if(!imgs.length)return '';
+  return `<div class="jimg-strip">${imgs.map((im,i)=>`<img data-tsrc="${esc(im.url)}" src="${TRADE_IMG_PLACEHOLDER}" class="jimg-strip-img" alt="${window.t('Captura del diario')}" loading="lazy" onclick="openJournalGalleryAt('${j.id}',${i})">`).join('')}</div>`;
+}
+function openJournalGalleryAt(id,idx){
+  const j=allJournals.find(x=>x.id===id);
+  const imgs=Array.isArray(j&&j.images)?j.images.filter(i=>i&&i.url).map(i=>i.url):[];
+  if(!imgs.length)return;
+  lightboxImages=imgs;lightboxIndex=Math.min(Math.max(0,idx|0),imgs.length-1);
+  renderLightbox();openModal('modal-lightbox');
+}
 function journalEntryHTML(j){
   const analysis=generateJournalSummary(j);
   const dateStr=fmtDate(j.date);
@@ -7708,6 +7778,7 @@ function journalEntryHTML(j){
       </div>
     </div>
     ${j.content?`<div data-no-i18n style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px">${esc(j.content)}</div>`:''}
+    ${journalImagesStripHTML(j)}
     ${j.tomorrow?`<div style="font-size:12px;color:var(--text3);margin-top:6px"><i class="ti ti-arrow-right" style="font-size:11px"></i> ${window.t('Para mañana:')} <span data-no-i18n>${esc(j.tomorrow)}</span></div>`:''}
     ${routineComplianceBlockHTML(j.date)}
     ${analysisBlockHTML(analysis)}
@@ -8451,6 +8522,7 @@ async function renderJournalList(){
   el.innerHTML=Object.entries(weeks).map(([wk,es])=>
     `<div class="week-label">${wk}</div>${es.map(e=>e._kind==='journal'?journalEntryHTML(e):tradeJournalHTML(e)).join('<div style="height:10px"></div>')}`
   ).join('');
+  hydrateTradeImages(el);
 }
 
 function routineComplianceBlockHTML(dateKey){
@@ -8521,8 +8593,8 @@ function entryHTML(e){
   const preview=esc(isJ?(e.content||'').slice(0,65):(e.notes||'').slice(0,65));
   const delCall=isJ?`deleteJournal('${e.id}')`:`deleteTrade('${e.id}')`;
   const editCall=isJ?`editJournalEntry('${e.id}')`:`editTradeEntry('${e.id}')`;
-  const coverUrl=isJ?'':getTradeCoverUrl(e);
-  const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="entry-thumb" alt="Portada de ${esc(e.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
+  const coverUrl=getTradeCoverUrl(e);
+  const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="entry-thumb" alt="Portada de ${esc(isJ?'diario':(e.pair||'trade'))}" loading="lazy" onclick="event.stopPropagation();openTradeGallery('${e.id}')">`:'';
   return`<div class="entry-row"><div class="entry-left-bar ${barCls}"></div>${thumb}<div class="entry-body"><div class="entry-top"><span class="entry-pair">${isJ?'Diario':esc(e.pair)}</span>${badges}</div>${preview?`<div class="entry-note-preview">${preview}${preview.length>=65?'…':''}</div>`:''}</div><div class="entry-right">${!isJ&&e.amount?`<span class="entry-amount" style="color:${amtColor}">${e.result==='be'?'BE':esc(e.amount)}</span>`:''}<span class="entry-date-lbl">${fmtDate(e.date)}</span><div class="entry-actions"><button class="icon-btn" onclick="${editCall}"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="${delCall}"><i class="ti ti-trash"></i></button></div></div></div>`;
 }
 
@@ -8598,6 +8670,12 @@ function editJournalEntry(id){
     });
   }
   setSelectedTechTags('j-tech-dropdowns',Array.isArray(j.technical_tags)?j.technical_tags:[]);
+  const jImgInput=document.getElementById('j-image-input');if(jImgInput)jImgInput.value='';
+  journalImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
+  journalImagesDraft=Array.isArray(j.images)?j.images.filter(i=>i&&i.url).map(img=>({localId:_timgLocalIdSeq++,url:img.url,file:null,previewUrl:img.url,isCover:!!img.isCover})):[];
+  if(journalImagesDraft.length&&!journalImagesDraft.some(i=>i.isCover))journalImagesDraft[0].isCover=true;
+  originalJournalImageUrls=journalImagesDraft.map(i=>i.url).filter(Boolean);
+  renderTradeImagesComposer('j');
   document.getElementById('j-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar cambios';
   openModal('modal-journal');
 }
@@ -8860,7 +8938,11 @@ function showDayDetail(key,day,month,year,panelId){
     const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
     html+=`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">${thumb}<div style="flex:1;min-width:0;font-size:12px"><strong>${esc(t.pair)}</strong> <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction}</span> · ${esc(t.session)} · <span class="${t.result==='win'?'pos':t.result==='loss'?'neg':'neutral'}">${t.amount||'BE'}</span>${t.notes?`<div data-no-i18n style="color:var(--text3);margin-top:3px;font-size:11px">${esc(t.notes.slice(0,100))}</div>`:''}</div></div>`;
   });
-  dj.forEach(j=>{html+=`<div style="font-size:12px;padding:7px 0;color:var(--text2)">${j.content?esc(j.content.slice(0,120))+'…':'Diario sin contenido'}</div>`;});
+  dj.forEach(j=>{
+    const jc=getTradeCoverUrl(j);
+    const jthumb=jc?`<img data-tsrc="${esc(jc)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada del diario" loading="lazy" onclick="event.stopPropagation();openTradeGallery('${j.id}')">`:'';
+    html+=`<div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;padding:7px 0;color:var(--text2)">${jthumb}<div style="flex:1;min-width:0">${j.content?esc(j.content.slice(0,120))+'…':'Diario sin contenido'}</div></div>`;
+  });
   panel.innerHTML=html;
   hydrateTradeImages(panel);
 }
@@ -9541,11 +9623,15 @@ function openJournalForm(){
   document.getElementById('j-reason').value='';document.getElementById('j-content').value='';document.getElementById('j-tomorrow').value='';document.getElementById('j-tech-notes').value='';
   const jm=document.getElementById('j-mood');if(jm)jm.querySelectorAll('.chip').forEach(c=>c.className='chip');
   resetTechDropdowns('j-tech-dropdowns');
+  const jImgInput2=document.getElementById('j-image-input');if(jImgInput2)jImgInput2.value='';
+  journalImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
+  journalImagesDraft=[];originalJournalImageUrls=[];
+  renderTradeImagesComposer('j');
   openModal('modal-journal');
 }
 function confirmCloseJournal(){
   const c=document.getElementById('j-content').value;
-  if(c.trim()){abandonTarget='modal-journal';openModal('modal-abandon');}
+  if(c.trim()||journalImagesDraft.some(i=>i.file)){abandonTarget='modal-journal';openModal('modal-abandon');}
   else closeModal('modal-journal');
 }
 function abandonConfirm(){
@@ -12218,6 +12304,8 @@ var I18N_EN = {
   'Capital inicial':'Starting capital',
   'Capital propio':'Own capital',
   'Capturas del trade (opcional)':'Trade screenshots (optional)',
+  'Capturas del día (opcional)':'Screenshots of the day (optional)','Captura del diario':'Journal screenshot',
+  'El gráfico que viste, el setup que esperabas, tu análisis... Añade las que quieras y marca una como portada (':'The chart you watched, the setup you were waiting for, your analysis... Add as many as you like and mark one as cover (',
   'Cargando...':'Loading...',
   'Cerrada':'Closed',
   'Cerrar antes de tiempo':'Closing too early',

@@ -2208,6 +2208,8 @@ body.resizing iframe,body.resizing canvas{pointer-events:none}
 .news-chip.soon{color:#F59E0B}.news-chip.now{color:#EF4444;animation:nPulse 1.1s ease-in-out infinite}
 @keyframes nPulse{50%{opacity:.45}}
 .goto-menu.news-menu{width:330px;left:auto;right:0}
+.goto-menu.rew-menu{width:290px}.rew-menu .rw-note{margin:6px 8px 4px;font-size:11px;line-height:1.45;color:var(--text3)}
+#rewDD.open .rew-menu{display:block;animation:pop .12s ease-out}
 .goto-menu.float{display:block;position:fixed;right:auto;z-index:150;animation:pop .12s ease-out}
 .news-dd.open .news-menu{display:block;animation:pop .12s ease-out}
 .news-menu .nm-row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:7px;font-size:12px}
@@ -2512,6 +2514,7 @@ tr.row:hover td{background:var(--bg3);cursor:pointer}
           <div class="rbar" id="rbar">
             <div class="grip" id="rgrip" title="Arrastra para mover"><i class="ti ti-grip-vertical"></i></div>
             <button class="rb play" id="btnPlay" title="Play / Pausa (espacio)"><i class="ti ti-player-play"></i></button>
+            <div class="news-dd" id="rewDD"><button class="rb" id="btnRew" title="Retroceder en el tiempo"><i class="ti ti-history"></i></button><div class="goto-menu rew-menu" id="rewMenu"></div></div>
             <button class="rb" id="btnNext" title="Siguiente vela (→)"><i class="ti ti-player-track-next"></i></button>
             <div class="vsep"></div>
             <select id="speed" title="Velocidad"><option value="1">x1</option><option value="2">x2</option><option value="4" selected>x4</option><option value="8">x8</option><option value="16">x16</option></select>
@@ -3670,7 +3673,7 @@ function buildChart() {
     onHistory: e => histPush(e),
     toast: m => toast(m), bg: () => CFG.bg,
   });
-  applyLock(); applyCfg(false); initOrderModal(); initJr(); chInitModal(); initGoto(); if (!NEWS.init) { NEWS.init = true; initNews(); } initSec(); applyCursorStyle();
+  applyLock(); applyCfg(false); initOrderModal(); initJr(); chInitModal(); initGoto(); if (!NEWS.init) { NEWS.init = true; initNews(); } if (!REW.init) { REW.init = true; initRewind(); } initSec(); applyCursorStyle();
   new ResizeObserver(placeScaleBox).observe($('chart'));
 }
 function placeScaleBox() {
@@ -3882,6 +3885,76 @@ function renderNewsMenu() {
     <h6>Próximas noticias</h6>${up.length ? up.map(v => `<div class="nm-row" style="--nc:${v.color}"><span class="nm-tag">${v.short}</span><span><b>${v.name}</b><small>${v.when}</small></span><span class="nm-in">${v.t - now <= 0 ? 'ahora' : 'en ' + fmtIn(v.t - now)}</span></div>`).join('') : '<div class="nm-row"><small>No hay más noticias en los datos disponibles.</small></div>'}
     ${up.length ? `<button data-goto="news"><i class="ti ti-player-skip-forward"></i><span><b>Ir a 5 min antes de ${up[0].short}</b><small>Avanza el replay procesando tus órdenes</small></span></button>` : ''}
     <div class="nm-src">Noticias de alto impacto de EE. UU. con su fecha y hora oficial (BLS y Reserva Federal), 2015 → hoy. Las ves antes de que salgan, como en un calendario económico real, pero nunca el precio futuro.</div>`;
+}
+/* ══ Retroceder (rebobinar) ══
+   Vuelve el replay a un momento anterior. Para que el test siga siendo honesto se BORRAN las operaciones que se abrieron,
+   cerraron o tuvieron un cierre parcial después de ese momento (y las órdenes creadas después). En los retos de fondeo no se
+   puede (romperia las reglas del reto). En la nube lo hace el servidor (acción «rewind» de bt-candles), que es el único que
+   mueve el cursor. */
+const REW = { init: false, busy: false };
+const REW_OPTS = [[15, '15 minutos'], [60, '1 hora'], [240, '4 horas'], [1440, '1 día'], [10080, '1 semana']];
+function rewTouches(t, T) { // misma regla que el servidor
+  const ent = t.kind === 'order' ? t.createdTs : t.entryTs;
+  if (ent != null && ent >= T) return true;
+  if (t.exitTs && t.exitTs >= T) return true;
+  return !!(t.partials && t.partials.some(p => +p.ts >= T));
+}
+function rewAffected(T) { const a = S.account; return [...a.closed, ...a.positions, ...a.orders].filter(t => !t.cancelled && rewTouches(t, T)); }
+function renderRewMenu() {
+  const now = S.replay.now(), start = S.startTs;
+  const rows = REW_OPTS.filter(([m]) => now - m * 60 > start).map(([m, lbl]) => { const T = now - m * 60, n = rewAffected(T).length;
+    return `<button data-rew="${T}" ${T >= now ? 'disabled' : ''}><i class="ti ti-arrow-back-up"></i><span><b>${lbl} atrás</b><small>${fmtClock(T)}${n ? ' · borra ' + n + ' ' + (n > 1 ? 'operaciones' : 'operación') : ''}</small></span></button>`; }).join('');
+  const nS = rewAffected(start).length;
+  $('rewMenu').innerHTML = `<h6>Retroceder</h6>${rows}<button data-rew="${start}" ${start >= now ? 'disabled' : ''}><i class="ti ti-player-skip-back"></i><span><b>Al inicio de la sesión</b><small>${fmtClock(start)}${nS ? ' · borra ' + nS + ' ' + (nS > 1 ? 'operaciones' : 'operación') : ''}</small></span></button>
+    <div class="rw-note">Se borran las operaciones abiertas o cerradas después de ese momento, para que el test siga siendo honesto.</div>`;
+}
+function fmtClock(ts) { return fmtDT(ts); }
+function initRewind() {
+  floatDD($('rewDD'), $('rewMenu'), $('btnRew'), 'left');
+  $('btnRew').onclick = ev => { ev.stopPropagation(); const dd = $('rewDD');
+    if (dd.classList.contains('open')) { dd.classList.remove('open'); return; }
+    if (S.challenge) { toast('En un reto de fondeo no se puede retroceder: rompería las reglas del reto'); return; }
+    if (!S.replay || S.replay.now() <= S.startTs) { toast('Aún no has avanzado: no hay nada que retroceder'); return; }
+    $('gotoDD').classList.remove('open'); $('newsDD').classList.remove('open'); if (S.playing) stop(); renderRewMenu(); dd.classList.add('open'); };
+  $('rewMenu').addEventListener('click', ev => { ev.stopPropagation(); const b = ev.target.closest('[data-rew]'); if (!b || b.disabled) return; $('rewDD').classList.remove('open'); rewindTo(+b.dataset.rew); });
+  document.addEventListener('click', () => $('rewDD').classList.remove('open'));
+}
+async function rewindTo(T) {
+  if (REW.busy || !S.replay) return;
+  if (S.challenge) { toast('En un reto de fondeo no se puede retroceder'); return; }
+  T = Math.max(S.startTs, Math.floor(T)); const now = S.replay.now(); if (!(T < now)) return;
+  if (S.playing) stop();
+  const aff = rewAffected(T);
+  const msg = `¿Volver al <b>${fmtClock(T)}</b>?` + (aff.length ? ` Se borrarán <b>${aff.length} ${aff.length > 1 ? 'operaciones' : 'operación'}</b> abierta${aff.length > 1 ? 's' : ''} o cerrada${aff.length > 1 ? 's' : ''} después.` : '');
+  actToast(msg, [{ t: 'Retroceder', pri: true, f: () => rewindRun(T) }, { t: 'Cancelar' }]);
+}
+async function rewindRun(T) {
+  if (REW.busy) return; REW.busy = true; $('busy').classList.add('show');
+  try {
+    clearTimeout(_saveT);
+    if (S.dbId) {
+      // Espera a que terminen los guardados pendientes (si no, una operación a medio guardar podría volver a crearse)
+      const pend = [...S.account.closed, ...S.account.positions, ...S.account.orders].map(t => t.db && t.db.p).filter(Boolean);
+      await Promise.all(pend.map(p => p.catch(() => {}))); if (_fetching) await _fetching.catch(() => {});
+      await dbSaveSession(); // dibujos, indicadores… (sin tocar el cursor: eso solo lo hace el servidor)
+      const r = await fn('rewind', { session_id: S.dbId, to_ts: T });
+      const { data: sess, error } = await Cloud.sb.from('bt_sessions').select('*').eq('id', S.dbId).single(); if (error) throw error;
+      await startCloudSession(sess);
+      dbSaveSession();
+      toast(`Has vuelto al ${fmtClock(T)}` + (r.deleted ? ` · ${r.deleted} ${r.deleted > 1 ? 'operaciones' : 'operación'} borrada${r.deleted > 1 ? 's' : ''}` : ''));
+    } else {
+      const a = S.account, keep = t => !rewTouches(t, T), gone = [...a.closed, ...a.positions, ...a.orders].filter(t => !keep(t)).length;
+      a.closed = a.closed.filter(keep); a.positions = a.positions.filter(keep); a.orders = a.orders.filter(keep);
+      a.balance = BT.round(a.initial + a.closed.reduce((x, t) => x + (+t.pnl || 0), 0) + a.positions.reduce((x, p) => x + (+p.realized || 0), 0), 2);
+      const rec = { id: S.id, name: S.name, symbol: S.symbol, tf: S.tf, startTs: S.startTs, cursorTs: T, source: S.source === 'real' ? 'real' : S.source === 'lm1' ? 'lm1' : 'synthetic',
+        account: a.toJSON(), drawings: ov ? ov.getDrawings() : [], indicators: S.indicators, challenge: null, hiddenMarks: S.hiddenMarks || [], updatedAt: Date.now() };
+      lsSet(LS_KEY, JSON.stringify([rec, ...loadLocal().filter(x => x.id !== rec.id)]));
+      if (rec.source === 'lm1') await lm1Prepare(rec.symbol, T);
+      startLocalSession(rec);
+      toast(`Has vuelto al ${fmtClock(T)}` + (gone ? ` · ${gone} ${gone > 1 ? 'operaciones' : 'operación'} borrada${gone > 1 ? 's' : ''}` : ''));
+    }
+  } catch (e) { toast('No se pudo retroceder: ' + (e.message || e)); }
+  finally { REW.busy = false; $('busy').classList.remove('show'); }
 }
 function initNews() {
   floatDD($('newsDD'), $('newsMenu'), $('newsBtn'), 'right');
@@ -4444,7 +4517,7 @@ function breakeven(id) {
 const TOUR_STEPS = [
   { ic: 'ti-sparkles', t: 'Bienvenido al backtesting', d: 'Practica tu estrategia con <b>velas reales</b> del pasado, vela a vela, como si fuera en directo. El futuro está oculto: solo ves lo que ya ha pasado. Tus operaciones van a una cuenta simulada, separada de tu diario.' },
   { el: '#chart', ic: 'ti-chart-candle', t: 'El gráfico', d: 'Muévete por el histórico <b>arrastrando</b> el gráfico y haz zoom con la <b>rueda</b> del ratón. Arriba eliges la temporalidad, los indicadores y la zona horaria.' },
-  { el: '#rbar', ic: 'ti-player-play', t: 'Avanza en el tiempo', d: '<b>Play</b> reproduce el mercado (<span class="kbd">espacio</span>) y <b>siguiente</b> avanza una vela (<span class="kbd">→</span>). Ajusta la velocidad y si avanza por vela o por minuto. No se puede retroceder: así el test es honesto.' },
+  { el: '#rbar', ic: 'ti-player-play', t: 'Avanza en el tiempo', d: '<b>Play</b> reproduce el mercado (<span class="kbd">espacio</span>) y <b>siguiente</b> avanza una vela (<span class="kbd">→</span>). Ajusta la velocidad y si avanza por vela o por minuto. Con <i class="ti ti-history"></i> vuelves atrás: se borran las operaciones posteriores, así el test sigue siendo honesto.' },
   { el: ['#gotoDD', '#btnUndo', '#btnRedo'], ic: 'ti-player-skip-forward', t: 'Ir a… y deshacer', d: '<b>Ir a</b> salta rápido a la apertura de Londres o Nueva York, al día siguiente, a la próxima noticia o hasta que se cierre tu operación. Las flechas <b>deshacen y rehacen</b> dibujos y cambios de SL/TP.' },
   { el: '.side .blk:nth-child(2)', ic: 'ti-arrows-exchange', t: 'Abre una operación', d: 'Elige <b>BUY</b> o <b>SELL</b>, tu riesgo en % y el <b>Stop Loss</b> y <b>Take Profit</b> en pips: verás la pérdida, el R:R y el beneficio antes de entrar. También puedes usar órdenes límite o stop.', prep: 'side' },
   { el: '#tools', ic: 'ti-pencil', t: 'Dibuja y planifica', d: 'Líneas, Fibonacci, rectángulos, texto… y las cajas <b>Long / Short</b>: dibújalas en el gráfico, ajusta SL y TP arrastrando y ejecútalas desde la propia caja.' },
