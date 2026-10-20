@@ -6646,47 +6646,122 @@ function renderEquitySpark(){
   const line=xy.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,${H} ${line} ${W},${H}" fill="${col}" opacity=".12"/><polyline points="${line}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
 }
-function parsePlanLimit(txt){
-  const s=String(txt||'');const m=s.match(/(\d+(?:[.,]\d+)?)\s*(%|\$|€|usd|eur)?/i);if(!m)return null;
-  const v=parseFloat(m[1].replace(',','.'));if(!(v>0))return null;
-  return{v,pct:m[2]==='%'};
+/* «Hoy según tu plan»: lee SIEMPRE el plan guardado (riesgo, pérdida máx. diaria/semanal y regla
+   para dejar de operar) y se reajusta solo al guardar el plan, al añadir/editar trades y cada minuto.
+   Acepta texto libre: "3%", "300$", "1.000 €", "1,5%", "2R", "3% o 300$" (usa el más restrictivo),
+   "máx. 3 operaciones", "tras 2 pérdidas seguidas", "tras 1 hora de pérdidas"... */
+const PT_WORDNUM={un:1,una:1,uno:1,one:1,dos:2,two:2,tres:3,three:3,cuatro:4,four:4,cinco:5,five:5,seis:6,six:6};
+function ptNum(raw,isPct){
+  let s=String(raw).replace(/\s/g,'');
+  if(!isPct&&/^\d{1,3}([.,]\d{3})+$/.test(s))return parseFloat(s.replace(/[.,]/g,''));
+  return parseFloat(s.replace(',','.'));
 }
+function ptWords(txt){return String(txt||'').toLowerCase().replace(/\b(un|una|uno|one|dos|two|tres|three|cuatro|four|cinco|five|seis|six)\b/g,w=>PT_WORDNUM[w]);}
+/* Devuelve {money, label} con el límite más restrictivo encontrado en el texto, o null. */
+function parsePlanLimit(txt,cap,riskPct){
+  const s=ptWords(txt);if(!s.trim())return null;
+  const re=/(\d{1,3}(?:[.,\s]\d{3})+|\d+(?:[.,]\d+)?)\s*(%|\$|€|usd|eur|euros?|d[oó]lares?|k\b|r\b)?/gi;
+  let m,best=null;
+  while((m=re.exec(s))){
+    const after=s.slice(m.index+m[0].length,m.index+m[0].length+14);
+    if(!m[2]&&/^\s*(operaci|trades?|entradas|p[ée]rdidas|losses|h\b|horas?|hours?|d[ií]as?|days?)/.test(after))continue; // no es un importe
+    let u=(m[2]||'').toLowerCase();const isPct=u==='%';
+    let v=ptNum(m[1],isPct);if(!(v>0))continue;
+    let money=null,label='';
+    if(isPct||(!u&&v<=20)){if(cap>0){money=cap*v/100;}label=fmtPctPT(v)+'%';}
+    else if(u==='r'){if(riskPct>0&&cap>0)money=v*riskPct/100*cap;label=v+'R';}
+    else{if(u==='k')v*=1000;money=v;label=fmtInt(Math.round(v))+(lang==='en'?'$':'$');}
+    if(money!==null&&(!best||money<best.money))best={money,label};
+    else if(money===null&&!best)best={money:null,label};
+  }
+  return best;
+}
+function fmtPctPT(v){return(Math.round(v*100)/100).toString().replace('.',lang==='en'?'.':',');}
+function ptMaxTrades(...txts){
+  for(const t of txts){const m=ptWords(t).match(/(\d+)\s*(operaciones|operación|operacion|trades?|entradas?)/);if(m&&+m[1]>0)return +m[1];}
+  return null;
+}
+function ptTimeMin(t){const m=String(t&&t.time||'').match(/^(\d{1,2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):null;}
 function renderPlanToday(){
   const card=document.getElementById('d-plan-today');if(!card)return;
-  const p=currentPlan&&currentPlan.data;
-  if(!p||!currentAccount()){card.style.display='none';return;}
-  const todayKey=dateToKey(new Date());
-  const tt=allTrades.filter(t=>t.date===todayKey).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  const pnl=tt.reduce((a,t)=>a+mxAmt(t),0);
-  const before=allTrades.filter(t=>t.date&&t.date<todayKey).reduce((a,t)=>a+mxAmt(t),0);
-  const capStart=(currentAccount().capital||0)+before;
-  const lim=parsePlanLimit(p.lossDaily);
-  const limMoney=lim?(lim.pct?capStart*lim.v/100:lim.v):null;
-  const used=Math.max(0,-pnl);
-  const ratio=limMoney?used/limMoney:0;
-  let lvl='ok',msg=tdL('Dentro de tu plan','Within your plan');
-  const rule=p.stopTrading||'';
-  const last2Loss=tt.length>=2&&tt.slice(-2).every(t=>t.result==='loss');
-  if(limMoney&&ratio>=1){lvl='stop';msg=tdL('Has llegado a tu pérdida máxima diaria. Tu plan dice parar por hoy.','You hit your daily max loss. Your plan says stop for today.');}
-  else if(/2 p[ée]rdidas|2 losses/i.test(rule)&&last2Loss){lvl='stop';msg=tdL('Llevas 2 pérdidas seguidas. Tu plan dice dejar de operar.','2 losses in a row. Your plan says stop trading.');}
-  else if(limMoney&&ratio>=.6){lvl='warn';msg=tdL('Cerca de tu pérdida máxima diaria. Opera solo tu mejor setup.','Close to your daily max loss. Only take your best setup.');}
-  else if(!tt.length){msg=tdL('Aún no has operado hoy','No trades yet today');}
+  try{renderPlanTodayInner(card);}catch(e){console.warn('plan-today',e);card.style.display='none';}
+}
+function renderPlanTodayInner(card){
+  const p=currentPlan&&currentPlan.data;const acc=currentAccount();
+  if(!p||!acc){card.style.display='none';return;}
+  const now=new Date();const todayKey=dateToKey(now);
+  const mon=new Date(now);mon.setHours(12,0,0,0);mon.setDate(mon.getDate()-((mon.getDay()+6)%7));const weekKey=dateToKey(mon);
+  const dated=allTrades.filter(t=>t.date);
+  const sum=a=>a.reduce((x,t)=>x+mxAmt(t),0);
+  const tt=dated.filter(t=>t.date===todayKey).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const wt=dated.filter(t=>t.date>=weekKey&&t.date<=todayKey);
+  const pnl=sum(tt),wpnl=sum(wt);
+  const base=Number(acc.capital)||0;
+  const capDay=base+sum(dated.filter(t=>t.date<todayKey));
+  const capWeek=base+sum(dated.filter(t=>t.date<weekKey));
+  const riskTxt=String(p.riskTrade||'');const riskM=riskTxt.match(/(\d+(?:[.,]\d+)?)\s*%/);
+  const riskPct=riskM?ptNum(riskM[1],true):null;
+  const dl=parsePlanLimit(p.lossDaily,capDay,riskPct);
+  const wl=parsePlanLimit(p.lossWeekly,capWeek,riskPct);
+  const rule=String(p.stopTrading||'');const ruleW=ptWords(rule);
+  const maxT=ptMaxTrades(rule,p.lossDaily);
+  const used=Math.max(0,-pnl),wused=Math.max(0,-wpnl);
+  const dR=dl&&dl.money?used/dl.money:0, wR=wl&&wl.money?wused/wl.money:0;
+  // racha de pérdidas al final del día (el BE corta la racha)
+  let streak=0;for(let i=tt.length-1;i>=0&&tt[i].result==='loss';i--)streak++;
+  const stops=[],warns=[];
+  if(dl&&dl.money&&dR>=1)stops.push(tdL('Has llegado a tu pérdida máxima diaria. Tu plan dice parar por hoy.','You hit your daily max loss. Your plan says stop for today.'));
+  else if(dl&&dl.money&&dR>=.6)warns.push(tdL('Cerca de tu pérdida máxima diaria.','Close to your daily max loss.'));
+  if(wl&&wl.money&&wR>=1)stops.push(tdL('Has llegado a tu pérdida máxima semanal. Tu plan dice parar hasta el lunes.','You hit your weekly max loss. Your plan says stop until Monday.'));
+  else if(wl&&wl.money&&wR>=.8)warns.push(tdL('Cerca de tu pérdida máxima semanal.','Close to your weekly max loss.'));
+  if(!/nunca|never/.test(ruleW)){
+    const lm=ruleW.match(/(\d+)\s*(p[ée]rdidas?|losses?|stops?|sl\b)/);
+    const hm=ruleW.match(/(\d+(?:[.,]\d+)?)\s*(h\b|horas?|hours?)/);
+    if(lm&&!hm){const n=+lm[1];
+      if(n>0&&streak>=n)stops.push(tdL(`Llevas ${streak} pérdidas seguidas. Tu plan dice dejar de operar.`,`${streak} losses in a row. Your plan says stop trading.`));
+      else if(n>1&&streak===n-1)warns.push(tdL(`Llevas ${streak} ${streak===1?'pérdida':'pérdidas'} seguida${streak===1?'':'s'}: una más y tu plan dice parar.`,`${streak} loss${streak===1?'':'es'} in a row: one more and your plan says stop.`));
+    }
+    if(hm&&/p[ée]rdid|loss/.test(ruleW)&&pnl<0){
+      const firstLoss=tt.find(t=>t.result==='loss');const fm=ptTimeMin(firstLoss);
+      const nowM=now.getHours()*60+now.getMinutes();const lim=ptNum(hm[1],true)*60;
+      if(fm!==null&&nowM-fm>=lim)stops.push(tdL(`Llevas más de ${hm[1]} h en pérdidas. Tu plan dice parar.`,`Over ${hm[1]} h in the red. Your plan says stop.`));
+      else if(fm!==null)warns.push(tdL(`En pérdidas desde las ${firstLoss.time.slice(0,5)}: tu plan dice parar a las ${String(Math.floor((fm+lim)/60)%24).padStart(2,'0')}:${String((fm+lim)%60).padStart(2,'0')} si sigues así.`,`In the red since ${firstLoss.time.slice(0,5)}: your plan says stop at ${String(Math.floor((fm+lim)/60)%24).padStart(2,'0')}:${String((fm+lim)%60).padStart(2,'0')} if it stays that way.`));
+    }
+  }
+  if(maxT){
+    if(tt.length>=maxT)stops.push(tdL(`Has hecho ${tt.length} de ${maxT} operaciones máximas del día.`,`You took ${tt.length} of your ${maxT} max trades today.`));
+    else if(tt.length===maxT-1&&maxT>1)warns.push(tdL('Te queda 1 operación según tu plan.','1 trade left according to your plan.'));
+  }
+  const lvl=stops.length?'stop':warns.length?'warn':'ok';
+  const msg=stops[0]||warns[0]||(tt.length?tdL('Dentro de tu plan','Within your plan'):tdL('Aún no has operado hoy','No trades yet today'));
+  const extra=[...stops,...warns].slice(1);
   const col=lvl==='stop'?'var(--red)':lvl==='warn'?'var(--amber)':'var(--green)';
-  const pctW=limMoney?Math.min(100,ratio*100):0;
-  const fm=v=>(lang==='en'?'$':'')+fmtInt(Math.round(v))+(lang==='en'?'':'$');
+  const fm$=v=>(lang==='en'?'$':'')+fmtInt(Math.round(v))+(lang==='en'?'':'$');
+  const bar=(r,c)=>`<div class="pt-bar"><span style="width:${Math.min(100,r*100)}%;background:${c}"></span></div>`;
+  const cRat=r=>r>=1?'var(--red)':r>=.6?'var(--amber)':'var(--green)';
+  const limRow=(lbl,l,u,txt)=>{
+    if(!String(txt||'').trim())return`<div class="pt-foot"><span>${lbl}: ${tdL('no definida en tu plan','not set in your plan')}</span></div>`;
+    if(!l)return`<div class="pt-foot"><span>${lbl}: «${esc(txt)}» — ${tdL('no encuentro una cifra; escríbela como 3% o 300$.','no amount found; write it like 3% or 300$.')}</span></div>`;
+    if(l.money===null)return`<div class="pt-foot"><span>${lbl}: ${esc(l.label)} — ${tdL('la cuenta no tiene capital inicial, no puedo pasarlo a dinero.','the account has no starting capital, cannot convert it to money.')}</span></div>`;
+    return bar(u/l.money,cRat(u/l.money))+`<div class="pt-foot"><span>${lbl}: ${fm$(u)} / ${fm$(l.money)} <span style="opacity:.75">(${esc(l.label)}${txt.trim()!==l.label?` · «${esc(txt)}»`:''})</span></span></div>`;
+  };
+  const left=dl&&dl.money?Math.max(0,dl.money-used):null;
+  const leftW=wl&&wl.money?Math.max(0,wl.money-wused):null;
+  const leftShown=left!==null&&leftW!==null?Math.min(left,leftW):(left!==null?left:leftW);
   card.style.display='';
-  card.innerHTML=`<div class="pt-head"><div style="display:flex;align-items:center;gap:8px"><span class="pt-dot" style="background:${col}"></span><div><div class="section-title">${tdL('Hoy según tu plan','Today vs your plan')}</div><div class="section-sub" style="color:${lvl==='ok'?'var(--text3)':col}">${msg}</div></div></div>
+  card.innerHTML=`<div class="pt-head"><div style="display:flex;align-items:center;gap:8px"><span class="pt-dot" style="background:${col}"></span><div><div class="section-title">${tdL('Hoy según tu plan','Today vs your plan')}</div><div class="section-sub" style="color:${lvl==='ok'?'var(--text3)':col}">${msg}</div>${extra.map(x=>`<div class="section-sub" style="color:var(--text3)">· ${x}</div>`).join('')}</div></div>
     <button class="btn btn-ghost btn-sm" onclick="gotoView('plan')">${tdL('Ver plan','View plan')}</button></div>
     <div class="pt-grid">
       <div><div class="pt-l">${tdL('PyG de hoy','Today P&L')}</div><div class="pt-v" style="color:${pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text)'}">${tt.length?fmtMoneySigned(pnl):'—'}</div></div>
-      <div><div class="pt-l">${tdL('Operaciones','Trades')}</div><div class="pt-v">${tt.length}</div></div>
-      <div><div class="pt-l">${tdL('Riesgo por operación','Risk per trade')}</div><div class="pt-v">${esc(p.riskTrade||'—')}</div></div>
-      <div><div class="pt-l">${tdL('Te queda hoy','Left today')}</div><div class="pt-v">${limMoney?fm(Math.max(0,limMoney-used)):'—'}</div></div>
+      <div><div class="pt-l">${tdL('Operaciones','Trades')}</div><div class="pt-v">${tt.length}${maxT?`<span style="font-size:12px;color:var(--text3);font-weight:600"> / ${maxT}</span>`:''}</div></div>
+      <div><div class="pt-l">${tdL('Riesgo por operación','Risk per trade')}</div><div class="pt-v">${riskPct!==null?fmtPctPT(riskPct)+'%'+(capDay>0?`<span style="font-size:12px;color:var(--text3);font-weight:600"> · ${fm$(capDay*riskPct/100)}</span>`:''):'—'}</div></div>
+      <div><div class="pt-l">${tdL('Te queda hoy','Left today')}</div><div class="pt-v" style="color:${leftShown===0?'var(--red)':'var(--text)'}">${leftShown!==null?fm$(leftShown):'—'}</div></div>
     </div>
-    ${limMoney?`<div class="pt-bar" title="${esc(tdL('Pérdida máx. diaria','Daily max loss'))}: ${esc(p.lossDaily)}"><span style="width:${pctW}%;background:${col}"></span></div>
-    <div class="pt-foot"><span>${tdL('Pérdida usada','Loss used')}: ${fm(used)} / ${fm(limMoney)} (${esc(p.lossDaily)})</span>${rule?`<span>${tdL('Regla','Rule')}: ${esc(rule)}</span>`:''}</div>`
-    :`<div class="pt-foot"><span>${tdL('Añade tu pérdida máxima diaria en el plan para ver cuánto te queda.','Add a daily max loss to your plan to see what is left.')}</span></div>`}`;
+    ${limRow(tdL('Pérdida máx. diaria','Daily max loss'),dl,used,p.lossDaily)}
+    ${limRow(tdL('Pérdida máx. semanal','Weekly max loss'),wl,wused,p.lossWeekly)}
+    ${rule?`<div class="pt-foot"><span>${tdL('Cuándo dejas de operar','When you stop trading')}: ${esc(rule)}</span></div>`:''}`;
 }
+if(!window._ptTimer)window._ptTimer=setInterval(()=>{if(currentView==='dashboard'&&document.visibilityState==='visible')renderPlanToday();},60000);
 function onboardKey(){return'td_onb_x_'+(currentUser?currentUser.id:'');}
 function dismissOnboard(){try{localStorage.setItem(onboardKey(),'1');}catch(_){}const c=document.getElementById('d-onboard');if(c)c.style.display='none';}
 function renderOnboard(){
@@ -12209,6 +12284,7 @@ async function savePlanProgress(showToastMsg=true){
   if(result.error){toast(friendlyDbError(result.error));return false;}
   currentPlan=result.data;
   planDirty=false;
+  try{renderPlanToday();renderOnboard();}catch(_){}
   if(showToastMsg)toast(completed?'Plan guardado y completado ✓':'Progreso guardado · Plan en curso');
   return true;
 }
@@ -12246,6 +12322,7 @@ async function finishPlan(){
   if(result.error){toast(friendlyDbError(result.error));return;}
   currentPlan=result.data;
   planDirty=false;
+  try{renderPlanToday();renderOnboard();}catch(_){}
   toast('Plan creado y completado ✓');
   renderPlanView();
 }
