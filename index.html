@@ -1261,6 +1261,10 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .pt-l{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .pt-v{font-size:17px;font-weight:800;margin-top:2px}
 .pt-bar{height:6px;border-radius:99px;background:var(--bg3);overflow:hidden;margin-top:14px}.pt-bar span{display:block;height:100%;border-radius:99px;transition:width .4s}
+.pt-meters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}.pt-m .pt-bar{margin-top:6px}
+.pt-mh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.pt-mh b{font-size:13px;color:var(--text);text-transform:none;letter-spacing:0;white-space:nowrap}.pt-mh b span{color:var(--text3);font-weight:600}
+@media (max-width:600px){.pt-meters{grid-template-columns:1fr}}
 .pt-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;font-size:11px;color:var(--text3);margin-top:8px}
 .ob-x{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px}
 .ob-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
@@ -6740,16 +6744,18 @@ function renderPlanTodayInner(card){
   const bar=(r,c)=>`<div class="pt-bar"><span style="width:${Math.min(100,r*100)}%;background:${c}"></span></div>`;
   const cRat=r=>r>=1?'var(--red)':r>=.6?'var(--amber)':'var(--green)';
   const limRow=(lbl,l,u,txt)=>{
-    if(!String(txt||'').trim())return`<div class="pt-foot"><span>${lbl}: ${tdL('no definida en tu plan','not set in your plan')}</span></div>`;
-    if(!l)return`<div class="pt-foot"><span>${lbl}: «${esc(txt)}» — ${tdL('no encuentro una cifra; escríbela como 3% o 300$.','no amount found; write it like 3% or 300$.')}</span></div>`;
-    if(l.money===null)return`<div class="pt-foot"><span>${lbl}: ${esc(l.label)} — ${tdL('la cuenta no tiene capital inicial, no puedo pasarlo a dinero.','the account has no starting capital, cannot convert it to money.')}</span></div>`;
-    return bar(u/l.money,cRat(u/l.money))+`<div class="pt-foot"><span>${lbl}: ${fm$(u)} / ${fm$(l.money)} <span style="opacity:.75">(${esc(l.label)}${txt.trim()!==l.label?` · «${esc(txt)}»`:''})</span></span></div>`;
+    const t=String(txt||'').trim();let val,r=null,tip=t?`«${t}»`:'';
+    if(!t){val=tdL('Sin definir','Not set');tip=tdL('Añádela en Mi plan','Add it in My plan');}
+    else if(!l){val=tdL('Sin cifra','No amount');tip+=' · '+tdL('escríbela como 3% o 300$','write it like 3% or 300$');}
+    else if(l.money===null){val=esc(l.label);tip+=' · '+tdL('la cuenta no tiene capital inicial','the account has no starting capital');}
+    else{val=`${fm$(u)} <span>/ ${fm$(l.money)}</span>`;r=u/l.money;}
+    return`<div class="pt-m" title="${esc(tip)}"><div class="pt-mh"><span>${lbl}</span><b>${val}</b></div>${bar(r||0,r===null?'var(--border2)':cRat(r))}</div>`;
   };
   const left=dl&&dl.money?Math.max(0,dl.money-used):null;
   const leftW=wl&&wl.money?Math.max(0,wl.money-wused):null;
   const leftShown=left!==null&&leftW!==null?Math.min(left,leftW):(left!==null?left:leftW);
   card.style.display='';
-  card.innerHTML=`<div class="pt-head"><div style="display:flex;align-items:center;gap:8px"><span class="pt-dot" style="background:${col}"></span><div><div class="section-title">${tdL('Hoy según tu plan','Today vs your plan')}</div><div class="section-sub" style="color:${lvl==='ok'?'var(--text3)':col}">${msg}</div>${extra.map(x=>`<div class="section-sub" style="color:var(--text3)">· ${x}</div>`).join('')}</div></div>
+  card.innerHTML=`<div class="pt-head"><div style="display:flex;align-items:center;gap:8px"><span class="pt-dot" style="background:${col}" title="${esc(rule?tdL('Cuándo dejas de operar: ','When you stop: ')+rule:'')}"></span><div><div class="section-title">${tdL('Hoy según tu plan','Today vs your plan')}</div><div class="section-sub" style="color:${lvl==='ok'?'var(--text3)':col}">${msg}</div>${extra.map(x=>`<div class="section-sub" style="color:var(--text3)">· ${x}</div>`).join('')}</div></div>
     <button class="btn btn-ghost btn-sm" onclick="gotoView('plan')">${tdL('Ver plan','View plan')}</button></div>
     <div class="pt-grid">
       <div><div class="pt-l">${tdL('PyG de hoy','Today P&L')}</div><div class="pt-v" style="color:${pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text)'}">${tt.length?fmtMoneySigned(pnl):'—'}</div></div>
@@ -6757,9 +6763,7 @@ function renderPlanTodayInner(card){
       <div><div class="pt-l">${tdL('Riesgo por operación','Risk per trade')}</div><div class="pt-v">${riskPct!==null?fmtPctPT(riskPct)+'%'+(capDay>0?`<span style="font-size:12px;color:var(--text3);font-weight:600"> · ${fm$(capDay*riskPct/100)}</span>`:''):'—'}</div></div>
       <div><div class="pt-l">${tdL('Te queda hoy','Left today')}</div><div class="pt-v" style="color:${leftShown===0?'var(--red)':'var(--text)'}">${leftShown!==null?fm$(leftShown):'—'}</div></div>
     </div>
-    ${limRow(tdL('Pérdida máx. diaria','Daily max loss'),dl,used,p.lossDaily)}
-    ${limRow(tdL('Pérdida máx. semanal','Weekly max loss'),wl,wused,p.lossWeekly)}
-    ${rule?`<div class="pt-foot"><span>${tdL('Cuándo dejas de operar','When you stop trading')}: ${esc(rule)}</span></div>`:''}`;
+    <div class="pt-meters">${limRow(tdL('Pérdida diaria','Daily loss'),dl,used,p.lossDaily)}${limRow(tdL('Pérdida semanal','Weekly loss'),wl,wused,p.lossWeekly)}</div>`;
 }
 if(!window._ptTimer)window._ptTimer=setInterval(()=>{if(currentView==='dashboard'&&document.visibilityState==='visible')renderPlanToday();},60000);
 function onboardKey(){return'td_onb_x_'+(currentUser?currentUser.id:'');}
