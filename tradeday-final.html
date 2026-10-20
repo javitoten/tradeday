@@ -348,6 +348,76 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 .jimg-strip{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
 .jimg-strip-img{width:92px;height:62px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);cursor:zoom-in;background:var(--bg3);transition:transform .15s}
 .jimg-strip-img:hover{transform:scale(1.04)}
+/* ── Simulador Monte Carlo en Métricas (copiado del backtesting, con prefijo .tdmc) ── */
+.tdmc .vz-q{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:6px;border-radius:50%;border:1px solid var(--border2);font:800 9.5px/1 Inter,sans-serif;font-style:normal;color:var(--text3);cursor:help;vertical-align:1px;text-transform:none;letter-spacing:0}
+.tdmc .vz-q:hover{color:var(--green);border-color:#22c55e80}
+.tdmc .vz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.tdmc .vz-grid.st{padding:12px}
+.tdmc .vz-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0;transition:border-color .15s}
+.tdmc .vz-card:hover{border-color:var(--border2)}
+.tdmc .vz-card.wide{grid-column:span 2}@media(max-width:700px){.tdmc .vz-card.wide{grid-column:auto}}
+.tdmc .vz-card.flat{background:var(--bg2)}
+.tdmc .vz-card h5{margin:0;font-size:10.5px;color:var(--text3);font-weight:800;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center}
+.tdmc .vz-big{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.tdmc .vz-big small{font-size:11px;color:var(--text3);font-weight:600}
+.tdmc .vz-sub{font-size:11.5px;color:var(--text3)}.tdmc .vz-sub b{font-variant-numeric:tabular-nums}
+.tdmc .vz-foot{margin:0;font-size:11px;color:var(--text3)}
+.tdmc .vz-donut{position:relative;flex:none;margin:0 auto}.tdmc .vz-donut svg{width:100%;height:100%}.tdmc .vz-donut circle{transition:stroke-dasharray .5s ease}
+.tdmc .vz-dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.tdmc .vz-dc b{font-size:18px;font-weight:800}.tdmc .vz-dc small{font-size:9.5px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tdmc .vz-flex{display:flex;align-items:center;gap:14px}.tdmc .vz-flex .vz-donut{margin:0}
+.tdmc .vz-legv{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)}.tdmc .vz-legv i,.tdmc .vz-leg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.tdmc .vz-legv b{margin-left:4px;color:var(--text)}
+.tdmc .vz-gauge{width:150px;height:auto;margin:0 auto;display:block}
+.tdmc .vz-row{display:grid;grid-template-columns:62px 1fr auto;align-items:center;gap:8px;font-size:11.5px;color:var(--text2)}.tdmc .vz-row b{font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap}
+.tdmc .vz-track{height:8px;background:#ffffff0d;border-radius:6px;overflow:hidden}.tdmc .vz-track i{display:block;height:100%;border-radius:6px;transition:width .5s cubic-bezier(.22,1,.36,1)}
+.tdmc .vz-split{display:flex;height:12px;border-radius:7px;overflow:hidden;gap:2px}.tdmc .vz-split i{display:block}
+.tdmc .vz-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--text2)}.tdmc .vz-leg b{color:var(--text)}.tdmc .vz-leg em{font-style:normal;color:var(--text3)}
+.tdmc .vz-streak{display:flex;flex-wrap:wrap;gap:3px}.tdmc .vz-streak i{width:9px;height:9px;border-radius:2px}.tdmc .vz-streak .w{background:var(--green)}.tdmc .vz-streak .l{background:var(--red)}.tdmc .vz-streak .b{background:#9BA3AF}
+.tdmc .vz-dots{display:flex;flex-wrap:wrap;gap:4px}.tdmc .vz-dots i{width:12px;height:12px;border-radius:3px}.tdmc .vz-dots .l{background:var(--red)}.tdmc .vz-dots .l2{background:#EF444455}
+.tdmc .vz-range{padding:4px 0 2px}.tdmc .vz-rt{position:relative;height:12px;background:#ffffff0d;border-radius:7px}
+.tdmc .vz-rt .band{position:absolute;top:0;bottom:0;border-radius:7px}
+.tdmc .vz-rt .zero{position:absolute;top:-4px;bottom:-4px;width:2px;background:#ffffff70;transform:translateX(-1px)}
+.tdmc .vz-rt .mid{position:absolute;top:-5px;width:4px;height:22px;background:#F0F2F5;border-radius:2px;transform:translateX(-2px);box-shadow:0 0 0 3px #0B0D12}
+.tdmc .vz-rl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.tdmc .vz-rl span{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tdmc .vz-rl span small{display:block;font-size:9.5px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.tdmc .vz-rl span:nth-child(2){text-align:center}.tdmc .vz-rl span:nth-child(3){text-align:right}.tdmc .vz-rl span.m{font-size:16px}
+.tdmc .mc-out{display:flex;flex-direction:column;gap:12px}
+.tdmc .mc-hist .vz-card svg,.tdmc .mc-chart svg{overflow:visible}
+.tdmc .mc-intro{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:linear-gradient(90deg,#22c55e12,transparent 60%)}
+.tdmc .mc-intro>i{font-size:22px;color:var(--green)}.tdmc .mc-intro b{display:block;font-size:13.5px}.tdmc .mc-intro span{font-size:12px;color:var(--text2)}
+.tdmc .mc-rel{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap;border:1px solid}
+.tdmc .mc-rel.ok{color:var(--green);border-color:#22c55e60;background:#22c55e14}.tdmc .mc-rel.mid{color:#F59E0B;border-color:#f59e0b60;background:#f59e0b14}.tdmc .mc-rel.low{color:var(--red);border-color:#ef444460;background:#ef444414}
+.tdmc .mc-chips,.tdmc .mc-seg{display:flex;gap:4px}.tdmc .mc-chips button,.tdmc .mc-seg button{height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-weight:700;font-size:12px;cursor:pointer;transition:all .12s}
+.tdmc .mc-chips button:hover,.tdmc .mc-seg button:hover{color:var(--text)}.tdmc .mc-chips button.on,.tdmc .mc-seg button.on{background:var(--green-bg);border-color:#22c55e80;color:var(--green)}.tdmc .mc-seg button:disabled{opacity:.4;cursor:not-allowed}
+.tdmc .mc-seg .vz-q{margin-left:4px}
+.tdmc .btn.mc-run{height:30px;margin-left:auto}
+.tdmc .mc-verdict{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid}
+.tdmc .mc-verdict>i{font-size:22px;margin-top:1px}.tdmc .mc-verdict b{font-size:13.5px}.tdmc .mc-verdict span{display:block;font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.55}.tdmc .mc-verdict span b{font-size:12.5px;color:var(--text)}
+.tdmc .mc-verdict.good{border-color:#22c55e55;background:#22c55e10}.tdmc .mc-verdict.good>i{color:var(--green)}
+.tdmc .mc-verdict.mid{border-color:#f59e0b55;background:#f59e0b10}.tdmc .mc-verdict.mid>i{color:#F59E0B}
+.tdmc .mc-verdict.bad{border-color:#ef444455;background:#ef444410}.tdmc .mc-verdict.bad>i{color:var(--red)}
+.tdmc .mc-chart{position:relative}.tdmc .mc-tt{position:absolute;top:10px;width:210px;padding:8px 10px;background:#1E1F23f2;border:1px solid #ffffff1f;border-radius:9px;font-size:11.5px;color:var(--text2);pointer-events:none;box-shadow:0 10px 26px #000a}
+.tdmc .mc-tt b{display:block;color:var(--text);margin-bottom:4px}.tdmc .mc-tt span{display:block}.tdmc .mc-tt em{font-style:normal;color:var(--text);font-variant-numeric:tabular-nums}
+.tdmc .mc-faq{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:var(--bg2)}.tdmc .mc-faq summary{cursor:pointer;font-weight:700;font-size:12.5px;display:flex;align-items:center;gap:8px;color:var(--text2)}
+.tdmc .mc-faq ul{margin:10px 0 2px;padding-left:18px;font-size:12px;color:var(--text2);line-height:1.6}
+.tdmc .mc{padding:12px;display:flex;flex-direction:column;gap:12px}
+.tdmc .mc-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.tdmc .mc-bar>div{display:flex;flex-direction:column;gap:4px}.tdmc .mc-bar label{font-size:10.5px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tdmc .mc-bar .ctl{height:30px;min-width:0}.tdmc .mc-bar input.ctl{width:90px}
+.tdmc .mc-chart{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px}
+.tdmc .mc-chart svg{display:block;width:100%;height:auto}
+.tdmc .mc-leg{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--text2);padding:4px 4px 0}.tdmc .mc-leg i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.tdmc .mc-note{font-size:11.5px;color:var(--text3);line-height:1.5;margin:0}
+.tdmc .mc .kpi small{display:block;font-size:10.5px;color:var(--text3);font-weight:600;margin-top:2px}
+.tdmc .mc-hist{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:800px){.tdmc .mc-hist{grid-template-columns:1fr}}
+.tdmc .mc-hist h4{margin:0 0 6px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.tdmc{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.tdmc .ch-in{display:flex;align-items:center;gap:6px}.tdmc .ch-in span{font-size:12px;color:var(--text3)}
+.tdmc .ctl{height:30px;padding:0 9px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font:inherit;font-size:12.5px}
+.tdmc select.ctl{padding-right:24px}
+.tdmc .mc-run{height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font:inherit;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.tdmc .mc-run:hover{color:var(--text)}
+.tdmc .pos{color:var(--green)}.tdmc .neg{color:var(--red)}
+.tdmc .vz-q{font-family:inherit}
+.tdmc .mc-empty{padding:18px;border:1px dashed var(--border2);border-radius:12px;color:var(--text3);font-size:13px;text-align:center}
 /* ── Backtesting en la landing (oculto hasta BT_LAUNCH=true → html.bt-on) ── */
 html:not(.bt-on) .bt-launch{display:none!important}
 html.bt-on .bt-prelaunch{display:none!important}
@@ -3212,6 +3282,11 @@ function initLandingFX(){
               <div class="mx-riskviz" id="mx-risk-viz"></div>
               <div id="mx-risk-hint" class="mx-empty-hint" style="display:none;margin-top:12px">Añade el % de riesgo al crear o editar tus operaciones para ver el Riesgo medio/máximo/mínimo.</div>
             </div>
+          </div>
+          <div class="card mx-section-block" id="mx-mc-card">
+            <div class="mx-card-title"><i class="ti ti-chart-dots-3"></i>Simulador Monte Carlo <span class="nav-new" style="margin-left:8px">Nuevo</span></div>
+            <div class="mx-card-sub">Tus operaciones reordenadas miles de veces: qué rango de resultados, caídas y rachas es normal para tu forma de operar.</div>
+            <div class="tdmc" id="mx-mc" data-no-i18n></div>
           </div>
           <div class="mx-three-col">
             <div class="card mx-section-block">
@@ -11565,6 +11640,187 @@ function glSetWeekdayMode(mode){
   if(glLastFull)mxWithCtx(glCtx(),()=>mxRenderWeekdayChart(glLastFull));
 }
 
+/* ══ Simulador Monte Carlo en Métricas (mismo simulador que el backtesting) ══
+   Remuestrea (con reemplazo) las operaciones de la cuenta en miles de órdenes distintas y mide qué podría pasar:
+   rango de resultados, drawdown máximo, rachas y probabilidad de tocar un límite de pérdida. Semilla fija = repetible.
+   Funciona con las operaciones que ya tiene cada usuario:
+   - Rentabilidad de cada operación = su resultado en $ sobre el capital que tenía la cuenta justo antes (interés compuesto).
+     Si la cuenta no tiene capital, se usa el % guardado en la operación.
+   - Resultado en R (para «riesgo fijo»): resultado % ÷ riesgo asumido si la operación lo tiene; si no, resultado $ ÷ pérdida media. */
+const TDMC={st:{sims:1000,n:100,mode:'real',risk:1,dd:10,seed:1,src:'mine',wr:50,rr:2},w:760};
+const tdL=(es,en)=>lang==='en'?en:es;
+function tdmcRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
+const tdmcQ=(s,q)=>{if(!s.length)return null;const i=(s.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return s[lo]+(s[hi]-s[lo])*(i-lo);};
+function tdmcSimulate(rets,{sims,n,ddLimit,seed}){
+  const rnd=tdmcRng(seed||1),m=rets.length,Q=[0.05,0.25,0.5,0.75,0.95];
+  const paths=new Float32Array(sims*(n+1)),finals=[],dds=[],streaks=[],hit=[];
+  for(let s=0;s<sims;s++){
+    let eq=100,peak=100,dd=0,st=0,maxSt=0,touched=false;paths[s*(n+1)]=100;
+    for(let i=1;i<=n;i++){
+      const r=rets[Math.floor(rnd()*m)];
+      eq*=1+r/100;if(eq<0)eq=0;
+      if(eq>peak)peak=eq;const d=peak>0?(peak-eq)/peak*100:0;if(d>dd)dd=d;
+      if(ddLimit>0&&eq<=100-ddLimit)touched=true;
+      st=r<0?st+1:0;if(st>maxSt)maxSt=st;
+      paths[s*(n+1)+i]=eq;
+    }
+    finals.push(eq-100);dds.push(dd);streaks.push(maxSt);hit.push(touched);
+  }
+  const bands=Q.map(()=>new Float32Array(n+1)),col=new Float32Array(sims);
+  for(let i=0;i<=n;i++){for(let s=0;s<sims;s++)col[s]=paths[s*(n+1)+i];col.sort();Q.forEach((q,k)=>bands[k][i]=tdmcQ(col,q));}
+  const sample=[];for(let s=0;s<Math.min(40,sims);s++)sample.push(paths.slice(s*(n+1),(s+1)*(n+1)));
+  const by=(a,b)=>a-b;
+  return{n,sims,bands,sample,finals:finals.slice().sort(by),dds:dds.slice().sort(by),streaks:streaks.slice().sort(by),
+    pProfit:finals.filter(v=>v>0).length/sims*100,pHit:hit.filter(Boolean).length/sims*100};
+}
+function tdmcFan(R,cap,Wd){
+  const W=Math.max(420,Math.round(Wd||760)),H=260,L=78,Rg=10,T=10,B=26,n=R.n;
+  const all=[R.bands[0],R.bands[4]].flatMap(b=>Array.from(b));let lo=Math.min(...all,100),hi=Math.max(...all,100);const pad=(hi-lo)*0.06||1;lo-=pad;hi+=pad;
+  const x=i=>L+i/n*(W-L-Rg),y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  const line=b=>Array.from(b).map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join('');
+  const area=(a,b)=>line(a)+Array.from(b).map((v,i)=>[i,v]).reverse().map(([i,v])=>'L'+x(i).toFixed(1)+' '+y(v).toFixed(1)).join('')+'Z';
+  const money=v=>fmtMoney(cap*v/100);
+  let grid='';for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4;grid+=`<line x1="${L}" x2="${W-Rg}" y1="${y(v)}" y2="${y(v)}" stroke="#ffffff10"/><text x="${L-6}" y="${y(v)+3}" fill="#6B7280" font-size="11" text-anchor="end">${money(v)}</text>`;}
+  const ticks=[0,Math.round(n/4),Math.round(n/2),Math.round(3*n/4),n].map(i=>`<text x="${x(i)}" y="${H-8}" fill="#6B7280" font-size="11" text-anchor="middle">${i}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monte Carlo">${grid}${ticks}
+    <line x1="${L}" x2="${W-Rg}" y1="${y(100)}" y2="${y(100)}" stroke="#ffffff40" stroke-dasharray="4 4"/>
+    ${R.sample.map(p=>`<path d="${line(p)}" fill="none" stroke="#9BA3AF" stroke-opacity=".10" stroke-width="1"/>`).join('')}
+    <path d="${area(R.bands[0],R.bands[4])}" fill="#22C55E" fill-opacity=".10"/>
+    <path d="${area(R.bands[1],R.bands[3])}" fill="#22C55E" fill-opacity=".18"/>
+    <path d="${line(R.bands[0])}" fill="none" stroke="#EF4444" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <path d="${line(R.bands[4])}" fill="none" stroke="#22C55E" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <path d="${line(R.bands[2])}" fill="none" stroke="#F0F2F5" stroke-width="2"/></svg>`;
+}
+function tdmcHist(vals,color,fmt,bins,Wd){
+  const W=Math.max(260,Math.round(Wd||360)),H=130,B=20,n=bins||24;if(!vals.length)return '';
+  const lo=vals[0],hi=vals[vals.length-1],w=(hi-lo)/n||1,c=new Array(n).fill(0);
+  vals.forEach(v=>c[Math.min(n-1,Math.floor((v-lo)/w))]++);const mx=Math.max(...c),bw=W/n;
+  return `<svg viewBox="0 0 ${W} ${H}">${c.map((k,i)=>`<rect x="${i*bw+1}" y="${(H-B)*(1-k/mx)}" width="${bw-2}" height="${(H-B)*k/mx}" rx="1.5" fill="${color(lo+(i+.5)*w)}" fill-opacity=".75"/>`).join('')}
+    <text x="0" y="${H-5}" fill="#6B7280" font-size="11">${fmt(lo)}</text><text x="${W/2}" y="${H-5}" fill="#6B7280" font-size="11" text-anchor="middle">${fmt(tdmcQ(vals,.5))} (${tdL('mediana','median')})</text><text x="${W}" y="${H-5}" fill="#6B7280" font-size="11" text-anchor="end">${fmt(hi)}</text></svg>`;
+}
+function tdmcDonut(parts,center,sub,size){
+  const S0=size||104,R=S0/2-9,C=2*Math.PI*R,tot=parts.reduce((a,p)=>a+Math.max(0,p.v),0)||1;let off=0;
+  const segs=parts.filter(p=>p.v>0).map(p=>{const len=p.v/tot*C,s=`<circle r="${R}" cx="${S0/2}" cy="${S0/2}" fill="none" stroke="${p.c}" stroke-width="10" stroke-dasharray="${Math.max(0,len-2)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 ${S0/2} ${S0/2})" stroke-linecap="round"></circle>`;off+=len;return s;}).join('');
+  return `<div class="vz-donut" style="width:${S0}px;height:${S0}px"><svg viewBox="0 0 ${S0} ${S0}"><circle r="${R}" cx="${S0/2}" cy="${S0/2}" fill="none" stroke="#2A2D35" stroke-width="10"/>${segs}</svg><div class="vz-dc"><b>${center}</b>${sub?`<small>${sub}</small>`:''}</div></div>`;
+}
+const tdmcBar=(label,val,max,color,txt)=>`<div class="vz-row"><span>${label}</span><div class="vz-track"><i style="width:${Math.max(2,Math.min(100,Math.abs(val)/(max||1)*100))}%;background:${color}"></i></div><b style="color:${color}">${txt}</b></div>`;
+const tdmcHelpI=h=>`<i class="vz-q" data-tip="${esc(h)}">?</i>`;
+const tdmcCard=(title,help,body,cls)=>`<div class="vz-card ${cls||''}"><h5>${title}${help?tdmcHelpI(help):''}</h5>${body}</div>`;
+function tdmcRange(lo,mid,hi,fmtV,zero){
+  const a=Math.min(lo,zero),b=Math.max(hi,zero),span=(b-a)||1,X=v=>((v-a)/span*100);
+  const bg=lo>=0?'#22C55E80':hi<=0?'#EF444480':`linear-gradient(90deg,#EF444480 0%,#EF444480 ${(-lo/(hi-lo)*100).toFixed(1)}%,#22C55E80 ${(-lo/(hi-lo)*100).toFixed(1)}%)`;
+  return `<div class="vz-range"><div class="vz-rt"><i class="band" style="left:${X(lo)}%;width:${X(hi)-X(lo)}%;background:${bg}"></i><i class="zero" style="left:${X(zero)}%"></i><i class="mid" style="left:${X(mid)}%"></i></div>
+    <div class="vz-rl"><span class="${lo<0?'neg':'pos'}"><small>${tdL('Malo (5 %)','Bad (5%)')}</small>${fmtV(lo)}</span><span class="${mid<0?'neg':'pos'} m"><small>${tdL('Típico','Typical')}</small>${fmtV(mid)}</span><span class="${hi<0?'neg':'pos'}"><small>${tdL('Bueno (95 %)','Good (95%)')}</small>${fmtV(hi)}</span></div></div>`;
+}
+function tdmcHelp(){return{
+  what:tdL('Coge tus operaciones y las vuelve a ordenar al azar miles de veces (pudiendo repetir alguna). Cada orden es un «futuro posible» con tu misma forma de operar. No adivina el mercado: te enseña qué rango de resultados y de rachas es normal para ti.','It reshuffles your trades thousands of times at random (repeats allowed). Each order is a possible future with the same way of trading. It does not predict the market: it shows the range of results and streaks that is normal for you.'),
+  n:tdL('Cuántas operaciones tiene cada futuro simulado. Por ejemplo 100 = «¿qué me puede pasar en mis próximas 100 operaciones?».','How many trades each simulated future has. E.g. 100 = "what can happen in my next 100 trades?".'),
+  sims:tdL('Cuántos futuros distintos se generan. Más simulaciones = resultado más estable (1.000 suele bastar).','How many different futures are generated. More simulations = more stable result (1,000 is usually enough).'),
+  risk:tdL('«El que usaste»: cada operación gana o pierde el % de cuenta que ganó o perdió de verdad. «Fijo»: todas arriesgan el mismo % y se usa su resultado en R (útil para probar «¿y si arriesgo un 0,5 %?»).','"The one you used": each trade wins or loses the % of the account it really did. "Fixed": all trades risk the same % and their R result is used (useful to test "what if I risk 0.5%?").'),
+  dd:tdL('Pérdida desde el capital actual que no quieres tocar (como el límite de una prop firm). Se calcula la probabilidad de llegar a perderla en algún momento.','Loss from the current capital you do not want to hit (like a prop firm limit). It shows the probability of reaching it at some point.'),
+  manual:tdL('Prueba una estrategia sin operaciones: indica cuántas ganas de cada 100 y cuánto ganas (en R) cuando aciertas. Cada pérdida es −1R.','Test a strategy without trades: enter how many you win out of 100 and how much you win (in R) when right. Each loss is −1R.'),
+  range:tdL('De cada 100 futuros simulados, 90 terminan entre «malo» y «bueno». «Típico» es el del medio (la mediana): la mitad acaba mejor y la otra mitad peor.','Out of 100 simulated futures, 90 end between "bad" and "good". "Typical" is the middle one (the median): half end better and half worse.'),
+  prob:tdL('En cuántos de cada 100 futuros simulados terminas con más dinero del que tienes ahora.','In how many out of 100 simulated futures you end with more money than you have now.'),
+  hit:tdL('En cuántos de cada 100 futuros llegas a perder el límite indicado en algún momento (aunque luego te recuperes). Para una prop firm, eso sería suspender.','In how many out of 100 futures you hit the loss limit at some point (even if you recover later). For a prop firm, that would be a fail.'),
+  ddc:tdL('La mayor caída desde un máximo de la cuenta hasta un mínimo posterior. «Típico» = lo normal; «peor 5 %» = solo 1 de cada 20 futuros cae más.','The biggest fall from an account peak to a later low. "Typical" = normal; "worst 5%" = only 1 in 20 futures falls more.'),
+  streak:tdL('Cuántas pérdidas seguidas te puedes encontrar. Si te pasa en real y está dentro de este rango, es normal para tu forma de operar: no la cambies por eso.','How many losses in a row you can face. If it happens for real and it is within this range, it is normal for your trading: do not change it because of that.'),
+  fan:tdL('Cada línea gris es un futuro posible. La línea blanca es el camino típico, la zona verde oscura recoge la mitad de los casos y la clara 9 de cada 10. Pasa el ratón para ver los valores en cada operación.','Each grey line is a possible future. The white line is the typical path, the dark green area holds half of the cases and the light one 9 out of 10. Hover to see the values at each trade.')};}
+/* Rentabilidades (%) y R de las operaciones de la cuenta actual, en orden */
+function tdmcTradeData(){
+  const acc=currentAccount(),cap0=acc?(+acc.capital||0):0;
+  const T=[...mxT()].filter(t=>t.date).sort((a,b)=>a.date!==b.date?(a.date<b.date?-1:1):String(a.time||'').localeCompare(String(b.time||''))||String(a.id).localeCompare(String(b.id)));
+  const losses=T.filter(t=>t.result==='loss').map(t=>Math.abs(mxAmt(t))).filter(v=>v>0);
+  const avgLoss=losses.length?losses.reduce((a,b)=>a+b,0)/losses.length:0;
+  let eq=cap0;const rows=[];
+  T.forEach(t=>{
+    const amt=t.result==='be'?0:mxAmt(t);
+    const pct=t.result==='be'?0:(cap0>0&&eq>0?amt/eq*100:mxAmtPct(t));
+    const risk=+t.risk_pct;
+    const r=t.result==='be'?0:(risk>0?pct/risk:(avgLoss>0?amt/avgLoss:null));
+    if(isFinite(pct))rows.push({pct,r:isFinite(r)?r:null});
+    eq+=amt;
+  });
+  return{rows,cap:cap0>0?Math.max(eq,0):0,cap0};
+}
+function renderMetricsMonteCarlo(){
+  const el=document.getElementById('mx-mc');if(!el)return;
+  const st=TDMC.st,D=tdmcTradeData(),rows=D.rows,nT=rows.length,H=tdmcHelp();
+  if(st.src==='mine'&&nT<10){st.src='manual';st._auto=true;}
+  else if(st.src==='manual'&&st._auto&&nT>=10){st.src='mine';st._auto=false;} // cuenta con pocas operaciones → otra con suficientes
+  const cap=D.cap>0?D.cap:10000;
+  const rel=nT>=100?['ok',tdL('Muestra buena','Good sample')]:nT>=30?['mid',tdL('Muestra aceptable','Fair sample')]:['low',tdL('Muestra pequeña','Small sample')];
+  const chips=(k,vals,fv)=>`<div class="mc-chips" data-k="${k}">${vals.map(v=>`<button data-v="${v}" class="${+st[k]===v?'on':''}">${fv?fv(v):v}</button>`).join('')}</div>`;
+  const anyR=rows.some(x=>x.r!=null);
+  if(st.mode==='fixed'&&!anyR)st.mode='real';
+  el.innerHTML=`<div class="mc-intro"><i class="ti ti-chart-dots-3"></i><div><span>${tdL('¿Qué puede pasar en tus próximas operaciones si sigues operando igual?','What can happen in your next trades if you keep trading the same way?')} ${tdmcHelpI(H.what)}</span></div>
+      ${st.src==='mine'?`<em class="mc-rel ${rel[0]}" data-tip="${esc(tdL('Con menos de 30 operaciones los resultados son orientativos; con 100 o más, mucho más fiables.','With fewer than 30 trades results are only indicative; with 100 or more, much more reliable.'))}">${rel[1]} · ${nT} ${tdL('operaciones','trades')}</em>`:`<em class="mc-rel mid">${tdL('Estrategia manual','Manual strategy')}</em>`}</div>
+    <div class="mc-bar">
+      <div><label>${tdL('Basado en','Based on')}</label><div class="mc-seg" data-k="src"><button data-v="mine" class="${st.src==='mine'?'on':''}" ${nT<10?`disabled data-tip="${esc(tdL('Necesitas al menos 10 operaciones registradas','You need at least 10 logged trades'))}"`:''}>${tdL('Mis operaciones','My trades')}</button><button data-v="manual" class="${st.src==='manual'?'on':''}">${tdL('Manual','Manual')} ${tdmcHelpI(H.manual)}</button></div></div>
+      ${st.src==='manual'?`<div><label>${tdL('Aciertos','Win rate')}</label><div class="ch-in"><input class="ctl" data-k="wr" type="number" min="1" max="99" step="1" value="${st.wr}"><span>%</span></div></div>
+        <div><label>${tdL('Ganancia media','Average win')}</label><div class="ch-in"><input class="ctl" data-k="rr" type="number" min="0.1" max="20" step="0.1" value="${st.rr}"><span>R</span></div></div>`:''}
+      <div><label>${tdL('Operaciones a simular','Trades to simulate')} ${tdmcHelpI(H.n)}</label>${chips('n',[50,100,200,300])}</div>
+      <div><label>${tdL('Simulaciones','Simulations')} ${tdmcHelpI(H.sims)}</label>${chips('sims',[500,1000,5000],v=>fmtInt(v))}</div>
+      ${st.src==='mine'?`<div><label>${tdL('Riesgo','Risk')} ${tdmcHelpI(H.risk)}</label><select class="ctl" data-k="mode"><option value="real" ${st.mode==='real'?'selected':''}>${tdL('El que usaste','The one you used')}</option>${anyR?`<option value="fixed" ${st.mode==='fixed'?'selected':''}>${tdL('Fijo por operación','Fixed per trade')}</option>`:''}</select></div>`:''}
+      ${st.src==='manual'||st.mode==='fixed'?`<div><label>${tdL('Riesgo por operación','Risk per trade')}</label><div class="ch-in"><input class="ctl" data-k="risk" type="number" min="0.1" max="10" step="0.1" value="${st.risk}"><span>%</span></div></div>`:''}
+      <div><label>${tdL('Límite de pérdida','Loss limit')} ${tdmcHelpI(H.dd)}</label><div class="ch-in"><input class="ctl" data-k="dd" type="number" min="0" max="90" step="1" value="${st.dd}"><span>%</span></div></div>
+      <button class="mc-run" data-act="run" data-tip="${esc(tdL('Otra tanda de simulaciones al azar','Another random batch of simulations'))}"><i class="ti ti-refresh"></i>${tdL('Volver a simular','Simulate again')}</button>
+    </div><div class="mc-out" id="mx-mc-out"></div>`;
+  const run=()=>{
+    let rets;
+    if(st.src==='manual'){const w=Math.round(st.wr/100*1000);rets=Array.from({length:1000},(_,i)=>i<w?st.rr*st.risk:-st.risk);}
+    else if(st.mode==='fixed'){rets=rows.filter(x=>x.r!=null).map(x=>x.r*st.risk);}
+    else rets=rows.map(x=>x.pct);
+    if(!rets.length){document.getElementById('mx-mc-out').innerHTML=`<div class="mc-empty">${tdL('No hay datos suficientes para simular.','Not enough data to simulate.')}</div>`;return;}
+    const R=tdmcSimulate(rets,{sims:st.sims,n:st.n,ddLimit:st.dd,seed:st.seed});
+    const cw=el.clientWidth||900,FW=Math.max(420,cw-60),HW=Math.max(260,(cw-24)/(cw>800?2:1)-50);TDMC.w=FW;
+    const pc=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(1)+'%',money=v=>fmtMoneySigned(cap*v/100);
+    const f5=tdmcQ(R.finals,.05),f50=tdmcQ(R.finals,.5),f95=tdmcQ(R.finals,.95),d50=tdmcQ(R.dds,.5),d95=tdmcQ(R.dds,.95),s50=Math.round(tdmcQ(R.streaks,.5)),s95=Math.round(tdmcQ(R.streaks,.95));
+    const tone=R.pProfit>=80&&(!st.dd||R.pHit<10)?'good':R.pProfit>=55&&(!st.dd||R.pHit<25)?'mid':'bad';
+    const verdict={good:['ti-circle-check',tdL('Tu forma de operar es sólida en esta muestra','Your trading is solid in this sample')],mid:['ti-alert-triangle',tdL('Resultado positivo pero con riesgo','Positive result but with risk')],bad:['ti-alert-octagon',tdL('Tu forma de operar sufre en muchos escenarios','Your trading suffers in many scenarios')]}[tone];
+    const hitTxt=R.pHit<1?tdL('menos de 1','less than 1'):Math.round(R.pHit);
+    const sum=lang==='en'
+      ?`In <b>${Math.round(R.pProfit)} out of 100</b> futures you end positive after ${R.n} trades. Typically you ${f50>=0?'win':'lose'} <b>${pc(f50).replace('+','')}</b> (${money(f50)})${st.dd?`, and in <b>${hitTxt} out of 100</b> you would lose ${st.dd}% of the account`:''}. Expect streaks of <b>${s50}–${s95} losses in a row</b>: they are normal for your trading.`
+      :`En <b>${Math.round(R.pProfit)} de cada 100</b> futuros acabas en positivo tras ${R.n} operaciones. Lo típico es ${f50>=0?'ganar':'perder'} <b>${pc(f50).replace('+','')}</b> (${money(f50)})${st.dd?`, y en <b>${hitTxt} de cada 100</b> llegarías a perder un ${st.dd}% de la cuenta`:''}. Prepárate para rachas de <b>${s50}–${s95} pérdidas seguidas</b>: son normales con tu forma de operar.`;
+    document.getElementById('mx-mc-out').innerHTML=`<div class="mc-verdict ${tone}"><i class="ti ${verdict[0]}"></i><div><b>${verdict[1]}</b><span>${sum}</span></div></div>
+      <div class="vz-grid">
+        ${tdmcCard(tdL('Rango de resultados','Range of results'),H.range,tdmcRange(f5,f50,f95,pc,0)+`<p class="vz-foot">${tdL('Desde tu capital actual','From your current capital')} ${fmtMoney(cap)} · ${tdL('típico','typical')} ${money(f50)}</p>`,'wide')}
+        ${tdmcCard(tdL('Acabar en positivo','End positive'),H.prob,tdmcDonut([{v:R.pProfit,c:'#22C55E'},{v:100-R.pProfit,c:'#EF444466'}],Math.round(R.pProfit)+'%',tdL('casos','cases'),118))}
+        ${st.dd?tdmcCard(tdL(`Tocar −${st.dd}% de la cuenta`,`Hit −${st.dd}% of the account`),H.hit,tdmcDonut([{v:R.pHit,c:'#EF4444'},{v:100-R.pHit,c:'#22C55E55'}],(R.pHit<1&&R.pHit>0?'<1':Math.round(R.pHit))+'%',tdL('casos','cases'),118)):''}
+        ${tdmcCard(tdL('Drawdown máximo','Max drawdown'),H.ddc,tdmcBar(tdL('Típico','Typical'),d50,Math.max(d95,st.dd||0,1),'#F59E0B','−'+d50.toFixed(1)+'%')+tdmcBar(tdL('Peor 5 %','Worst 5%'),d95,Math.max(d95,st.dd||0,1),'#EF4444','−'+d95.toFixed(1)+'%')+(st.dd?tdmcBar(tdL('Tu límite','Your limit'),st.dd,Math.max(d95,st.dd,1),'#9BA3AF','−'+st.dd+'%'):''))}
+        ${tdmcCard(tdL('Rachas perdedoras','Losing streaks'),H.streak,`<div class="vz-big">${s50}<small> ${tdL('típica','typical')}</small> · <span class="neg">${s95}</span><small> ${tdL('en el peor 5 %','in the worst 5%')}</small></div><div class="vz-dots">${Array.from({length:Math.min(s95,20)},(_,i)=>`<i class="${i<s50?'l':'l2'}"></i>`).join('')}</div>`)}
+      </div>
+      ${tdmcCard(tdL('Futuros posibles de tu cuenta','Possible futures of your account'),H.fan,`<div class="mc-chart" id="mx-mc-fan">${tdmcFan(R,cap,FW)}<div class="mc-tt" hidden></div></div>
+        <div class="mc-leg"><span><i style="background:#F0F2F5"></i>${tdL('Camino típico','Typical path')}</span><span><i style="background:#22C55E;opacity:.45"></i>${tdL('La mitad de los casos','Half of the cases')}</span><span><i style="background:#22C55E;opacity:.2"></i>${tdL('9 de cada 10','9 out of 10')}</span><span><i style="background:#9BA3AF;opacity:.4"></i>${tdL('Futuros de ejemplo','Sample futures')}</span><span style="color:var(--text3)">${tdL('Eje horizontal: nº de operación','Horizontal axis: trade number')}</span></div>`,'flat')}
+      <div class="mc-hist">${tdmcCard(tdL('¿Cómo acaban los futuros?','How do the futures end?'),tdL('Cuántas simulaciones acaban en cada resultado. Verde = ganando, rojo = perdiendo.','How many simulations end at each result. Green = winning, red = losing.'),tdmcHist(R.finals,v=>v>=0?'#22C55E':'#EF4444',pc,30,HW),'flat')}
+        ${tdmcCard(tdL('¿Cuánto llegan a caer?','How far do they fall?'),tdL('Cuántas simulaciones tienen cada drawdown máximo. En rojo, las que pasan tu límite.','How many simulations have each max drawdown. In red, those beyond your limit.'),tdmcHist(R.dds,v=>st.dd>0&&v>=st.dd?'#EF4444':'#F59E0B',v=>'−'+v.toFixed(1)+'%',30,HW),'flat')}</div>
+      <details class="mc-faq"><summary><i class="ti ti-help-circle"></i>${tdL('Cómo leer esto y errores comunes','How to read this and common mistakes')}</summary>
+        <ul>${(lang==='en'?['<b>It is not a prediction.</b> It assumes the future looks like your trades. If you change strategy or the market changes, it no longer applies.','<b>More trades = more reliable.</b> Under 30 it is only indicative; with 100 or more it is much more useful.','<b>"Typical" is not "safe".</b> Half of the futures end worse than typical.','<b>Drawdown and streaks are the most useful part:</b> if you suffer a streak within the range, it is part of your trading, not a reason to change it.','<b>Compounding:</b> each trade risks a % of the balance at that moment, like a real account.']:['<b>No es una predicción.</b> Supone que el futuro se parece a tus operaciones. Si cambias de estrategia o el mercado cambia, deja de valer.','<b>Más operaciones = más fiable.</b> Con menos de 30 es solo orientativo; con 100 o más es mucho más útil.','<b>«Típico» no es «seguro».</b> La mitad de los futuros acaba peor que el típico.','<b>El drawdown y las rachas son lo más útil:</b> si en real sufres una racha dentro del rango, es parte de tu forma de operar, no una señal para cambiarla.','<b>Interés compuesto:</b> cada operación arriesga un % del balance de ese momento, como en una cuenta real.']).map(x=>`<li>${x}</li>`).join('')}</ul></details>`;
+    tdmcFanHover(R,cap);
+  };
+  el.querySelectorAll('.mc-chips,.mc-seg').forEach(g=>g.onclick=e=>{const b=e.target.closest('button[data-v]');if(!b||b.disabled)return;const k=g.dataset.k;st[k]=isNaN(+b.dataset.v)?b.dataset.v:+b.dataset.v;if(k==='src')st._auto=false;renderMetricsMonteCarlo();});
+  el.querySelectorAll('[data-k]:not(.mc-chips):not(.mc-seg)').forEach(c=>c.onchange=()=>{
+    const kk=c.dataset.k;st[kk]=kk==='mode'?c.value:Math.max(+c.min||0,Math.min(+c.max||1e9,parseFloat(String(c.value).replace(',','.'))||0));
+    if(kk==='mode'){renderMetricsMonteCarlo();return;}run();
+  });
+  el.querySelector('[data-act="run"]').onclick=()=>{st.seed++;run();};
+  run();
+  mxInitTips();
+}
+function tdmcFanHover(R,cap){
+  const box=document.getElementById('mx-mc-fan');if(!box)return;const svg=box.querySelector('svg'),tt=box.querySelector('.mc-tt'),L=78,Rg=10,W=Math.max(420,Math.round(TDMC.w||760));
+  let ln=svg.querySelector('.mc-hl');if(!ln){ln=document.createElementNS('http://www.w3.org/2000/svg','line');ln.setAttribute('class','mc-hl');ln.setAttribute('y1',10);ln.setAttribute('y2',234);ln.setAttribute('stroke','#ffffff55');ln.setAttribute('stroke-dasharray','3 3');svg.appendChild(ln);}
+  const money=v=>fmtMoney(cap*v/100);
+  svg.onmousemove=e=>{
+    const r=svg.getBoundingClientRect(),vx=(e.clientX-r.left)/r.width*W,i=Math.max(0,Math.min(R.n,Math.round((vx-L)/(W-L-Rg)*R.n)));
+    const x=L+i/R.n*(W-L-Rg);ln.setAttribute('x1',x);ln.setAttribute('x2',x);ln.style.display='';
+    tt.hidden=false;tt.innerHTML=lang==='en'
+      ?`<b>After ${i} trades</b><span>Typical <em>${money(R.bands[2][i])}</em></span><span>Half between <em>${money(R.bands[1][i])}</em> and <em>${money(R.bands[3][i])}</em></span><span>9 of 10 between <em>${money(R.bands[0][i])}</em> and <em>${money(R.bands[4][i])}</em></span>`
+      :`<b>Tras ${i} operaciones</b><span>Típico <em>${money(R.bands[2][i])}</em></span><span>La mitad entre <em>${money(R.bands[1][i])}</em> y <em>${money(R.bands[3][i])}</em></span><span>9 de 10 entre <em>${money(R.bands[0][i])}</em> y <em>${money(R.bands[4][i])}</em></span>`;
+    const px=x/W*r.width;tt.style.left=(px>r.width-230?px-222:px+12)+'px';
+  };
+  svg.onmouseleave=()=>{tt.hidden=true;ln.style.display='none';};
+}
+
 function renderMetricsPage(){
   const panel=document.getElementById('view-metrics');
   if(!panel)return;
@@ -11572,6 +11828,7 @@ function renderMetricsPage(){
   mxLastMetrics=m;
   renderPerfAnalysis();
   mxRenderSummary(m);
+  try{renderMetricsMonteCarlo();}catch(e){console.error('[Monte Carlo]',e);}
   mxRenderDuration(m);
   mxRenderEquityChart(m);
   mxRenderResultsChart(m);
@@ -12304,6 +12561,7 @@ var I18N_EN = {
   'Capital inicial':'Starting capital',
   'Capital propio':'Own capital',
   'Capturas del trade (opcional)':'Trade screenshots (optional)',
+  'Simulador Monte Carlo':'Monte Carlo simulator','Tus operaciones reordenadas miles de veces: qué rango de resultados, caídas y rachas es normal para tu forma de operar.':'Your trades reshuffled thousands of times: which range of results, drawdowns and streaks is normal for your trading.',
   'Capturas del día (opcional)':'Screenshots of the day (optional)','Captura del diario':'Journal screenshot',
   'El gráfico que viste, el setup que esperabas, tu análisis... Añade las que quieras y marca una como portada (':'The chart you watched, the setup you were waiting for, your analysis... Add as many as you like and mark one as cover (',
   'Cargando...':'Loading...',
