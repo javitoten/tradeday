@@ -1205,6 +1205,17 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .badge-sell{background:#2A0505;color:#F87171;border:1px solid #3A1010}
 
 /* MIS OPERACIONES — GALERÍA DE TRADES */
+.ops-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.ops-stats>div{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.ops-stats span{font-size:10.5px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.ops-stats b{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ops-stats small{font-size:12px;color:var(--text3);font-weight:600}
+.ops-sel{background:var(--bg3);border:1px solid var(--border);border-radius:999px;color:var(--text2);font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer;font-family:inherit;max-width:180px}
+.ops-sel.on{color:var(--text);border-color:var(--border3)}
+.ops-month{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 0 0}
+.ops-month:first-child{padding-top:0}
+.trade-card-pct2{font-size:11px;opacity:.7;font-weight:600}
+@media (max-width:700px){.ops-stats{grid-template-columns:repeat(2,1fr)}.ops-stats>div:last-child{grid-column:1/-1}}
+
 .ops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
 .trade-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:transform .15s ease,border-color .15s ease;display:flex;flex-direction:column}
 .trade-card:hover{transform:translateY(-2px);border-color:var(--border3)}
@@ -3150,20 +3161,7 @@ function initLandingFX(){
           <div><div class="section-title" style="font-size:17px">Mis operaciones</div><div class="section-sub">Datos y estadísticas del trading — <span id="ops-account-sub">—</span></div></div>
           <button class="btn btn-primary" onclick="openChoice()"><i class="ti ti-plus"></i>Nueva entrada</button>
         </div>
-        <div class="card" style="padding:0">
-          <div onclick="toggleMetrics()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer">
-            <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text2)"><i class="ti ti-chart-bar"></i>Estadísticas rápidas</div>
-            <i class="ti ti-chevron-down" id="m-chev" style="color:var(--text3);transition:transform .2s;font-size:15px"></i>
-          </div>
-          <div id="metrics-body" style="display:none;padding:0 18px 18px">
-            <div class="metric-grid" style="margin-bottom:16px">
-              <div class="metric-card"><div class="metric-label">Win Rate</div><div class="metric-value pos" id="m-wr">—</div></div>
-              <div class="metric-card"><div class="metric-label">P&L Total</div><div class="metric-value" id="m-pnl">—</div></div>
-              <div class="metric-card"><div class="metric-label">Avg. trade</div><div class="metric-value" id="m-avg">—</div></div>
-              <div class="metric-card"><div class="metric-label">Mejor sesión</div><div class="metric-value" id="m-best" style="color:var(--amber)">—</div></div>
-            </div>
-          </div>
-        </div>
+        <div id="ops-toolbar" data-no-i18n></div>
         <div class="ops-grid" id="ops-grid"></div>
       </div>
 
@@ -8886,7 +8884,7 @@ function tradeCardHTML(t){
       <div class="trade-card-pair">${esc(t.pair||'—')}</div>
       <div class="trade-card-meta">
         <span class="badge ${badgeCls}">${resLabel}</span>
-        <span class="trade-card-pct" style="color:${pctColor}">${pctLabel}</span>
+        ${t.amount&&t.result!=='be'?`<span class="trade-card-pct" style="color:${pctColor}">${fmtMoneySigned(mxAmt(t))}</span><span class="trade-card-pct2" style="color:${pctColor}">${pctLabel}</span>`:`<span class="trade-card-pct" style="color:${pctColor}">${pctLabel}</span>`}
         <span class="trade-card-date">${fmtDate(t.date)}${t.time?' · '+esc(t.time.slice(0,5)):''}</span>
       </div>
       <div class="trade-card-tags">
@@ -8897,12 +8895,66 @@ function tradeCardHTML(t){
   </div>`;
 }
 
+/* Mis operaciones: resumen del conjunto filtrado + filtros (resultado, dirección, activo, sesión,
+   búsqueda) + orden; con orden por fecha la galería se separa por meses con su PyG. */
+let opsF={res:'all',dir:'all',pair:'all',sess:'all',q:'',sort:'new'};
+function setOpsF(k,v){opsF[k]=v;renderOpsList();}
 function renderOpsList(){
   const el=document.getElementById('ops-grid');
   if(!el)return;
-  const sorted=[...allTrades].sort((a,b)=>b.date.localeCompare(a.date));
-  if(!sorted.length){el.innerHTML='<div class="ops-empty">No hay trades registrados en esta cuenta aún.</div>';return;}
-  el.innerHTML=sorted.map(tradeCardHTML).join('');
+  const bar=document.getElementById('ops-toolbar');
+  if(!allTrades.length){if(bar)bar.innerHTML='';el.innerHTML='<div class="ops-empty">No hay trades registrados en esta cuenta aún.</div>';return;}
+  const f=opsF;const q=normText(f.q||'').trim();
+  const pairs=[...new Set(allTrades.map(t=>t.pair).filter(Boolean))].sort();
+  const sesss=[...new Set(allTrades.map(t=>t.session).filter(Boolean))].sort();
+  if(f.pair!=='all'&&!pairs.includes(f.pair))f.pair='all';
+  if(f.sess!=='all'&&!sesss.includes(f.sess))f.sess='all';
+  const key=t=>(t.date||'')+(t.time||'');
+  let list=allTrades.filter(t=>{
+    if(f.res!=='all'&&(t.result||'be')!==f.res)return false;
+    if(f.dir!=='all'&&t.direction!==f.dir)return false;
+    if(f.pair!=='all'&&t.pair!==f.pair)return false;
+    if(f.sess!=='all'&&t.session!==f.sess)return false;
+    if(q&&!normText([t.pair,t.notes,t.technical_notes,t.session,(t.technical_tags||[]).join(' ')].filter(Boolean).join(' ')).includes(q))return false;
+    return true;
+  });
+  const S={new:(a,b)=>key(b).localeCompare(key(a)),old:(a,b)=>key(a).localeCompare(key(b)),best:(a,b)=>mxAmt(b)-mxAmt(a),worst:(a,b)=>mxAmt(a)-mxAmt(b)};
+  list.sort(S[f.sort]||S.new);
+  // resumen del conjunto filtrado
+  const w=list.filter(t=>t.result==='win').length,l=list.filter(t=>t.result==='loss').length;
+  const pnl=list.reduce((a,t)=>a+mxAmt(t),0);const wr=(w+l)?Math.round(w/(w+l)*100):null;
+  const ss={};list.forEach(t=>{if(t.session)ss[t.session]=(ss[t.session]||0)+mxAmt(t);});
+  const bestS=Object.entries(ss).sort((a,b)=>b[1]-a[1])[0];
+  const pc=v=>v>0?'var(--green)':v<0?'var(--red)':'var(--text)';
+  const chip=(k,v,lbl)=>`<button class="jr-chip${f[k]===v?' on':''}" onclick="setOpsF('${k}','${v}')">${lbl}</button>`;
+  const sel=(k,opts,allLbl)=>`<select class="ops-sel${f[k]!=='all'?' on':''}" onchange="setOpsF('${k}',this.value)"><option value="all">${allLbl}</option>${opts.map(o=>`<option value="${esc(o)}"${f[k]===o?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  const filtered=f.res!=='all'||f.dir!=='all'||f.pair!=='all'||f.sess!=='all'||q;
+  if(bar)bar.innerHTML=`<div class="ops-stats">
+      <div><span>${tdL('Operaciones','Trades')}</span><b>${list.length}${filtered?`<small> / ${allTrades.length}</small>`:''}</b></div>
+      <div><span>Win rate</span><b style="color:${wr===null?'var(--text)':wr>=50?'var(--green)':'var(--red)'}">${wr===null?'—':wr+'%'}</b></div>
+      <div><span>${tdL('PyG','P&L')}</span><b style="color:${pc(pnl)}">${list.length?fmtMoneySigned(pnl):'—'}</b></div>
+      <div><span>${tdL('Media por trade','Avg. trade')}</span><b style="color:${pc(pnl)}">${list.length?fmtMoneySigned(pnl/list.length):'—'}</b></div>
+      <div><span>${tdL('Mejor sesión','Best session')}</span><b style="color:var(--amber)">${bestS&&bestS[1]>0?esc(bestS[0]):'—'}</b></div>
+    </div>
+    <div class="jr-bar ops-bar">
+      <div class="jr-seg">${chip('res','all',tdL('Todos','All'))}${chip('res','win','Win')}${chip('res','loss','Loss')}${chip('res','be','BE')}</div>
+      <div class="jr-seg">${chip('dir','all',tdL('Ambas','Both'))}${chip('dir','Buy','Buy')}${chip('dir','Sell','Sell')}</div>
+      ${pairs.length>1?sel('pair',pairs,tdL('Todos los activos','All assets')):''}
+      ${sesss.length>1?sel('sess',sesss,tdL('Todas las sesiones','All sessions')):''}
+      <select class="ops-sel" onchange="setOpsF('sort',this.value)">${[['new',tdL('Más recientes','Newest')],['old',tdL('Más antiguas','Oldest')],['best',tdL('Mayor beneficio','Biggest win')],['worst',tdL('Mayor pérdida','Biggest loss')]].map(([v,t])=>`<option value="${v}"${f.sort===v?' selected':''}>${t}</option>`).join('')}</select>
+      <label class="jr-search"><i class="ti ti-search"></i><input type="search" value="${esc(f.q)}" placeholder="${esc(tdL('Buscar activo, nota o setup…','Search asset, note or setup…'))}" oninput="clearTimeout(window._opsQ);const v=this.value;window._opsQ=setTimeout(()=>{opsF.q=v;renderOpsList();const i=document.querySelector('.ops-bar .jr-search input');if(i){i.focus();i.setSelectionRange(v.length,v.length);}},250)"></label>
+      ${filtered?`<button class="btn btn-ghost btn-sm" onclick="opsF={res:'all',dir:'all',pair:'all',sess:'all',q:'',sort:opsF.sort};renderOpsList()"><i class="ti ti-x"></i>${tdL('Quitar filtros','Clear filters')}</button>`:''}
+    </div>`;
+  if(!list.length){el.innerHTML=`<div class="ops-empty">${tdL('Ningún trade coincide con el filtro.','No trades match the filter.')}</div>`;return;}
+  if(f.sort==='new'||f.sort==='old'){
+    const M=gM();const groups=new Map();
+    list.forEach(t=>{const k=(t.date||'').slice(0,7);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(t);});
+    el.innerHTML=[...groups.entries()].map(([k,ts])=>{
+      const p=ts.reduce((a,t)=>a+mxAmt(t),0);const ww=ts.filter(t=>t.result==='win').length,ll=ts.filter(t=>t.result==='loss').length;
+      const [y,m]=k.split('-');const name=M[(+m||1)-1]+' '+y;
+      return`<div class="ops-month" data-no-i18n><span>${esc(name)}</span><span class="jr-wstats"><b style="color:${pc(p)}">${fmtMoneySigned(p)}</b><span class="jr-dot">·</span>${ts.length} ${ts.length===1?'trade':'trades'} · ${ww}W ${ll}L</span></div>${ts.map(tradeCardHTML).join('')}`;
+    }).join('');
+  }else el.innerHTML=list.map(tradeCardHTML).join('');
   hydrateTradeImages(el);
 }
 
