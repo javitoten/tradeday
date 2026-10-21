@@ -1590,6 +1590,30 @@ html.td-scroll-lock,html.td-scroll-lock body,html.td-scroll-lock .main-content,h
 .save-confirm-img{width:100%;border-radius:var(--radius);max-height:120px;object-fit:cover;display:block;border:1px solid var(--border2)}
 
 /* JOURNAL ANALYSIS CARD */
+.ja-det{padding:0}
+.ja-sum{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;user-select:none}
+.ja-sum::-webkit-details-marker{display:none}
+.ja-chips{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0}.ja-chips .sentiment-tag{margin:0}
+.ja-chev{color:var(--purple);transition:transform .2s;margin-left:auto}
+.ja-det[open] .ja-chev{transform:rotate(180deg)}
+.ja-det[open] .ja-sum{border-bottom:1px solid #2A1A4A}
+.ja-body{padding:12px 16px 14px}
+.jt-row{display:flex;gap:14px;align-items:flex-start}
+.jt-thumb{all:unset;position:relative;flex-shrink:0;width:132px;height:80px;border-radius:10px;overflow:hidden;border:1px solid var(--border2);cursor:zoom-in}
+.jt-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}.jt-thumb:hover img{transform:scale(1.05)}
+.jt-thumb span{position:absolute;right:5px;bottom:5px;font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;background:rgba(0,0,0,.65);color:#fff}
+.jr-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+.jr-seg{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:999px;padding:2px}
+.jr-chip{all:unset;cursor:pointer;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;color:var(--text3)}
+.jr-chip small{opacity:.7;font-weight:600;margin-left:2px}
+.jr-chip.on{background:var(--bg2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2)}
+.jr-search{display:flex;align-items:center;gap:6px;flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border);border-radius:999px;padding:0 12px;color:var(--text3)}
+.jr-search input{all:unset;flex:1;font-size:12px;color:var(--text);padding:7px 0}
+.jr-week{justify-content:space-between;flex-wrap:wrap;padding-top:18px}
+.jr-wstats{text-transform:none;letter-spacing:0;font-size:11px;font-weight:600;color:var(--text3);display:flex;align-items:center;gap:6px}
+.jr-wstats b{font-size:12px}.jr-dot{opacity:.5}
+@media (max-width:600px){.jt-thumb{width:96px;height:64px}}
+
 .journal-analysis{background:var(--purple-bg);border:1px solid #2A1A4A;border-radius:var(--radius-lg);padding:14px 16px;margin-top:10px}
 .journal-analysis-title{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .journal-analysis-row{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:6px}
@@ -7997,15 +8021,25 @@ function analysisBlockHTML(g){
   const techBlock=technicalBlockHTML(g.technical,g.technicalNotes);
   const emoBlock=emotionBlockHTML(g.sentiment,g.emotionText);
   const execBlock=executionBlockHTML(g.sentiment,g.executionText);
-  return `<div class="journal-analysis">
-      <div class="journal-analysis-title"><i class="ti ti-sparkles"></i>Análisis del día</div>
+  // Resumen de una línea (etiquetas) y el análisis completo plegado: la lista se lee de un vistazo.
+  const sum=[];
+  (g.sentiment&&g.sentiment.behaviors?g.sentiment.behaviors.negative:[]).slice(0,2).forEach(b=>sum.push({l:b.tag,c:'var(--red)'}));
+  (g.sentiment&&g.sentiment.behaviors?g.sentiment.behaviors.positive:[]).slice(0,2).forEach(b=>sum.push({l:b.tag,c:'var(--green)'}));
+  (g.sentiment&&g.sentiment.tags?g.sentiment.tags:[]).slice(0,2).forEach(t=>sum.push({l:t,c:SENTIMENT_COLORS[t]||'var(--text2)'}));
+  (g.technical||[]).slice(0,2).forEach(t=>sum.push({l:esc(t),c:'var(--blue)'}));
+  const seen=new Set();const chips=sum.filter(x=>!seen.has(x.l)&&seen.add(x.l)).slice(0,5)
+    .map(x=>`<span class="sentiment-tag" style="background:color-mix(in srgb,${x.c} 14%,transparent);color:${x.c}">${x.l}</span>`).join('');
+  return `<details class="journal-analysis ja-det">
+      <summary class="ja-sum"><span class="journal-analysis-title" style="margin:0"><i class="ti ti-sparkles"></i>Análisis del día</span><span class="ja-chips">${chips}</span><i class="ti ti-chevron-down ja-chev"></i></summary>
+      <div class="ja-body">
       ${openingRow}
       ${noSignalRow}
       ${techBlock}
       ${emoBlock}
       ${execBlock}
       ${suggestionRow}
-    </div>`;
+      </div>
+    </details>`;
 }
 
 function journalImagesStripHTML(j){
@@ -8065,7 +8099,10 @@ function tradeJournalHTML(t){
         <button class="icon-btn danger" onclick="deleteTrade('${t.id}')"><i class="ti ti-trash"></i></button>
       </div>
     </div>
-    ${t.notes?`<div data-no-i18n style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px">${esc(t.notes)}</div>`:''}
+    ${(()=>{const cv=getTradeCoverUrl(t);const n=Array.isArray(t.images)?t.images.filter(i=>i&&i.url).length:(t.image_url?1:0);
+      const thumb=cv?`<button class="jt-thumb" onclick="openTradeGallery('${t.id}')" title="Ver captura"><img data-tsrc="${esc(cv)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${esc(t.pair||'trade')}" loading="lazy">${n>1?`<span>${n}</span>`:''}</button>`:'';
+      const notes=t.notes?`<div data-no-i18n style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px;flex:1;min-width:0">${esc(t.notes)}</div>`:'<div style="flex:1"></div>';
+      return (cv||t.notes)?`<div class="jt-row">${notes}${thumb}</div>`:'';})()}
     ${analysisBlockHTML(analysis)}
   </div>`;
 }
@@ -8777,11 +8814,41 @@ async function renderJournalList(){
     routineLogsCache={};
   }
 
-  const weeks={};
-  combined.forEach(e=>{const wk=getWeekKey(e.date);if(!weeks[wk])weeks[wk]=[];weeks[wk].push(e);});
-  el.innerHTML=Object.entries(weeks).map(([wk,es])=>
-    `<div class="week-label">${wk}</div>${es.map(e=>e._kind==='journal'?journalEntryHTML(e):tradeJournalHTML(e)).join('<div style="height:10px"></div>')}`
-  ).join('');
+  window._jrCombined=combined;
+  renderJournalItems();
+}
+let jrFilter={kind:'all',res:'all',q:''};
+function setJrFilter(k,v){jrFilter[k]=v;renderJournalItems();}
+function jrMonday(ds){const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return dateToKey(d);}
+function renderJournalItems(){
+  const el=document.getElementById('journal-list');if(!el)return;
+  const all=window._jrCombined||[];
+  const f=jrFilter;const q=normText(f.q||'').trim();
+  const list=all.filter(e=>{
+    if(f.kind!=='all'&&e._kind!==f.kind)return false;
+    if(f.res!=='all'&&!(e._kind==='trade'&&(e.result||'be')===f.res))return false;
+    if(q){const hay=normText([e.pair,e.notes,e.technical_notes,e.content,e.tomorrow,e.reason,e.mood,e.session].filter(Boolean).join(' '));if(!hay.includes(q))return false;}
+    return true;
+  }).sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+  const nT=all.filter(e=>e._kind==='trade').length,nJ=all.length-nT;
+  const chip=(k,v,l)=>`<button class="jr-chip${f[k]===v?' on':''}" onclick="setJrFilter('${k}','${v}')">${l}</button>`;
+  const bar=`<div class="jr-bar" data-no-i18n>
+    <div class="jr-seg">${chip('kind','all',tdL('Todo','All')+` <small>${all.length}</small>`)}${chip('kind','trade',tdL('Trades','Trades')+` <small>${nT}</small>`)}${chip('kind','journal',tdL('Diario','Journal')+` <small>${nJ}</small>`)}</div>
+    ${f.kind!=='journal'?`<div class="jr-seg">${chip('res','all',tdL('Todos','All'))}${chip('res','win','Win')}${chip('res','loss','Loss')}${chip('res','be','BE')}</div>`:''}
+    <label class="jr-search"><i class="ti ti-search"></i><input type="search" value="${esc(f.q)}" placeholder="${esc(tdL('Buscar en tus notas…','Search your notes…'))}" oninput="clearTimeout(window._jrQ);const v=this.value;window._jrQ=setTimeout(()=>{jrFilter.q=v;renderJournalItems();const i=document.querySelector('.jr-search input');if(i){i.focus();i.setSelectionRange(v.length,v.length);}},250)"></label>
+  </div>`;
+  if(!list.length){el.innerHTML=bar+`<div style="font-size:13px;color:var(--text3);text-align:center;padding:40px" data-no-i18n>${tdL('Ninguna entrada coincide con el filtro.','No entries match the filter.')}</div>`;return;}
+  const weeks=new Map();
+  list.forEach(e=>{const k=jrMonday(e.date);if(!weeks.has(k))weeks.set(k,[]);weeks.get(k).push(e);});
+  el.innerHTML=bar+[...weeks.entries()].map(([mon,es])=>{
+    const tr=es.filter(e=>e._kind==='trade');const pnl=tr.reduce((a,t)=>a+mxAmt(t),0);
+    const w=tr.filter(t=>t.result==='win').length,l=tr.filter(t=>t.result==='loss').length,nj=es.length-tr.length;
+    const yr=mon.slice(0,4)!==String(new Date().getFullYear())?' '+mon.slice(0,4):'';
+    const stats=[tr.length?`<b style="color:${pnl>0?'var(--green)':pnl<0?'var(--red)':'var(--text2)'}">${fmtMoneySigned(pnl)}</b>`:'',
+      tr.length?`${tr.length} ${tr.length===1?'trade':'trades'} · ${w}W ${l}L`:'',
+      nj?`${nj} ${tdL(nj===1?'diario':'diarios',nj===1?'journal':'journals')}`:''].filter(Boolean).join('<span class="jr-dot">·</span>');
+    return`<div class="week-label jr-week"><span>${getWeekKey(es[0].date)}${yr}</span><span class="jr-wstats" data-no-i18n>${stats}</span></div>${es.map(e=>e._kind==='journal'?journalEntryHTML(e):tradeJournalHTML(e)).join('<div style="height:10px"></div>')}`;
+  }).join('');
   hydrateTradeImages(el);
 }
 
@@ -9242,6 +9309,7 @@ function getWeekKey(ds){
   const mon=new Date(d);mon.setDate(diff);
   const sun=new Date(mon);sun.setDate(mon.getDate()+6);
   const M=gM();
+  if(mon.getMonth()!==sun.getMonth()){const a3=m=>M[m].slice(0,3).toLowerCase();return lang==='es'?`Semana del ${mon.getDate()} ${a3(mon.getMonth())} – ${sun.getDate()} ${a3(sun.getMonth())}`:`Week of ${M[mon.getMonth()].slice(0,3)} ${mon.getDate()} – ${M[sun.getMonth()].slice(0,3)} ${sun.getDate()}`;}
   return lang==='es'?`Semana del ${mon.getDate()}–${sun.getDate()} de ${M[mon.getMonth()]}`:`Week of ${M[mon.getMonth()]} ${mon.getDate()}–${sun.getDate()}`;
 }
 function fmtMoney(n){const sign=n<0?'-':'';const v=fmtInt(Math.abs(n));return lang==='en'?sign+'$'+v:sign+v+'$';}
