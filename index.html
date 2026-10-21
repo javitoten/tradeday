@@ -9190,7 +9190,7 @@ function renderFullCal(){
   if(!matrix)return;
   matrix.innerHTML='';
 
-  const first=new Date(fullYear,fullMonth,1).getDay(); // 0=Domingo (calendario domingo→sábado)
+  const first=(new Date(fullYear,fullMonth,1).getDay()+6)%7; // semana lunes→domingo (igual que Journal y dashboard)
   const total=new Date(fullYear,fullMonth+1,0).getDate();
   const today=new Date();
   const isToday=d=>today.getFullYear()===fullYear&&today.getMonth()===fullMonth&&today.getDate()===d;
@@ -9200,7 +9200,7 @@ function renderFullCal(){
 
   // Cabecera: etiquetas de día + título del resumen (comparten las mismas columnas)
   const headRow=document.createElement('div');headRow.className='calmatrix-head';
-  D.forEach(d=>{const e=document.createElement('div');e.className='bigcal-day-label';e.textContent=d.slice(0,3);headRow.appendChild(e);});
+  [...D.slice(1),D[0]].forEach(d=>{const e=document.createElement('div');e.className='bigcal-day-label';e.textContent=d.slice(0,3);headRow.appendChild(e);});
   const headWk=document.createElement('div');headWk.className='calmatrix-wk-head';headWk.textContent=window.t('Resumen semanal');headRow.appendChild(headWk);
   matrix.appendChild(headRow);
 
@@ -9291,7 +9291,7 @@ function buildWeekCard(num,realDays,year,month,dayPnL,dayTrades,capitalBase,mont
   const card=document.createElement('div');
   card.className='week-summary-card'+(hasData?'':' empty-week');
   let html=`<div class="week-summary-label">${window.t('Semana')} ${num}</div>
-    <div class="week-summary-dates">${start}–${end} ${monthShort}</div>`;
+    <div class="week-summary-dates">${start===end?start:start+'–'+end} ${monthShort}</div>`;
   if(hasData){
     html+=`<div class="week-summary-pnl" style="color:${color}">${fmtMoneySigned(pnl)}</div>
       <div class="week-summary-pct" style="color:${color}">${(pct>=0?'+':'')+pct.toFixed(1)+'%'}</div>
@@ -11171,7 +11171,7 @@ function mxRenderMiniCal(){
   const titleEl=document.getElementById('mx-cal-title');
   if(titleEl)titleEl.textContent=M[mxCalMonth].slice(0,3)+' '+mxCalYear;
   const labelsEl=document.getElementById('mx-minical-labels');
-  if(labelsEl){labelsEl.innerHTML='';D.forEach(d=>{const e=document.createElement('div');e.className='mx-minical-daylabel';e.textContent=d.slice(0,1);labelsEl.appendChild(e);});}
+  if(labelsEl){labelsEl.innerHTML='';[...D.slice(1),D[0]].forEach(d=>{const e=document.createElement('div');e.className='mx-minical-daylabel';e.textContent=d.slice(0,1);labelsEl.appendChild(e);});}
   const calData=getCalData();
   const dayPnL={},dayTrades={};
   allTrades.forEach(t=>{
@@ -11185,7 +11185,7 @@ function mxRenderMiniCal(){
   const grid=document.getElementById('mx-minical-grid');
   if(!grid)return;
   grid.innerHTML='';
-  const first=new Date(mxCalYear,mxCalMonth,1).getDay();
+  const first=(new Date(mxCalYear,mxCalMonth,1).getDay()+6)%7; // lunes→domingo
   const total=new Date(mxCalYear,mxCalMonth+1,0).getDate();
   const today=new Date();
   for(let i=0;i<first;i++){const e=document.createElement('div');e.className='bigcal-day mx-mini empty';grid.appendChild(e);}
