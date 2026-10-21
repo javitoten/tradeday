@@ -1601,6 +1601,15 @@ html.td-scroll-lock,html.td-scroll-lock body,html.td-scroll-lock .main-content,h
 .save-confirm-notes{font-size:11px;color:var(--text2);line-height:1.5;background:var(--bg3);border-radius:var(--radius);padding:8px 10px;max-height:64px;overflow:hidden}
 .save-confirm-img{width:100%;border-radius:var(--radius);max-height:120px;object-fit:cover;display:block;border:1px solid var(--border2)}
 
+.bal-now{display:flex;flex-direction:column;align-items:flex-end;gap:2px}.bal-now b{font-size:20px;font-weight:800}.bal-now span{font-size:11px;color:var(--text3);font-weight:600}.bal-now i{font-style:normal;font-weight:700}
+.bal-hint{align-items:center;gap:10px;padding:12px 16px;border:1px dashed var(--border2);border-radius:var(--radius-lg);font-size:12.5px;color:var(--text3)}.bal-hint i{font-size:18px}
+.bal-month{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 2px 2px}.bal-month:first-child{padding-top:0}.bal-month b{font-size:12px;letter-spacing:0}
+.bal-ev{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);background:var(--bg3);border:1px solid var(--border)}
+.bal-ev-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.bal-ev-main{flex:1;min-width:0}.bal-ev-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.bal-ev-top strong{font-size:13px}.bal-ev-top span{font-size:11.5px;color:var(--text3)}
+.bal-ev-note{font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bal-ev-amt{font-size:14px;white-space:nowrap}.bal-ev-acts{display:flex;gap:4px}
+@media (max-width:600px){.bal-ev{flex-wrap:wrap}.bal-ev-acts{margin-left:auto}.bal-now b{font-size:16px}}
 /* JOURNAL ANALYSIS CARD */
 .jd-tl{position:relative;padding-left:22px;display:flex;flex-direction:column;gap:12px;margin-top:6px}
 .jd-tl::before{content:"";position:absolute;left:6px;top:8px;bottom:8px;width:2px;background:var(--border);border-radius:2px}
@@ -3507,7 +3516,28 @@ function initLandingFX(){
           <button class="btn btn-primary" onclick="openBalanceEventForm()"><i class="ti ti-plus"></i>Añadir movimiento</button>
         </div>
 
-        <div class="card mx-section-block">
+        <div class="card mx-section-block" id="bal-chart-card">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-chart-line"></i>Balance acumulado</div>
+              <div class="mx-card-sub">Evolución de tu balance neto a lo largo del tiempo (todas las cuentas)</div>
+            </div>
+            <div class="bal-now" id="bal-chart-now" data-no-i18n></div>
+          </div>
+          <div class="mx-chart-wrap" style="height:260px"><canvas id="bal-chart-equity"></canvas></div>
+        </div>
+
+        <div class="card mx-section-block" id="bal-own-capital-card" style="display:none">
+          <div class="mx-card-head">
+            <div>
+              <div class="mx-card-title"><i class="ti ti-wallet"></i>Capital propio</div>
+              <div class="mx-card-sub">Evolución patrimonial de tus cuentas de capital propio</div>
+            </div>
+          </div>
+          <div class="mx-kpi-grid" id="bal-own-kpi-grid"></div>
+        </div>
+
+        <div class="card mx-section-block" id="bal-fondeo-card">
           <div class="mx-card-head">
             <div>
               <div class="mx-card-title"><i class="ti ti-report-money"></i>Resumen — fondeo</div>
@@ -3528,25 +3558,7 @@ function initLandingFX(){
           </div>
         </div>
 
-        <div class="card mx-section-block" id="bal-own-capital-card" style="display:none">
-          <div class="mx-card-head">
-            <div>
-              <div class="mx-card-title"><i class="ti ti-wallet"></i>Capital propio</div>
-              <div class="mx-card-sub">Evolución patrimonial de tus cuentas de capital propio</div>
-            </div>
-          </div>
-          <div class="mx-kpi-grid" id="bal-own-kpi-grid"></div>
-        </div>
-
-        <div class="card mx-section-block">
-          <div class="mx-card-head">
-            <div>
-              <div class="mx-card-title"><i class="ti ti-chart-line"></i>Balance acumulado</div>
-              <div class="mx-card-sub">Evolución de tu balance neto a lo largo del tiempo (todas las cuentas)</div>
-            </div>
-          </div>
-          <div class="mx-chart-wrap" style="height:260px"><canvas id="bal-chart-equity"></canvas></div>
-        </div>
+        <div class="bal-hint" id="bal-fondeo-hint" style="display:none" data-no-i18n></div>
 
         <div class="card mx-section-block">
           <div class="mx-card-head">
@@ -3565,7 +3577,8 @@ function initLandingFX(){
               <div class="mx-card-sub">Costes, payouts, aportaciones y retiradas registrados</div>
             </div>
           </div>
-          <div id="bal-events-list" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div id="bal-events-bar" data-no-i18n></div>
+          <div id="bal-events-list" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
       </div>
 
@@ -5275,6 +5288,37 @@ function computeBalanceData(){
   };
 }
 
+/* Historial de movimientos: filtro por tipo, agrupado por mes con su total, icono por tipo. */
+let balEvF='all';
+function setBalEvF(v){balEvF=v;renderBalanceEvents();}
+const BAL_EV_STYLE={cost:{i:'ti-receipt',c:'var(--red)'},income:{i:'ti-coin',c:'var(--green)'},deposit:{i:'ti-arrow-bar-to-up',c:'var(--blue)'},withdrawal:{i:'ti-arrow-bar-to-down',c:'var(--amber)'}};
+function balEvKind(ev){const info=balanceEventInfo(ev.type);return info.bucket==='capital'?(ev.type==='deposit'?'deposit':'withdrawal'):info.bucket;}
+function renderBalanceEvents(){
+  const evWrap=document.getElementById('bal-events-list'),bar=document.getElementById('bal-events-bar');
+  if(!evWrap)return;
+  const all=allBalanceEvents;
+  const cnt=k=>all.filter(e=>balEvKind(e)===k).length;
+  const chips=[['all',tdL('Todos','All'),all.length],['income',tdL('Ingresos','Income'),cnt('income')],['cost',tdL('Costes','Costs'),cnt('cost')],['deposit',tdL('Aportaciones','Deposits'),cnt('deposit')],['withdrawal',tdL('Retiradas','Withdrawals'),cnt('withdrawal')]].filter(c=>c[0]==='all'||c[2]>0);
+  if(bar)bar.innerHTML=chips.length>2?`<div class="jr-seg" style="margin-bottom:12px;width:max-content;max-width:100%;overflow-x:auto">${chips.map(([k,l,n])=>`<button class="jr-chip${balEvF===k?' on':''}" onclick="setBalEvF('${k}')">${l} <small>${n}</small></button>`).join('')}</div>`:'';
+  const list=all.filter(e=>balEvF==='all'||balEvKind(e)===balEvF).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!list.length){evWrap.innerHTML=`<div class="we-empty">${tdL('No hay movimientos de este tipo.','No movements of this type.')}</div>`;return;}
+  const M=gM();const groups=new Map();
+  list.forEach(e=>{const k=(e.date||'').slice(0,7);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(e);});
+  evWrap.innerHTML=[...groups.entries()].map(([k,evs])=>{
+    const tot=evs.reduce((a,e)=>a+balanceEventSignedAmount(e),0);
+    const [y,m]=k.split('-');
+    return`<div class="bal-month" data-no-i18n><span>${esc((M[(+m||1)-1]||'')+' '+(y||''))}</span><b style="color:${tot>0?'var(--green)':tot<0?'var(--red)':'var(--text3)'}">${fmtMoneySigned(tot)}</b></div>`+evs.map(ev=>{
+      const acc=allAccounts.find(a=>a.id===ev.account_id);const info=balanceEventInfo(ev.type);const signed=balanceEventSignedAmount(ev);
+      const st=BAL_EV_STYLE[balEvKind(ev)]||BAL_EV_STYLE.cost;
+      return`<div class="bal-ev">
+        <span class="bal-ev-ic" style="color:${st.c};background:color-mix(in srgb,${st.c} 13%,transparent)"><i class="ti ${st.i}"></i></span>
+        <div class="bal-ev-main"><div class="bal-ev-top"><strong>${esc(info.label)}</strong><span data-no-i18n>${acc?esc(acc.name):'—'}</span><span>${ev.date?esc(fmtDate(ev.date)):''}</span></div>
+          ${ev.notes?`<div class="bal-ev-note" data-no-i18n>${esc(ev.notes)}</div>`:''}</div>
+        <strong class="bal-ev-amt" style="color:${signed>0?'var(--green)':'var(--red)'}">${fmtMoneySigned(signed)}</strong>
+        <span class="bal-ev-acts"><button class="icon-btn" onclick="editBalanceEvent('${ev.id}')" title="${esc(tdL('Editar','Edit'))}"><i class="ti ti-pencil"></i></button><button class="icon-btn danger" onclick="deleteBalanceEvent('${ev.id}')" title="${esc(tdL('Eliminar','Delete'))}"><i class="ti ti-trash"></i></button></span>
+      </div>`;}).join('');
+  }).join('');
+}
 async function renderBalancePage(){
   if(!currentUser)return;
   await Promise.all([loadBalanceEvents(),loadBalanceTrades()]);
@@ -5290,6 +5334,11 @@ async function renderBalancePage(){
   setText('bal-kpi-passed',totals.passed);
   setText('bal-kpi-lost',totals.lost);
   setText('bal-kpi-active-funded',totals.activeFunded);
+  // Sin cuentas de fondeo ni movimientos de fondeo → la sección de 8 ceros se sustituye por una línea.
+  const hasFond=allAccounts.some(a=>['evaluation','funded'].includes(a.type))||totals.invested>0||totals.recovered>0;
+  const fc=document.getElementById('bal-fondeo-card'),fh=document.getElementById('bal-fondeo-hint');
+  if(fc)fc.style.display=hasFond?'':'none';
+  if(fh){fh.style.display=hasFond?'none':'flex';fh.innerHTML=`<i class="ti ti-report-money"></i><span>${tdL('¿Haces cuentas de fondeo? Añade una cuenta de evaluación y verás aquí lo invertido, lo recuperado con payouts y tu ROI.','Doing prop firm challenges? Add an evaluation account to track what you spent, what payouts brought back and your ROI.')}</span>`;}
 
   const ownCard=document.getElementById('bal-own-capital-card');
   const ownGrid=document.getElementById('bal-own-kpi-grid');
@@ -5307,6 +5356,13 @@ async function renderBalancePage(){
   }
 
   // Gráfica de balance acumulado
+  const nowEl=document.getElementById('bal-chart-now');
+  if(nowEl){
+    if(timeline.length){
+      const last=timeline[timeline.length-1].cumulative,first=timeline[0].cumulative,ch=last-first;
+      nowEl.innerHTML=`<b style="color:${last>=0?'var(--green)':'var(--red)'}">${fmtMoneySigned(last)}</b><span>${tdL('desde','since')} ${esc(mxFmtShortDate(timeline[0].date))}: <i style="color:${ch>=0?'var(--green)':'var(--red)'}">${fmtMoneySigned(ch)}</i></span>`;
+    }else nowEl.innerHTML='';
+  }
   if(timeline.length){
     const labels=timeline.map(p=>mxFmtShortDate(p.date));
     const values=timeline.map(p=>Math.round(p.cumulative));
@@ -5384,28 +5440,10 @@ async function renderBalancePage(){
   const evWrap=document.getElementById('bal-events-list');
   if(evWrap){
     if(!allBalanceEvents.length){
+      const bb=document.getElementById('bal-events-bar');if(bb)bb.innerHTML='';
       evWrap.innerHTML='<div class="we-empty">Todavía no has registrado ningún movimiento.</div>';
     } else {
-      evWrap.innerHTML=allBalanceEvents.map(ev=>{
-        const acc=allAccounts.find(a=>a.id===ev.account_id);
-        const info=balanceEventInfo(ev.type);
-        const signed=balanceEventSignedAmount(ev);
-        return `<div class="entry-row" style="align-items:center;padding:10px 12px">
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <strong style="font-size:13px">${esc(info.label)}</strong>
-              <span data-no-i18n style="font-size:11.5px;color:var(--text3)">${acc?esc(acc.name):'—'}</span>
-              <span style="font-size:11.5px;color:var(--text3)">${esc(ev.date)}</span>
-            </div>
-            ${ev.notes?`<div data-no-i18n style="font-size:12px;color:var(--text2);margin-top:2px">${esc(ev.notes)}</div>`:''}
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <strong class="${signed>0?'pos':'neg'}">${signed>0?'+':''}${fmtMoney(signed)}</strong>
-            <button class="btn btn-ghost btn-sm" onclick="editBalanceEvent('${ev.id}')"><i class="ti ti-pencil"></i></button>
-            <button class="btn btn-ghost btn-sm" onclick="deleteBalanceEvent('${ev.id}')"><i class="ti ti-trash"></i></button>
-          </div>
-        </div>`;
-      }).join('');
+      renderBalanceEvents();
     }
   }
 }
