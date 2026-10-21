@@ -1399,6 +1399,7 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .calmatrix .week-summary-card{transition:background .15s,border-color .15s,transform .12s}
 .calmatrix .week-summary-card:hover{background:var(--bg3);border-color:var(--border2);transform:translateY(-1px)}
 .calmatrix .week-summary-card:active{transform:scale(.985)}
+.calmatrix .bigcal-day.bc-tap{cursor:pointer;transition:transform .12s,border-color .15s}.calmatrix .bigcal-day.bc-tap:hover{border-color:var(--border3)}
 /* Transición profesional al abrir modales (resumen semanal, nueva entrada de journal) */
 @keyframes tpWeekOverlayIn{from{opacity:0}to{opacity:1}}
 @keyframes tpWeekModalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
@@ -1943,10 +1944,27 @@ html.td-scroll-lock,html.td-scroll-lock body,html.td-scroll-lock .main-content,h
   /* ── CALENDARIO COMPLETO (página dedicada) ── */
   /* Móvil: cada semana muestra sus 7 días y, justo debajo, su resumen a ancho completo */
   .calmatrix{gap:10px}
-  .calmatrix-head{grid-template-columns:repeat(7,1fr);gap:4px}
+  .calmatrix-head{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
   .calmatrix-head .calmatrix-wk-head{display:none}
-  .calmatrix-row{grid-template-columns:repeat(7,1fr);gap:4px}
-  .calmatrix-row .week-summary-card{grid-column:1/-1;margin-top:2px;min-height:0;padding:12px 14px}
+  .calmatrix-row{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  /* Resumen semanal en una sola franja: semana/fechas a la izquierda, PyG y W/L a la derecha */
+  .calmatrix-row .week-summary-card{grid-column:1/-1;margin-top:0;min-height:0;padding:9px 12px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"lbl pnl" "dt meta";align-items:center;text-align:left;column-gap:10px;row-gap:1px}
+  .calmatrix-row .week-summary-card .week-summary-label{grid-area:lbl;margin:0}
+  .calmatrix-row .week-summary-card .week-summary-dates{grid-area:dt;margin:0;justify-content:flex-start;font-size:11.5px}
+  .calmatrix-row .week-summary-card .week-summary-pnl{grid-area:pnl;font-size:16px;text-align:right}
+  .calmatrix-row .week-summary-card .week-summary-meta{grid-area:meta;margin:0;justify-content:flex-end;font-size:10.5px}
+  .calmatrix-row .week-summary-card .week-summary-empty{grid-area:meta;margin:0;text-align:right;font-size:11px}
+  .calmatrix-row .week-summary-card .week-summary-pct,.calmatrix-row .week-summary-card .week-summary-link{display:none}
+  .calmatrix-row .week-summary-card.empty-week{opacity:.75}
+  .calmatrix .bigcal-trades,.bc-jfull{display:none}
+  .calmatrix .bigcal-day{min-height:58px;padding:6px 2px;overflow:hidden}
+  .calmatrix .bigcal-amount{white-space:nowrap;letter-spacing:-.02em}
+  .calmatrix .bigcal-day.bc-tap:active{transform:scale(.95)}
+  #view-calendar .metric-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  #view-calendar .metric-card{padding:9px 8px}
+  #view-calendar .metric-label{font-size:9px;letter-spacing:.03em}
+  #view-calendar .metric-value{font-size:16px}
+  #view-calendar .metric-delta{font-size:9.5px}
   .calmatrix .bigcal-day{min-height:64px}
   .calmatrix .bigcal-day-num{font-size:11px}
   .calmatrix .bigcal-amount{font-size:11.5px}
@@ -9214,7 +9232,7 @@ function renderFullCal(){
         const amtEl=document.createElement('div');amtEl.className='bigcal-amount';
         amtEl.textContent=fmtMoneySigned(pnl);
         const pctEl=document.createElement('div');pctEl.className='bigcal-pct';
-        pctEl.textContent=(pct>=0?'+':'')+Math.abs(pct).toFixed(1)+'%';
+        pctEl.textContent=(pct>=0?'+':'−')+Math.abs(pct).toFixed(1)+'%';
         const trEl=document.createElement('div');trEl.className='bigcal-trades';
         trEl.textContent=trades.length+(trades.length===1?' trade':' trades');
         contentEl.appendChild(amtEl);contentEl.appendChild(pctEl);contentEl.appendChild(trEl);
@@ -9225,10 +9243,17 @@ function renderFullCal(){
         trEl.textContent=trades.length+(trades.length===1?' trade':' trades');
         contentEl.appendChild(beEl);if(trades.length)contentEl.appendChild(trEl);
       } else if(state==='journal'){
-        const jEl=document.createElement('div');jEl.className='bigcal-journal-label';jEl.innerHTML='Diario<br>completado';
+        const jEl=document.createElement('div');jEl.className='bigcal-journal-label';jEl.innerHTML=window.t('Diario')+'<span class="bc-jfull"><br>'+window.t('completado')+'</span>';
         contentEl.appendChild(jEl);
       }
       el.appendChild(contentEl);
+      if(state){
+        el.classList.add('bc-tap');
+        el.onclick=()=>{
+          if((dayTrades[key]||[]).length)openWeekTrades(fullYear,fullMonth,d,d);
+          else{const j=allJournals.find(x=>x.date===key);if(j)editJournalEntry(j.id);}
+        };
+      }
       row.appendChild(el);
     });
 
@@ -9295,7 +9320,7 @@ function openWeekTrades(year,month,startDay,endDay){
   const endKey=`${year}-${pad(month+1)}-${pad(endDay)}`;
   const wt=allTrades.filter(t=>t.date&&t.date>=startKey&&t.date<=endKey)
     .sort((a,b)=>((a.date+(a.time||''))<(b.date+(b.time||''))?-1:1));
-  setText('week-modal-title',`${window.t('Trades')} · ${startDay}–${endDay} ${M[month].slice(0,3)} ${year}`);
+  setText('week-modal-title',`${window.t('Trades')} · ${startDay===endDay?startDay:startDay+'–'+endDay} ${M[month].slice(0,3)} ${year}`);
   const body=document.getElementById('week-modal-body');
   if(!body)return;
   if(!wt.length){body.innerHTML=`<div class="day-detail-empty">${window.t('No hay operaciones registradas esta semana.')}</div>`;openModal('modal-week');return;}
@@ -11179,7 +11204,7 @@ function mxRenderMiniCal(){
       const amtEl=document.createElement('div');amtEl.className='bigcal-amount';
       amtEl.textContent=fmtMoneySigned(pnl);
       const pctEl=document.createElement('div');pctEl.className='bigcal-pct';
-      pctEl.textContent=(pct>=0?'+':'')+Math.abs(pct).toFixed(1)+'%';
+      pctEl.textContent=(pct>=0?'+':'−')+Math.abs(pct).toFixed(1)+'%';
       const trEl=document.createElement('div');trEl.className='bigcal-trades';
       trEl.textContent=trades.length+' '+(lang==='en'?(trades.length===1?'trade':'trades'):'op.');
       contentEl.appendChild(amtEl);contentEl.appendChild(pctEl);contentEl.appendChild(trEl);
@@ -13000,6 +13025,7 @@ var I18N_EN = {
   'Después de operar *':'After trading *',
   'Después de una operación frustrante, una pausa breve suele evitar decisiones impulsivas.':'After a frustrating trade, a short break usually prevents an impulsive decision.',
   'Diario':'Journal',
+  'completado':'completed',
   'Diario sin contenido':'Empty journal entry',
   'Diario sin trade':'Journal entry, no trade',
   'Diciembre':'December',
