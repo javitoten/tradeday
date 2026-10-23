@@ -1757,6 +1757,26 @@ select.ctl{cursor:pointer}
 .realbox .ok{color:var(--green)}.realbox .no{color:var(--text3)}
 .realbox .warn{margin-top:8px;font-size:11px;color:var(--amber);line-height:1.45}
 .met-wrap{max-width:1400px;margin:0 auto;padding:0 26px 40px}
+.met-jr{margin:0 0 14px}
+.mj-hint{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px dashed var(--border2);border-radius:12px;color:var(--text2);font-size:12.5px}.mj-hint i{font-size:18px;color:var(--text3)}
+.mj-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.mj-l{font-size:12px;font-weight:700;color:var(--text3);display:inline-flex;align-items:center;gap:5px;margin-right:2px}
+.mj-sel{height:30px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-weight:600;font-size:12px;padding:0 10px;cursor:pointer;max-width:260px;font-family:inherit}
+.mj-sel.on{border-color:#22c55e80;color:var(--green);background:var(--green-bg)}
+.mj-seg{display:flex;gap:2px;padding:2px;border:1px solid var(--border2);border-radius:20px;background:var(--bg3)}
+.mj-seg button{height:24px;padding:0 10px;border:0;border-radius:16px;background:none;color:var(--text3);font-weight:700;font-size:11.5px;cursor:pointer}
+.mj-seg button.on{background:var(--green-bg);color:var(--green)}
+.mj-clear{height:30px;padding:0 12px;border-radius:20px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.mj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:12px}
+.mj-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;overflow-x:auto}
+.mj-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:800;margin-bottom:8px}
+.mj-best{font-size:11.5px;font-weight:600;color:var(--text3)}.mj-best b{color:var(--green)}
+.mj-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.mj-t th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--border)}
+.mj-t td{padding:7px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+.mj-t tr:last-child td{border-bottom:0}
+.mj-t tbody tr{cursor:pointer}.mj-t tbody tr:hover td{background:var(--bg3)}.mj-t tr.on td{background:var(--green-bg)}
+
 .met-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 14px;padding-top:18px;border-top:1px solid var(--border)}
 .met-head h2{margin:0 0 4px;font-size:18px}
 .met-head .sub{margin:0;color:var(--text2);font-size:12.5px}
@@ -2474,6 +2494,7 @@ tr.row:hover td{background:var(--bg3);cursor:pointer}
       <div><h2 id="metTitle">Métricas · Todas las sesiones</h2><p class="sub" id="metTitleSub">Resumen general de todas tus cuentas de backtesting · mismas métricas que tu diario, sin mezclar datos</p></div>
       <div class="met-tabs" id="metTabs"></div>
     </div>
+    <div class="met-jr" id="metJr"></div>
     <div class="empty" id="metEmpty" hidden>Todavía no hay operaciones cerradas. Cuando cierres operaciones en un backtesting verás aquí sus métricas.</div>
     <iframe id="metFrame" title="Métricas de backtesting" scrolling="no"></iframe>
     <div class="mc" id="mcMet" hidden></div>
@@ -3027,14 +3048,14 @@ async function renderSetupLists() {
   if (Cloud.online) {
     const [a, b] = await Promise.all([
       Cloud.sb.from('bt_sessions').select('id,name,symbol,timeframe,start_ts,cursor_ts,balance,initial_balance,stats,config,updated_at').order('updated_at', { ascending: false }),
-      sbAll(() => Cloud.sb.from('bt_trades').select('id,session_id,side,r_multiple,pnl,pnl_pct,risk_pct,duration_min,entry_ts,exit_ts,session_label,mfe_r,entry_price,initial_sl,tp').eq('status', 'closed').order('exit_ts').order('id'))
+      sbAll(() => Cloud.sb.from('bt_trades').select('id,session_id,side,r_multiple,pnl,pnl_pct,risk_pct,duration_min,entry_ts,exit_ts,session_label,mfe_r,entry_price,initial_sl,tp,flags').eq('status', 'closed').order('exit_ts').order('id'))
         .then(data => ({ data }), error => ({ data: [], error })),
     ]);
     if (b.error) toast('No se pudieron cargar las operaciones: ' + b.error.message);
     if (a.error) { $('sessList').innerHTML = '<div class="empty">' + escapeHtml(a.error.message) + '</div>'; return; }
     sessions = (a.data || []).map(s => ({ id: s.id, cloud: true, name: s.name, symbol: s.symbol, tf: s.timeframe, startTs: tsOf(s.start_ts), viewTs: (s.config && s.config.view_ts) || tsOf(s.cursor_ts), initial: +s.initial_balance, balance: +s.balance, stats: s.stats || {}, challenge: s.config && s.config.challenge || null }));
     trades = (b.data || []).map(t => ({ id: t.id, sid: t.session_id, side: t.side, r: +t.r_multiple, pnl: +t.pnl, pnlPct: +t.pnl_pct || 0, riskPct: +t.risk_pct, durationMin: t.duration_min, entryTs: tsOf(t.entry_ts), exitTs: tsOf(t.exit_ts), session: t.session_label,
-      mfe: t.mfe_r == null ? null : +t.mfe_r, entry: +t.entry_price, initialSl: +t.initial_sl, tp: t.tp == null ? null : +t.tp }));
+      mfe: t.mfe_r == null ? null : +t.mfe_r, entry: +t.entry_price, initialSl: +t.initial_sl, tp: t.tp == null ? null : +t.tp, j: (t.flags && t.flags.j) || null }));
     $('metSub').textContent = 'Resumen de todas tus sesiones guardadas en tu cuenta. Son independientes de tu diario real.';
   } else {
     sessions = loadLocal().map(s => { const st = BT.computeStats(s.account.closed, s.account.initial); return { id: s.id, cloud: false, name: s.name, symbol: s.symbol, tf: s.tf, startTs: s.startTs, viewTs: s.cursorTs, initial: s.account.initial, balance: s.account.balance, stats: { count: st.count, winRate: st.winRate, pnl: st.pnl, profitFactor: st.profitFactor }, challenge: s.challenge || null }; });
@@ -3100,17 +3121,79 @@ function renderMetrics() {
   initMetFrame();
   const sel = MET.sel ? MET.sessions.find(s => s.id === MET.sel) : null;
   const ss = sel ? [sel] : MET.sessions, ids = new Set(ss.map(s => s.id)), symOf = {}; ss.forEach(s => symOf[s.id] = s.symbol);
-  const trades = MET.trades.filter(t => ids.has(t.sid)).sort((a, b) => a.entryTs - b.entryTs || a.exitTs - b.exitTs).map((t, k) => toJournalShape(t, symOf[t.sid], k));
+  const base = MET.trades.filter(t => ids.has(t.sid));
+  const fsrc = renderMetJr(base); // filtro por setup / regla / ejecución del diario del backtesting
+  const trades = fsrc.slice().sort((a, b) => a.entryTs - b.entryTs || a.exitTs - b.exitTs).map((t, k) => toJournalShape(t, symOf[t.sid], k));
   const capital = ss.reduce((a, s) => a + (+s.initial || 0), 0);
   $('metTitle').textContent = sel ? 'Métricas · ' + sel.name : 'Métricas · Todas las sesiones';
-  $('metTitleSub').textContent = sel ? `${sel.symbol} · ${BT.TF_LABEL[sel.tf]} · capital ${fmtMoney(sel.initial)} · ${trades.length} operaciones cerradas`
-    : `Resumen general de todas tus cuentas de backtesting (${MET.sessions.length} ${MET.sessions.length === 1 ? 'sesión' : 'sesiones'} · capital conjunto ${fmtMoney(capital)}) · independiente de tu diario real`;
+  $('metTitleSub').textContent = sel ? `${sel.symbol} · ${BT.TF_LABEL[sel.tf]} · capital ${fmtMoney(sel.initial)} · ${trades.length}${trades.length !== base.length ? ' de ' + base.length : ''} operaciones cerradas`
+    : `Resumen general de todas tus cuentas de backtesting (${MET.sessions.length} ${MET.sessions.length === 1 ? 'sesión' : 'sesiones'} · capital conjunto ${fmtMoney(capital)})${trades.length !== base.length ? ` · filtrado: ${trades.length} de ${base.length} operaciones` : ''} · independiente de tu diario real`;
   $('metTabs').innerHTML = `<button class="${sel || MET.mc ? '' : 'on'}" onclick="MET.mc=false;showMetrics(null)"><i class="ti ti-layout-dashboard"></i>General</button>` +
     (sel ? `<button class="${MET.mc ? '' : 'on'}" onclick="MET.mc=false;renderMetrics()" title="Métricas de esta sesión"><i class="ti ti-chart-bar"></i>${escapeHtml(sel.name)}</button><button onclick="MET.mc=false;showMetrics(null)" title="Volver al resumen general" style="padding:0 9px"><span class="x">✕</span></button>` : '') +
     `<button class="${MET.mc ? 'on' : ''}" onclick="MET.mc=true;renderMetrics()" title="Simular miles de órdenes distintas de tus operaciones"><i class="ti ti-chart-dots-3"></i>Monte Carlo</button>`;
   $('metEmpty').hidden = trades.length > 0; $('metFrame').style.display = trades.length && !MET.mc ? 'block' : 'none'; $('mcMet').hidden = !(trades.length && MET.mc);
-  if (MET.mc && trades.length) { const src = MET.trades.filter(t => ids.has(t.sid)); mcMount('mcMet', () => src, () => sel ? sel.initial : 10000, sel ? 'esta sesión' : 'todas tus sesiones', true); }
+  if (MET.mc && trades.length) { const src = fsrc; mcMount('mcMet', () => src, () => sel ? sel.initial : 10000, sel ? 'esta sesión' : 'todas tus sesiones', true); }
   if (MET.ready && trades.length) $('metFrame').contentWindow.postMessage({ type: 'bt-metrics-render', trades, capital }, '*');
+}
+/* ── Métricas por setup y reglas (diario del backtesting) ──
+   Filtra TODAS las métricas (iframe + Monte Carlo) por el setup, una regla cumplida/incumplida o la
+   valoración de ejecución, y compara los setups y las reglas entre sí (ops, win rate, P/L, R medio). */
+MET.jf = { setup: 'all', rule: 'all', grade: 'all' };
+function metJrSet(k, v) { MET.jf[k] = v; renderMetrics(); }
+function metJrStats(arr) {
+  const w = arr.filter(t => t.pnl > 0).length, l = arr.filter(t => t.pnl < 0).length;
+  const rs = arr.map(t => t.r).filter(r => isFinite(r));
+  return { n: arr.length, wr: w + l ? w / (w + l) * 100 : null, pnl: arr.reduce((a, t) => a + (+t.pnl || 0), 0), r: rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : null };
+}
+function metJrPass(t, f) {
+  const j = t.j || {};
+  if (f.setup !== 'all' && (f.setup === '__none' ? !!j.setup : j.setup !== f.setup)) return false;
+  if (f.grade !== 'all' && j.grade !== f.grade) return false;
+  if (f.rule !== 'all') { const ok = f.rule.slice(0, 2) === 'ok', r = f.rule.slice(3), v = j.rules ? j.rules[r] : undefined; if (v === undefined || !!v !== ok) return false; }
+  return true;
+}
+function renderMetJr(base) {
+  const box = $('metJr'); const f = MET.jf;
+  const setups = {}, rules = {}, grades = {}; let none = 0;
+  base.forEach(t => { const j = t.j || {}; if (j.setup) setups[j.setup] = (setups[j.setup] || 0) + 1; else none++;
+    if (j.grade) grades[j.grade] = (grades[j.grade] || 0) + 1;
+    if (j.rules) Object.keys(j.rules).forEach(r => { rules[r] = rules[r] || { ok: 0, ko: 0 }; rules[r][j.rules[r] ? 'ok' : 'ko']++; }); });
+  const sk = Object.keys(setups), rk = Object.keys(rules), gk = JR_GRADES.filter(g => grades[g]);
+  // si el filtro guardado ya no existe en estos datos, se quita
+  if (f.setup !== 'all' && f.setup !== '__none' && !setups[f.setup]) f.setup = 'all';
+  if (f.rule !== 'all' && !rules[f.rule.slice(3)]) f.rule = 'all';
+  if (f.grade !== 'all' && !grades[f.grade]) f.grade = 'all';
+  if (!box) return base.filter(t => metJrPass(t, f));
+  if (!sk.length && !rk.length && !gk.length) {
+    box.innerHTML = base.length ? `<div class="mj-hint"><i class="ti ti-tags"></i>Marca el <b>setup</b>, las <b>reglas</b> y la <b>ejecución</b> al cerrar cada operación y aquí podrás filtrar las métricas y comparar qué setup te funciona mejor.</div>` : '';
+    return base;
+  }
+  const list = base.filter(t => metJrPass(t, f));
+  const on = f.setup !== 'all' || f.rule !== 'all' || f.grade !== 'all';
+  const opt = (v, l, cur) => `<option value="${escH(v)}"${cur === v ? ' selected' : ''}>${escH(l)}</option>`;
+  const rStr = v => v == null ? '—' : fmtR(v), wrStr = v => v == null ? '—' : v.toFixed(0) + '%';
+  const sRows = sk.map(k => [k, metJrStats(base.filter(t => (t.j || {}).setup === k))]).concat(none ? [['__none', metJrStats(base.filter(t => !(t.j || {}).setup))]] : [])
+    .sort((a, b) => b[1].n - a[1].n);
+  const best = sRows.filter(r => r[0] !== '__none' && r[1].n >= 3).sort((a, b) => (b[1].r ?? -1e9) - (a[1].r ?? -1e9))[0];
+  const rRows = rk.map(r => { const ok = metJrStats(base.filter(t => t.j && t.j.rules && t.j.rules[r] === true)), ko = metJrStats(base.filter(t => t.j && t.j.rules && t.j.rules[r] === false)); return [r, ok, ko]; });
+  box.innerHTML = `<div class="mj-bar">
+      <span class="mj-l"><i class="ti ti-filter"></i>Filtrar métricas</span>
+      ${sk.length ? `<select class="mj-sel${f.setup !== 'all' ? ' on' : ''}" onchange="metJrSet('setup',this.value)">${opt('all', 'Todos los setups', f.setup)}${sk.map(k => opt(k, k + ' (' + setups[k] + ')', f.setup)).join('')}${none ? opt('__none', 'Sin setup (' + none + ')', f.setup) : ''}</select>` : ''}
+      ${rk.length ? `<select class="mj-sel${f.rule !== 'all' ? ' on' : ''}" onchange="metJrSet('rule',this.value)">${opt('all', 'Todas las reglas', f.rule)}${rk.map(r => opt('ok|' + r, '✓ Cumplí: ' + r, f.rule) + opt('ko|' + r, '✗ No cumplí: ' + r, f.rule)).join('')}</select>` : ''}
+      ${gk.length ? `<div class="mj-seg"><button class="${f.grade === 'all' ? 'on' : ''}" onclick="metJrSet('grade','all')">Toda ejecución</button>${gk.map(g => `<button class="${f.grade === g ? 'on' : ''}" onclick="metJrSet('grade','${g}')">${g}</button>`).join('')}</div>` : ''}
+      ${on ? `<button class="mj-clear" onclick="MET.jf={setup:'all',rule:'all',grade:'all'};renderMetrics()"><i class="ti ti-x"></i>Quitar filtros · ${list.length} de ${base.length}</button>` : ''}
+    </div>
+    <div class="mj-grid">
+      ${sRows.length ? `<div class="mj-card"><div class="mj-h">Por setup${best ? `<span class="mj-best">Mejor: <b>${escH(best[0])}</b> · ${rStr(best[1].r)} de media</span>` : ''}</div>
+        <table class="mj-t"><thead><tr><th>Setup</th><th>Ops</th><th>Win rate</th><th>P/L</th><th>R medio</th></tr></thead><tbody>
+        ${sRows.map(([k, st]) => `<tr class="${f.setup === k ? 'on' : ''}" data-k="${escH(k)}" onclick="metJrSet('setup',MET.jf.setup===this.dataset.k?'all':this.dataset.k)"><td>${k === '__none' ? '<span class="mut">Sin setup</span>' : escH(k)}</td><td>${st.n}</td><td>${wrStr(st.wr)}</td><td class="${cls(st.pnl)}">${fmtSigned(st.pnl)}</td><td class="${cls(st.r || 0)}">${rStr(st.r)}</td></tr>`).join('')}
+        </tbody></table></div>` : ''}
+      ${rRows.length ? `<div class="mj-card"><div class="mj-h">¿Te compensa cumplir tus reglas?</div>
+        <table class="mj-t"><thead><tr><th>Regla</th><th>Cumplida</th><th>No cumplida</th></tr></thead><tbody>
+        ${rRows.map(([r, ok, ko]) => `<tr><td>${escH(r)}</td><td><b class="${cls(ok.r || 0)}">${rStr(ok.r)}</b> <span class="mut">· ${ok.n} op · ${wrStr(ok.wr)}</span></td><td><b class="${cls(ko.r || 0)}">${rStr(ko.r)}</b> <span class="mut">· ${ko.n} op · ${wrStr(ko.wr)}</span></td></tr>`).join('')}
+        </tbody></table></div>` : ''}
+    </div>`;
+  return list;
 }
 async function startFromSetup() {
   if ($('chOn') && $('chOn').classList.contains('on') && !chFromSetup()) return; // reto activado pero con datos no válidos
