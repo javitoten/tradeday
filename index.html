@@ -4225,7 +4225,7 @@ function initLandingFX(){
         <div class="form-group"><label class="form-label">Hora <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="time" id="t-time" oninput="handleTradeTimeInput()"><div class="form-hint">Sugiere automáticamente la sesión</div></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Par</label><select class="form-select" id="t-pair"><option value="">Seleccionar...</option><option>XAUUSD</option><option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option><option>GBPJPY</option><option>NAS100</option><option value="US30">US30 (Dow Jones)</option><option>SP500</option><option>Otro</option></select></div>
+        <div class="form-group"><label class="form-label">Par</label><select class="form-select" id="t-pair" onchange="tPairChanged()"><option value="">Seleccionar...</option><optgroup label="Forex y CFD"><option>XAUUSD</option><option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option><option>GBPJPY</option><option>NAS100</option><option value="US30">US30 (Dow Jones)</option><option>SP500</option></optgroup><optgroup label="Futuros · índices"><option value="ES">ES (S&amp;P 500)</option><option value="MES">MES (Micro S&amp;P 500)</option><option value="NQ">NQ (Nasdaq 100)</option><option value="MNQ">MNQ (Micro Nasdaq 100)</option><option value="YM">YM (Dow Jones)</option><option value="MYM">MYM (Micro Dow Jones)</option><option value="RTY">RTY (Russell 2000)</option><option value="M2K">M2K (Micro Russell 2000)</option></optgroup><optgroup label="Futuros · materias primas"><option value="GC">GC (Oro)</option><option value="MGC">MGC (Micro Oro)</option><option value="SI">SI (Plata)</option><option value="CL">CL (Petróleo)</option><option value="MCL">MCL (Micro Petróleo)</option><option value="NG">NG (Gas natural)</option></optgroup><optgroup label="Futuros · divisas"><option value="6E">6E (Euro)</option><option value="6B">6B (Libra)</option><option value="6J">6J (Yen)</option></optgroup><option value="Otro">Otro</option></select><input class="form-input" id="t-pair-custom" maxlength="40" placeholder="Escribe el activo (ej. DAX40, BTCUSD, ZN…)" style="display:none;margin-top:6px" data-no-i18n></div>
         <div class="form-group"></div>
       </div>
       <div class="form-section">Tipo y sesión</div>
@@ -5814,7 +5814,7 @@ async function saveTrade(){
   if(!currentUser||!currentAccountId)return;
   if(!editingTradeId&&accountBlockedForEntries()){closeModal('modal-trade');showAccountSuspendedWarning(currentAccount());return;}
   const btn=document.getElementById('t-save-btn');
-  const pair=document.getElementById('t-pair').value.trim().slice(0,40);
+  const pair=tPairValue();
   const date=document.getElementById('t-date').value;
   const time=document.getElementById('t-time').value||null;
   let amount=document.getElementById('t-amount').value.trim().slice(0,20);
@@ -9149,7 +9149,7 @@ function editTradeEntry(id){
   document.getElementById('t-date').value=t.date;
   document.getElementById('t-time').value=t.time||'';
   tSessManuallySet=true;
-  document.getElementById('t-pair').value=t.pair||'';
+  setTPair(t.pair||'');
   document.getElementById('t-amount').value=(t.amount||'').replace(/[+\-]/,'').trim();
   document.getElementById('t-risk').value=(t.risk_pct!==null&&t.risk_pct!==undefined)?String(t.risk_pct):'';
   document.getElementById('t-duration').value=(t.duration_minutes!==null&&t.duration_minutes!==undefined)?String(t.duration_minutes):'';
@@ -10173,6 +10173,11 @@ function openChoice(){
   if(blocked){closeMobileSidebar();showAccountSuspendedWarning(blocked);return;}
   closeModal('modal-trade');closeModal('modal-journal');closeMobileSidebar();openModal('modal-choice');
 }
+/* Selector de activo del trade: lista con futuros + «Otro…» con texto libre (antes «Otro» se guardaba
+   literalmente como nombre). Al editar un trade con un activo que no está en la lista, se muestra en el texto. */
+function tPairChanged(){const sel=document.getElementById('t-pair'),inp=document.getElementById('t-pair-custom');if(!sel||!inp)return;const o=sel.value==='Otro';inp.style.display=o?'':'none';if(o)setTimeout(()=>inp.focus(),0);}
+function tPairValue(){const sel=document.getElementById('t-pair'),inp=document.getElementById('t-pair-custom');if(!sel)return'';if(sel.value==='Otro'){const v=(inp&&inp.value||'').trim().toUpperCase().slice(0,40);return v;}return sel.value.trim().slice(0,40);}
+function setTPair(v){const sel=document.getElementById('t-pair'),inp=document.getElementById('t-pair-custom');if(!sel)return;v=String(v||'');const has=v&&[...sel.options].some(o=>o.value===v);if(!v){sel.value='';if(inp)inp.value='';}else if(has&&v!=='Otro'){sel.value=v;if(inp)inp.value='';}else{sel.value='Otro';if(inp)inp.value=v==='Otro'?'':v;}tPairChanged();}
 function openTradeForm(){
   closeModal('modal-choice');
   editingTradeId=null;
@@ -10180,7 +10185,7 @@ function openTradeForm(){
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('t-time').value=new Date().toTimeString().slice(0,5);
   tSessManuallySet=false;
-  document.getElementById('t-pair').value='';document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
+  setTPair('');document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
   document.getElementById('t-tech-notes').value='';
   resetTechDropdowns('t-tech-dropdowns');
   ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});

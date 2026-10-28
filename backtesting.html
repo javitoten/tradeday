@@ -2254,6 +2254,7 @@ body.resizing iframe,body.resizing canvas{pointer-events:none}
 .goto-menu{display:none;position:absolute;top:36px;left:0;z-index:30;width:300px;max-height:70vh;overflow:auto;background:#1E1F23;border:1px solid #ffffff1f;border-radius:10px;box-shadow:0 16px 40px #000c;padding:6px}
 .goto-dd.open .goto-menu{display:block;animation:pop .12s ease-out}
 
+.goto-custom{display:flex;gap:6px;margin:2px 6px}.goto-custom input{flex:1;min-width:0;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);padding:0 8px;font:inherit;font-size:12px;color-scheme:dark}.goto-custom .btn{height:32px}.goto-hint{margin:4px 8px 2px;font-size:10.5px;color:var(--text3);line-height:1.35}
 .goto-tz{margin:4px 6px 2px;padding:7px 9px;border-radius:7px;background:#ffffff08;color:var(--text3);font-size:11px;line-height:1.35}.goto-tz b{color:var(--text)}.goto-menu small b.gt{display:inline;color:var(--text);font-weight:800;font-size:inherit}
 .goto-menu h6{margin:8px 8px 4px;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)}
 .goto-menu button{display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border:0;border-radius:7px;background:none;color:var(--text);cursor:pointer;text-align:left}
@@ -4147,9 +4148,23 @@ const GOTO_TARGETS = [
 function gotoTargetTs(id) {
   const now = S.replay.now(), g = GOTO_TARGETS.find(x => x.id === id);
   if (g) return nextLocalTime(now, g.tz === 'chart' ? tzSel() : g.tz, g.h, g.m);
+  if (id === 'custom') return GOTO.custom || null;
   if (id === 'h1') return now - 60 + 3600; if (id === 'h4') return now - 60 + 4 * 3600; // desde la hora del reloj
   if (id === 'news') { const e = newsNext(now + 5 * 60 + 1); return e ? e.t - 5 * 60 : null; }
   return null;
+}
+// Fecha/hora «AAAA-MM-DDTHH:MM» de un instante en la zona horaria del gráfico (para el campo «Ir a fecha y hora»)
+function gotoLocalVal(ts) {
+  try { const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: tzSel(), year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date(ts * 1000)).map(x => [x.type, x.value]));
+    return `${p.year}-${p.month}-${p.day}T${String(+p.hour % 24).padStart(2, '0')}:${p.minute}`; } catch (_) { return ''; }
+}
+function gotoCustomRun() {
+  const r = S.replay, v = ($('gotoDT') || {}).value || ''; if (!r) return;
+  const m = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/); if (!m) { toast('Elige una fecha y una hora'); return; }
+  const t = zonedToUtc(+m[1], +m[2], +m[3], +m[4], +m[5], tzSel()), now = r.now() - 60;
+  if (!(t > now)) { toast('Esa hora ya ha pasado en el replay. Para volver atrás usa «Retroceder».'); return; }
+  if (t - now > 60 * 86400) { toast('Máximo 60 días por salto: elige una fecha más cercana'); return; }
+  GOTO.custom = t; gotoRun('custom');
 }
 function renderGotoMenu() {
   const a = S.account, fmtT = ts => ts ? fmtDT(ts) : '—';
@@ -4158,6 +4173,7 @@ function renderGotoMenu() {
     <h6>Tus operaciones</h6>${row('close', 'ti-flag-check', 'Cierre de la operación abierta', a.positions.length ? 'Avanza hasta que se cierre (SL, TP o BE)' : 'No tienes posiciones abiertas', !a.positions.length)}
     ${row('fill', 'ti-clock-play', 'Ejecución de la orden pendiente', a.orders.length ? 'Avanza hasta que se ejecute o se anule' : 'No tienes órdenes pendientes', !a.orders.length)}
     <h6>Noticias</h6>${(() => { const e = newsNext(S.replay.now() + 5 * 60 + 1); return row('news', 'ti-calendar-event', e ? `5 min antes de ${e.short}` : 'Próxima noticia', e ? `${e.name} · ${e.when}` : 'No hay más noticias en los datos', !e); })()}
+    <h6>Fecha y hora exactas</h6><div class="goto-custom"><input type="datetime-local" id="gotoDT" step="60" value="${gotoLocalVal(S.replay.now() - 60 + 3600)}"><button class="btn primary" id="gotoDTGo"><i class="ti ti-player-skip-forward"></i>Ir</button></div><div class="goto-hint">En la zona del gráfico · solo hacia delante (para volver atrás usa «Retroceder») · máx. 60 días por salto</div>
     <h6>Tiempo</h6>${row('h1', 'ti-clock-hour-1', '+1 hora', fmtT(gotoTargetTs('h1')))}${row('h4', 'ti-clock-hour-4', '+4 horas', fmtT(gotoTargetTs('h4')))}
     <label class="goto-opt"><input type="checkbox" id="gotoStop"${GOTO.stopOnEvent !== false ? ' checked' : ''}> Parar si se ejecuta o se cierra una operación</label>`;
 }
@@ -4165,7 +4181,7 @@ async function gotoRun(id) {
   const r = S.replay; if (!r || GOTO.busy) return;
   stop(); $('gotoDD').classList.remove('open');
   const startOrd = S.account.orders.length;
-  const until = gotoTargetTs(id), maxTs = r.now() + 14 * 86400, stopOnEvent = GOTO.stopOnEvent !== false;
+  const until = gotoTargetTs(id), maxTs = id === 'custom' && until ? until + 120 : r.now() + 14 * 86400, stopOnEvent = GOTO.stopOnEvent !== false;
   // Se para cuando la vela M1 de la hora elegida ya está en el gráfico: la hora del menú = la del reloj = la de la última vela del eje.
   const stopAt = until == null ? null : until + 60;
   const done = () => {
@@ -4200,7 +4216,7 @@ async function gotoRun(id) {
   afterStep(ctx, view, true);
   try { const n = r.bars.length; chart.timeScale().setVisibleLogicalRange({ from: n - 120, to: n + 12 }); } catch (_) {}
   const g0 = GOTO_TARGETS.find(x => x.id === id);
-  toast(reason ? `${reason} · ${fmtDT(r.now() - 60)}` : `${g0 ? g0.label : 'Ahora'}: ${fmtDT(r.now() - 60)}`);
+  toast(reason ? `${reason} · ${fmtDT(r.now() - 60)}` : `${g0 ? g0.label : id === 'custom' ? 'Fecha elegida' : 'Ahora'}: ${fmtDT(r.now() - 60)}`);
 }
 /* Los desplegables de la barra de replay se sacan al <body> al abrirse: así nunca quedan cortados ni tapados
    por el segundo gráfico en pantalla dividida (la barra tiene backdrop-filter y el gráfico overflow:hidden). */
@@ -4221,7 +4237,8 @@ function floatDD(dd, menu, btn, align) {
 function initGoto() {
   floatDD($('gotoDD'), $('gotoMenu'), $('gotoBtn'), 'left');
   $('gotoBtn').onclick = e => { e.stopPropagation(); const dd = $('gotoDD'); if (dd.classList.contains('open')) { dd.classList.remove('open'); return; } renderGotoMenu(); dd.classList.add('open'); };
-  $('gotoMenu').addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('[data-goto]'); if (b && !b.disabled) gotoRun(b.dataset.goto); });
+  $('gotoMenu').addEventListener('click', e => { e.stopPropagation(); if (e.target.closest('#gotoDTGo')) { gotoCustomRun(); return; } const b = e.target.closest('[data-goto]'); if (b && !b.disabled) gotoRun(b.dataset.goto); });
+  $('gotoMenu').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && e.target.id === 'gotoDT') { e.preventDefault(); gotoCustomRun(); } });
   $('gotoMenu').addEventListener('change', e => { if (e.target.id === 'gotoStop') GOTO.stopOnEvent = e.target.checked; });
   document.addEventListener('mousedown', e => { if (!e.target.closest('#gotoDD, #gotoMenu')) $('gotoDD').classList.remove('open'); });
 }
