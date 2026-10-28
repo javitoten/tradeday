@@ -4346,8 +4346,8 @@ function initLandingFX(){
       </div>
       <div class="form-section">Operación</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')"><i class="ti ti-trending-up"></i>Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')"><i class="ti ti-trending-down"></i>Sell</div></div></div>
-        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()"><i class="ti ti-circle-check"></i>Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()"><i class="ti ti-circle-x"></i>Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()"><i class="ti ti-circle-minus"></i>BE</div></div></div>
+        <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')">📈 Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')">📉 Sell</div></div></div>
+        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()">✅ Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()">❌ Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()">➖ BE</div></div></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">P&L ($ o %)</label><input class="form-input" type="text" placeholder="300 o 3%" id="t-amount"><div class="form-hint">Sin signo: se aplica según el resultado. Con % se calcula el $ (y al revés).</div></div>
@@ -4357,7 +4357,7 @@ function initLandingFX(){
         <div class="form-group"><label class="form-label">Duración (min) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 45 (= 45 min)" id="t-duration"><div class="form-hint">Ej: 150 = 2 h 30 min. Activa la Duración media.</div></div>
         <div class="form-group" id="t-be-type-group" style="display:none">
         <label class="form-label">¿Cómo terminó el Breakeven?</label>
-        <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')"><i class="ti ti-circle-check"></i>BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')"><i class="ti ti-circle-x"></i>BE Loss</div></div>
+        <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')">✅ BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')">❌ BE Loss</div></div>
         <div class="form-hint">Win: fue a favor y protegiste. Loss: nunca fue a favor.</div>
       </div>
       </div>
@@ -4373,7 +4373,7 @@ function initLandingFX(){
       <div class="form-section">Análisis</div>
       <div class="form-group"><label class="form-label">¿Cómo te sentiste?</label><div class="chip-group" id="t-emo"><div class="chip" onclick="toggleChip(this,'sel-emotion')">😌 Tranquilo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😤 Impaciente</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😨 Con miedo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">🤑 Eufórico</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😡 Frustrado</div></div></div>
       <div class="form-group"><label class="form-label">Notas <span class="badge badge-journal" style="text-transform:none;vertical-align:1px"><i class="ti ti-notebook" style="font-size:10px"></i>Se analiza en Journal</span></label><textarea class="form-input" id="t-notes" rows="4" placeholder="¿Qué salió bien? ¿Qué mejorar?&#10;¿Cómo te sentiste antes, durante y al cerrar la operación?&#10;¿Hubo ansiedad, miedo, FOMO o frustración? ¿Fuiste disciplinado o impulsivo?&#10;¿Qué emoción predominó hoy y qué crees que te afectó?" maxlength="2000"></textarea></div>
-      <div class="form-group"><label class="form-label">¿Seguiste el plan?</label><div class="chip-group" id="t-plan"><div class="chip" onclick="selectChip('t-plan',this,'sel-win')"><i class="ti ti-circle-check"></i>Sí, al 100%</div><div class="chip" onclick="selectChip('t-plan',this,'sel-be')"><i class="ti ti-alert-triangle"></i>Parcialmente</div><div class="chip" onclick="selectChip('t-plan',this,'sel-loss')"><i class="ti ti-circle-x"></i>No</div></div></div>
+      <div class="form-group"><label class="form-label">¿Seguiste el plan?</label><div class="chip-group" id="t-plan"><div class="chip" onclick="selectChip('t-plan',this,'sel-win')">✅ Sí, al 100%</div><div class="chip" onclick="selectChip('t-plan',this,'sel-be')">⚠️ Parcialmente</div><div class="chip" onclick="selectChip('t-plan',this,'sel-loss')">❌ No</div></div></div>
       <div class="form-group">
         <label class="form-label">Capturas del trade (opcional)</label>
         <div class="form-hint" style="margin:-4px 0 8px">Antes de entrar, durante, al cerrar, tu análisis... Añade las que quieras y marca una como portada (<i class="ti ti-star" style="vertical-align:-2px"></i>).</div>
