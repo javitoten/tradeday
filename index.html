@@ -627,6 +627,15 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .form-hint{font-size:11px;color:var(--text3);margin-top:3px}
 .tech-tag-cat-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.tmsel-own{position:relative}.tmsel-del{all:unset;margin-left:auto;cursor:pointer;color:var(--text3);font-size:12px;padding:0 2px}.tmsel-del:hover{color:var(--red)}
+.tmsel-add{display:flex;gap:4px;margin-top:4px;padding-top:6px;border-top:1px solid var(--border2)}.tmsel-add input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:6px 8px}.tmsel-add button{all:unset;cursor:pointer;width:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--blue-bg);color:var(--blue)}
+.mxs-hint{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text2)}.mxs-hint i{font-size:20px;color:var(--text3)}
+.mxs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px}
+.mxs-t-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;overflow-x:auto}
+.mxs-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;font-weight:800;margin-bottom:6px}.mxs-h span{font-size:11px;font-weight:600;color:var(--text3)}.mxs-h b{color:var(--green)}
+.mxs-t{width:100%;border-collapse:collapse;font-size:12.5px}.mxs-t th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--border)}
+.mxs-t td{padding:7px 6px;border-bottom:1px solid var(--border);white-space:nowrap}.mxs-t tr:last-child td{border-bottom:0}
+.mxs-t tbody tr:not(.nohov){cursor:pointer}.mxs-t tbody tr:not(.nohov):hover td{background:var(--bg4)}.mxs-t tr.on td{background:var(--green-bg)}
 .tmsel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 @media(max-width:520px){.tmsel-grid{grid-template-columns:1fr}}
 .tmsel{position:relative}
@@ -3239,6 +3248,8 @@ function initLandingFX(){
           <div><div class="section-title" style="font-size:17px">Métricas</div><div class="section-sub">Estadísticas completas de tu trading — <span id="metrics-account-sub">—</span></div></div>
         </div>
 
+        <div class="card mx-section-block" id="mx-strat-card" data-no-i18n></div>
+
         <!-- 1. EVOLUCIÓN DEL CAPITAL (Free) -->
         <div class="card mx-section-block">
           <div class="mx-card-head">
@@ -4247,6 +4258,8 @@ function initLandingFX(){
         <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')">✅ BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')">❌ BE Loss</div></div>
         <div class="form-hint">BE Win: llegó a ir a favor y se protegió en breakeven. BE Loss: nunca se desarrolló a favor y se cerró en breakeven.</div>
       </div>
+      <div class="form-section">Estrategia</div>
+      <div class="form-group"><label class="form-label">¿Qué estrategia usaste? <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><select class="form-select" id="t-strategy" onchange="tStrategyChanged(this)" data-no-i18n></select><div class="form-hint">Así podrás comparar en Métricas qué estrategia te funciona mejor.</div></div>
       <div class="form-section">Lectura del gráfico / Setup técnico</div>
       <div class="form-group" id="t-tech-tags">
         <label class="form-label">¿Qué viste en el gráfico? <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label>
@@ -5538,6 +5551,7 @@ async function loadProfile(){
   const sb_name=document.getElementById('sb-name');if(sb_name)sb_name.textContent=userProfile.username||'Trader';
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=(userProfile.username||'T')[0].toUpperCase();
   const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${userProfile.username||'Trader'} 👋`;
+  try{rebuildTechDropdowns();}catch(_){}
 }
 
 /* ── SUSCRIPCIÓN (Stripe): Free vs Premium ── */
@@ -5939,7 +5953,7 @@ async function saveTrade(){
 
   const payload={date,time,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
     followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
-    emotions,notes,technical_tags:techTags,technical_notes:techNotes,image_url:coverUrl,images:finalImages};
+    emotions,notes,technical_tags:techTags,technical_notes:techNotes,image_url:coverUrl,images:finalImages,strategy:tStrategyValue()};
 
   const{error}=editingTradeId
     ? await sb.from('trades').update(payload).eq('id',editingTradeId)
@@ -9150,6 +9164,7 @@ function editTradeEntry(id){
   document.getElementById('t-time').value=t.time||'';
   tSessManuallySet=true;
   setTPair(t.pair||'');
+  setTStrategy(t.strategy||'');
   document.getElementById('t-amount').value=(t.amount||'').replace(/[+\-]/,'').trim();
   document.getElementById('t-risk').value=(t.risk_pct!==null&&t.risk_pct!==undefined)?String(t.risk_pct):'';
   document.getElementById('t-duration').value=(t.duration_minutes!==null&&t.duration_minutes!==undefined)?String(t.duration_minutes):'';
@@ -10185,7 +10200,7 @@ function openTradeForm(){
   document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('t-time').value=new Date().toTimeString().slice(0,5);
   tSessManuallySet=false;
-  setTPair('');document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
+  setTPair('');setTStrategy('');document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
   document.getElementById('t-tech-notes').value='';
   resetTechDropdowns('t-tech-dropdowns');
   ['t-dir','t-sess','t-res','t-be-type','t-plan','t-emo'].forEach(g=>{const el=document.getElementById(g);if(el)el.querySelectorAll('.chip').forEach(c=>c.className='chip');});
@@ -10265,6 +10280,8 @@ function techDropdownsHTML(prefix){
       </button>
       <div class="tmsel-panel">
         ${cat.items.map(it=>`<label class="tmsel-opt"><input type="checkbox" value="${esc(it)}" onchange="onTmselOptChange(this)"><span>${esc(it)}</span></label>`).join('')}
+        ${jpCustomTags(ci).map(it=>`<label class="tmsel-opt tmsel-own"><input type="checkbox" value="${esc(it)}" onchange="onTmselOptChange(this)"><span data-no-i18n>${esc(it)}</span><button type="button" class="tmsel-del" title="Quitar de la lista" onclick="event.preventDefault();event.stopPropagation();removeCustomTag(${ci},this.closest('label').querySelector('input').value)"><i class="ti ti-x"></i></button></label>`).join('')}
+        <div class="tmsel-add" data-no-i18n><input type="text" maxlength="40" placeholder="${esc(tdL('Añadir la tuya…','Add your own…'))}" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTag(${ci},this)}"><button type="button" onclick="addCustomTag(${ci},this.previousElementSibling)" title="${esc(tdL('Añadir','Add'))}"><i class="ti ti-plus"></i></button></div>
       </div>
     </div>`).join('')+'</div>';
 }
@@ -10304,6 +10321,10 @@ function setSelectedTechTags(containerId,values){
   const c=document.getElementById(containerId);
   if(!c)return;
   const vals=values||[];
+  // Etiquetas guardadas que ya no están en la lista (p. ej. una propia que se quitó): se muestran igualmente para no perderlas al guardar
+  const known=new Set([...c.querySelectorAll('input[type="checkbox"]')].map(cb=>cb.value));
+  const lastPanel=c.querySelector('.tmsel:last-child .tmsel-panel');
+  vals.filter(v=>v&&!known.has(v)).forEach(v=>{if(!lastPanel)return;const l=document.createElement('label');l.className='tmsel-opt tmsel-own';l.innerHTML=`<input type="checkbox" value="${esc(v)}" onchange="onTmselOptChange(this)"><span data-no-i18n>${esc(v)}</span>`;lastPanel.insertBefore(l,lastPanel.querySelector('.tmsel-add'));});
   c.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.checked=vals.includes(cb.value);});
   c.querySelectorAll('.tmsel').forEach(updateTmselBadge);
 }
@@ -12335,9 +12356,86 @@ function tdmcFanHover(R,cap,p){
   svg.onmouseleave=()=>{tt.hidden=true;ln.style.display='none';};
 }
 
+/* ── Preferencias del journal en la cuenta (profiles.journal_prefs): estrategias y confluencias propias ── */
+function jpPrefs(){const p=(userProfile&&userProfile.journal_prefs&&typeof userProfile.journal_prefs==='object')?userProfile.journal_prefs:{};if(!Array.isArray(p.strategies))p.strategies=[];if(!p.tags||typeof p.tags!=='object')p.tags={};if(userProfile)userProfile.journal_prefs=p;return p;}
+function jpCustomTags(ci){const t=jpPrefs().tags[ci];return Array.isArray(t)?t:[];}
+async function jpSave(){if(!currentUser)return;try{const{error}=await sb.from('profiles').update({journal_prefs:jpPrefs()}).eq('id',currentUser.id);if(error)throw error;}catch(e){console.error('journal_prefs',e);toast(tdL('No se pudo guardar en tu cuenta','Could not save to your account'));}}
+function rebuildTechDropdowns(openCi){
+  ['t-tech-dropdowns','j-tech-dropdowns'].forEach(id=>{const c=document.getElementById(id);if(!c||!c.dataset.built)return;const vals=getSelectedTechTags(id);const pre=id==='t-tech-dropdowns'?'t-tech':'j-tech';const wasOpen=openCi!=null&&c.querySelector(`#${pre}-cat-${openCi}.open`);c.innerHTML=techDropdownsHTML(pre);setSelectedTechTags(id,vals);if(wasOpen){const w=c.querySelector(`#${pre}-cat-${openCi}`);if(w)w.classList.add('open');}});
+}
+function addCustomTag(ci,inp){
+  const v=String(inp&&inp.value||'').replace(/\s+/g,' ').trim().slice(0,40);if(!v)return;
+  const cont=inp.closest('[id$="-tech-dropdowns"]');
+  const all=TECH_CATEGORIES.flatMap(c=>c.items).concat(...Object.values(jpPrefs().tags).filter(Array.isArray));
+  const p=jpPrefs();if(!all.some(x=>x.toLowerCase()===v.toLowerCase())){p.tags[ci]=jpCustomTags(ci).concat(v);jpSave();}
+  const checked=cont?getSelectedTechTags(cont.id):[];
+  rebuildTechDropdowns(ci);
+  if(cont)setSelectedTechTags(cont.id,checked.concat(all.find(x=>x.toLowerCase()===v.toLowerCase())||v));
+}
+function removeCustomTag(ci,v){const p=jpPrefs();p.tags[ci]=jpCustomTags(ci).filter(x=>x!==v);jpSave();rebuildTechDropdowns(ci);}
+/* Estrategia del trade: lista = las tuyas + las metodologías de tu plan + las ya usadas en tus trades */
+function strategyList(){
+  const set=new Set();jpPrefs().strategies.forEach(x=>x&&set.add(x));
+  const ps=currentPlan&&currentPlan.data&&currentPlan.data.strategies;if(Array.isArray(ps))ps.forEach(x=>x&&set.add(x));
+  (allTrades||[]).forEach(t=>t.strategy&&set.add(t.strategy));
+  return [...set];
+}
+function setTStrategy(v){const sel=document.getElementById('t-strategy');if(!sel)return;const list=strategyList();if(v&&!list.includes(v))list.push(v);
+  sel.innerHTML=`<option value="">${esc(tdL('Sin estrategia','No strategy'))}</option>`+list.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')+`<option value="__new">${esc(tdL('+ Nueva estrategia…','+ New strategy…'))}</option>`;
+  sel.value=v||'';sel.dataset.prev=sel.value;}
+function tStrategyChanged(sel){
+  if(sel.value!=='__new'){sel.dataset.prev=sel.value;return;}
+  const n=String(prompt(tdL('Nombre de la estrategia (ej. Ruptura de Londres, ICT 2022, Pullback a EMA)','Strategy name'))||'').replace(/\s+/g,' ').trim().slice(0,50);
+  if(!n){sel.value=sel.dataset.prev||'';return;}
+  const p=jpPrefs();if(!strategyList().some(x=>x.toLowerCase()===n.toLowerCase())){p.strategies.push(n);jpSave();}
+  setTStrategy(strategyList().find(x=>x.toLowerCase()===n.toLowerCase())||n);
+}
+function tStrategyValue(){const sel=document.getElementById('t-strategy');const v=sel?sel.value:'';return v&&v!=='__new'?v.slice(0,50):null;}
+
+/* ── Métricas: filtro y comparativa por estrategia + rendimiento por confluencia ── */
+let MX_STRAT='all';
+function mxSetStrategy(v){MX_STRAT=v;renderMetricsPage();}
+function mxGroupStats(arr){
+  const w=arr.filter(t=>t.result==='win').length,l=arr.filter(t=>t.result==='loss').length;
+  const pnl=arr.reduce((a,t)=>a+mxAmt(t),0),gw=arr.filter(t=>mxAmt(t)>0).reduce((a,t)=>a+mxAmt(t),0),gl=-arr.filter(t=>mxAmt(t)<0).reduce((a,t)=>a+mxAmt(t),0);
+  const rs=arr.map(t=>{const pct=mxAmtPct(t),r=parseFloat(t.risk_pct);return pct&&r>0?pct/r:null;}).filter(v=>v!=null&&isFinite(v));
+  return{n:arr.length,wr:(w+l)?w/(w+l)*100:null,pnl,pf:gl>0?gw/gl:(gw>0?Infinity:null),r:rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null};
+}
+function renderMetricsStrategy(full){
+  const box=document.getElementById('mx-strat-card');if(!box)return;
+  const strats=[...new Set(full.map(t=>t.strategy).filter(Boolean))];
+  if(MX_STRAT!=='all'&&MX_STRAT!=='__none'&&!strats.includes(MX_STRAT))MX_STRAT='all';
+  const none=full.filter(t=>!t.strategy).length;
+  const wr=v=>v==null?'—':Math.round(v)+'%',rr=v=>v==null?'—':(v>=0?'+':'')+v.toFixed(2)+'R',pf=v=>v==null?'—':v===Infinity?'∞':v.toFixed(2);
+  const pc=v=>v>0?'var(--green)':v<0?'var(--red)':'var(--text2)';
+  // Confluencias (etiquetas técnicas) con al menos 2 operaciones
+  const tagMap={};full.forEach(t=>(Array.isArray(t.technical_tags)?t.technical_tags:[]).forEach(g=>{(tagMap[g]=tagMap[g]||[]).push(t);}));
+  const tags=Object.entries(tagMap).filter(([,a])=>a.length>=2).map(([g,a])=>[g,mxGroupStats(a)]).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
+  if(!strats.length&&!tags.length){box.innerHTML=`<div class="mxs-hint"><i class="ti ti-target-arrow"></i><span>${tdL('Elige la <b>estrategia</b> y marca las <b>confluencias</b> al registrar tus trades y aquí verás cuál te funciona mejor.','Pick a <b>strategy</b> and tag <b>confluences</b> when logging trades to see here which works best.')}</span></div>`;return;}
+  const rows=strats.map(sn=>[sn,mxGroupStats(full.filter(t=>t.strategy===sn))]).sort((a,b)=>b[1].n-a[1].n);
+  const best=rows.filter(r=>r[1].n>=3).sort((a,b)=>(b[1].pnl)-(a[1].pnl))[0];
+  const opt=(v,l)=>`<option value="${esc(v)}"${MX_STRAT===v?' selected':''}>${esc(l)}</option>`;
+  box.innerHTML=`<div class="mx-card-head"><div><div class="mx-card-title"><i class="ti ti-target-arrow"></i>${tdL('Estrategias y confluencias','Strategies and confluences')}</div><div class="mx-card-sub">${tdL('Compara qué te funciona mejor. Al filtrar por estrategia cambian todas las métricas de esta página.','Compare what works best. Filtering by strategy updates every metric on this page.')}</div></div>
+      ${strats.length?`<select class="ops-sel${MX_STRAT!=='all'?' on':''}" onchange="mxSetStrategy(this.value)">${opt('all',tdL('Todas las estrategias','All strategies'))}${strats.map(x=>opt(x,x)).join('')}${none?opt('__none',tdL('Sin estrategia','No strategy')+' ('+none+')'):''}</select>`:''}</div>
+    <div class="mxs-grid">
+      ${rows.length?`<div class="mxs-t-wrap"><div class="mxs-h">${tdL('Por estrategia','By strategy')}${best?`<span>${tdL('Mejor','Best')}: <b>${esc(best[0])}</b></span>`:''}</div>
+        <table class="mxs-t"><thead><tr><th>${tdL('Estrategia','Strategy')}</th><th>Ops</th><th>Win rate</th><th>${tdL('PyG','P&L')}</th><th>PF</th><th>${tdL('R medio','Avg R')}</th></tr></thead><tbody>
+        ${rows.map(([k,st])=>`<tr class="${MX_STRAT===k?'on':''}" data-k="${esc(k)}" onclick="mxSetStrategy(MX_STRAT===this.dataset.k?'all':this.dataset.k)"><td data-no-i18n>${esc(k)}</td><td>${st.n}</td><td>${wr(st.wr)}</td><td style="color:${pc(st.pnl)}">${fmtMoneySigned(st.pnl)}</td><td>${pf(st.pf)}</td><td style="color:${pc(st.r||0)}">${rr(st.r)}</td></tr>`).join('')}
+        </tbody></table></div>`:''}
+      ${tags.length?`<div class="mxs-t-wrap"><div class="mxs-h">${tdL('Por confluencia','By confluence')}<span>${tdL('mín. 2 operaciones','min. 2 trades')}</span></div>
+        <table class="mxs-t"><thead><tr><th>${tdL('Confluencia','Confluence')}</th><th>Ops</th><th>Win rate</th><th>${tdL('PyG','P&L')}</th></tr></thead><tbody>
+        ${tags.map(([k,st])=>`<tr class="nohov"><td data-no-i18n>${esc(k)}</td><td>${st.n}</td><td>${wr(st.wr)}</td><td style="color:${pc(st.pnl)}">${fmtMoneySigned(st.pnl)}</td></tr>`).join('')}
+        </tbody></table></div>`:''}
+    </div>`;
+}
 function renderMetricsPage(){
   const panel=document.getElementById('view-metrics');
   if(!panel)return;
+  // Filtro por estrategia: toda la página se calcula sobre las operaciones de esa estrategia
+  const fullTrades=allTrades;
+  try{renderMetricsStrategy(fullTrades);}catch(e){console.error('[estrategias]',e);}
+  if(MX_STRAT!=='all')allTrades=fullTrades.filter(t=>MX_STRAT==='__none'?!t.strategy:t.strategy===MX_STRAT);
+  try{
   const m=computeFullMetrics();
   mxLastMetrics=m;
   renderPerfAnalysis();
@@ -12352,6 +12450,7 @@ function renderMetricsPage(){
   mxRenderWeekdayChart(m);
   mxRenderMonthlyChart(m);
   mxRenderMiniCal();
+  }finally{allTrades=fullTrades;}
 }
 
 /* ── MI PLAN: WIZARD ── */
