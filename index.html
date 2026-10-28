@@ -636,6 +636,73 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .mxs-t{width:100%;border-collapse:collapse;font-size:12.5px}.mxs-t th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--border)}
 .mxs-t td{padding:7px 6px;border-bottom:1px solid var(--border);white-space:nowrap}.mxs-t tr:last-child td{border-bottom:0}
 .mxs-t tbody tr:not(.nohov){cursor:pointer}.mxs-t tbody tr:not(.nohov):hover td{background:var(--bg4)}.mxs-t tr.on td{background:var(--green-bg)}
+/* Selector de fecha/hora propio (tdp) */
+.tdp-native{display:none!important}
+.tdp-btn{width:100%;display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font:inherit;font-size:13.5px;font-weight:600;padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.tdp-btn:hover{border-color:var(--border2,#3a3a3a);background:var(--bg4)}
+.tdp-btn.open{border-color:var(--green);box-shadow:0 0 0 3px var(--green-bg)}
+.tdp-btn i{font-size:17px;color:var(--green);flex-shrink:0}
+.tdp-btn .tdp-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tdp-btn .tdp-v.ph{color:var(--text3);font-weight:500}
+.tdp-btn .tdp-x{font-size:15px;color:var(--text3)}.tdp-btn .tdp-x:hover{color:var(--red)}
+.tdp-pop{position:fixed;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px #000a,0 0 0 1px #ffffff08;padding:12px;width:292px;animation:tdpIn .14s ease-out;user-select:none}
+@keyframes tdpIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.tdp-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tdp-nav{width:30px;height:30px;border-radius:8px;border:0;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}.tdp-nav:hover{background:var(--bg4);color:var(--text)}
+.tdp-nav:disabled{opacity:.25;cursor:default;background:transparent}
+.tdp-title{border:0;background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:800;cursor:pointer;padding:5px 10px;border-radius:8px;display:flex;align-items:center;gap:4px}.tdp-title:hover{background:var(--bg4)}.tdp-title i{font-size:13px;color:var(--text3)}
+.tdp-wd{display:grid;grid-template-columns:repeat(7,1fr);font-size:10.5px;font-weight:700;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.tdp-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.tdp-d{position:relative;height:36px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.tdp-d:hover:not(:disabled){background:var(--bg4)}
+.tdp-d.out{color:var(--text3);opacity:.45}
+.tdp-d.today{box-shadow:inset 0 0 0 1px var(--green);color:var(--green)}
+.tdp-d.sel{background:var(--green)!important;color:#04140b!important;font-weight:800}
+.tdp-d:disabled{opacity:.2;cursor:default}
+.tdp-d.has::after{content:'';position:absolute;left:50%;bottom:4px;width:4px;height:4px;border-radius:50%;background:var(--green);transform:translateX(-50%)}
+.tdp-d.sel.has::after{background:#04140b}
+.tdp-ms{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tdp-m{height:40px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}.tdp-m:hover:not(:disabled){border-color:var(--green)}.tdp-m.sel{background:var(--green);color:#04140b;border-color:var(--green)}.tdp-m:disabled{opacity:.25;cursor:default}
+.tdp-ft{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.tdp-q{flex:1;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font:inherit;font-size:12px;font-weight:700;border-radius:999px;padding:7px 8px;cursor:pointer}.tdp-q:hover{border-color:var(--green);color:var(--green)}
+.tdp-q.on{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.tdp-tbig{text-align:center;font-size:30px;font-weight:800;letter-spacing:.02em;font-variant-numeric:tabular-nums;margin:2px 0 4px}.tdp-tbig span{color:var(--text3)}
+.tdp-tsess{text-align:center;font-size:11.5px;font-weight:700;margin-bottom:8px;min-height:16px}
+.tdp-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tdp-cl{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;text-align:center;margin-bottom:4px}
+.tdp-col{position:relative;height:190px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:4px;scrollbar-width:thin}
+.tdp-o{display:flex;align-items:center;justify-content:center;gap:6px;height:32px;border-radius:7px;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--text2)}
+.tdp-o:hover{background:var(--bg4);color:var(--text)}.tdp-o.sel{background:var(--green);color:#04140b}
+.tdp-o i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.tdp-o.sel i{background:#04140b!important}
+@media(max-width:768px){.tdp-pop{left:50%!important;top:auto!important;bottom:12px!important;transform:translateX(-50%);width:min(340px,calc(100vw - 24px));animation:none}.tdp-d{height:40px}}
+/* Mini ventana centrada (nueva estrategia) */
+#modal-newstrat{z-index:420}
+#modal-newstrat .modal{max-width:400px;animation:tpWeekModalIn .22s cubic-bezier(.2,.7,.2,1)}
+@media(max-width:768px){#modal-newstrat{align-items:center;padding:16px}#modal-newstrat .modal{border-radius:16px}}
+.ns-ico{width:44px;height:44px;border-radius:12px;background:var(--green-bg);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px}
+.ns-sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ns-sugg button{border:1px dashed var(--border);background:transparent;color:var(--text2);font:inherit;font-size:11.5px;font-weight:600;border-radius:999px;padding:5px 10px;cursor:pointer}.ns-sugg button:hover{border-color:var(--green);color:var(--green)}
+.ns-err{font-size:11.5px;color:var(--red);margin-top:6px;min-height:14px}
+/* Estrategias y confluencias plegable */
+.mxs-card{padding:0!important;overflow:hidden}
+.mxs-sum{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;flex-wrap:wrap}
+.mxs-sum:hover{background:#ffffff04}
+.mxs-ico{width:38px;height:38px;border-radius:11px;background:var(--green-bg);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.mxs-ttl{flex:1;min-width:170px}.mxs-ttl b{display:block;font-size:14px;font-weight:800}.mxs-ttl span{font-size:12px;color:var(--text3)}
+.mxs-kp{display:flex;gap:8px;flex-wrap:wrap}
+.mxs-k{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:6px 10px;min-width:0}
+.mxs-k small{display:block;font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.mxs-k strong{font-size:12.5px;font-weight:800;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;display:block}
+.mxs-chev{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:transform .2s;background:var(--bg3);border:1px solid var(--border);flex-shrink:0}
+.mxs-card.open .mxs-chev{transform:rotate(180deg);color:var(--green)}
+.mxs-body{display:none;padding:0 18px 18px}
+.mxs-card.open .mxs-body{display:block}
+.mxs-tabs{display:flex;gap:6px;margin-bottom:10px}
+.mxs-more{margin-top:8px;border:0;background:transparent;color:var(--green);font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:4px 0}
+.mxs-act{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--green);color:var(--green);font-size:11.5px;font-weight:700;border-radius:999px;padding:4px 6px 4px 10px}
+.mxs-act button{border:0;background:transparent;color:inherit;cursor:pointer;display:flex;font-size:14px;padding:0}
+@media(max-width:768px){.mxs-sum{padding:14px}.mxs-kp{width:100%}.mxs-k{flex:1}.mxs-body{padding:0 14px 14px}.mxs-sel-w{width:100%}.mxs-sel-w .ops-sel{max-width:none;width:100%}}
 .tmsel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 @media(max-width:520px){.tmsel-grid{grid-template-columns:1fr}}
 .tmsel{position:relative}
@@ -4225,6 +4292,20 @@ function initLandingFX(){
   <button class="lightbox-nav lightbox-next" id="lightbox-next" onclick="event.stopPropagation();lightboxNav(1)" style="display:none" title="Siguiente"><i class="ti ti-chevron-right"></i></button>
 </div>
 
+<!-- NUEVA ESTRATEGIA -->
+<div class="modal-overlay" id="modal-newstrat" style="display:none" onclick="if(event.target===this)closeNewStrategy()">
+  <div class="modal">
+    <div class="modal-body" style="padding:22px">
+      <div class="ns-ico"><i class="ti ti-target-arrow"></i></div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Nueva estrategia</div>
+      <div style="font-size:12.5px;color:var(--text3);margin-bottom:14px">Ponle un nombre corto. Después podrás comparar en Métricas qué estrategia te funciona mejor.</div>
+      <input class="form-input" id="ns-name" maxlength="50" placeholder="Ej. Ruptura de Londres" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();saveNewStrategy();}else if(event.key==='Escape'){event.stopPropagation();closeNewStrategy();}">
+      <div class="ns-err" id="ns-err" data-no-i18n></div>
+      <div class="ns-sugg" id="ns-sugg" data-no-i18n></div>
+      <div style="display:flex;gap:8px;margin-top:18px"><button class="btn btn-ghost" style="flex:1" onclick="closeNewStrategy()">Cancelar</button><button class="btn btn-primary" style="flex:1" onclick="saveNewStrategy()"><i class="ti ti-check"></i> Crear estrategia</button></div>
+    </div>
+  </div>
+</div>
 <!-- TRADE -->
 <div class="modal-overlay" id="modal-trade" style="display:none" onclick="if(event.target===this)closeModal('modal-trade')">
   <div class="modal" style="max-width:520px">
@@ -12385,12 +12466,135 @@ function setTStrategy(v){const sel=document.getElementById('t-strategy');if(!sel
   sel.value=v||'';sel.dataset.prev=sel.value;}
 function tStrategyChanged(sel){
   if(sel.value!=='__new'){sel.dataset.prev=sel.value;return;}
-  const n=String(prompt(tdL('Nombre de la estrategia (ej. Ruptura de Londres, ICT 2022, Pullback a EMA)','Strategy name'))||'').replace(/\s+/g,' ').trim().slice(0,50);
-  if(!n){sel.value=sel.dataset.prev||'';return;}
-  const p=jpPrefs();if(!strategyList().some(x=>x.toLowerCase()===n.toLowerCase())){p.strategies.push(n);jpSave();}
-  setTStrategy(strategyList().find(x=>x.toLowerCase()===n.toLowerCase())||n);
+  openNewStrategy();
 }
 function tStrategyValue(){const sel=document.getElementById('t-strategy');const v=sel?sel.value:'';return v&&v!=='__new'?v.slice(0,50):null;}
+
+/* ── Selector de fecha y hora propio (tdp): sustituye visualmente a los <input type=date/time> nativos.
+   El input nativo sigue existiendo (oculto) y guarda el valor → el resto del código no cambia.
+   Su setter de value está interceptado para refrescar el botón cuando el código lo rellena. */
+const TDP={pop:null,inp:null,view:null,y:0,m:0,mode:'d'};
+const TDP_VD=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+function tdpKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function tdpSessOf(h){if(h==null||isNaN(h))return null;return h>=8&&h<13?'london':h>=13&&h<22?'ny':'asia';}
+const TDP_SESS={asia:['Asia','Asia','#A78BFA'],london:['Londres','London','#60A5FA'],ny:['Nueva York','New York','#22C55E']};
+function tdpLabel(inp){
+  const v=TDP_VD.get.call(inp);
+  if(inp.type==='time'){if(!v)return null;const h=parseInt(v,10),se=TDP_SESS[tdpSessOf(h)];return v.slice(0,5)+(se?'  ·  '+tdL(se[0],se[1]):'');}
+  if(!v)return null;const d=new Date(v+'T12:00:00');if(isNaN(d))return v;
+  const t=new Date(),k=tdpKey(d),y=new Date(t);y.setDate(t.getDate()-1);
+  const base=d.getDate()+' '+gM()[d.getMonth()].slice(0,3).toLowerCase()+' '+d.getFullYear();
+  const wd=(lang==='es'?DAYS_ES:DAYS_EN)[d.getDay()];
+  return k===tdpKey(t)?tdL('Hoy','Today')+' · '+base:k===tdpKey(y)?tdL('Ayer','Yesterday')+' · '+base:wd+', '+base;
+}
+function tdpSync(inp){
+  const b=inp&&inp._tdpBtn;if(!b)return;const l=tdpLabel(inp),v=b.querySelector('.tdp-v');
+  v.textContent=l||(inp.type==='time'?tdL('Sin hora','No time'):tdL('Elegir fecha','Pick a date'));v.classList.toggle('ph',!l);
+  const x=b.querySelector('.tdp-x');if(x)x.style.display=l?'':'none';
+}
+function tdpSet(inp,v){TDP_VD.set.call(inp,v);tdpSync(inp);inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));}
+function tdpEnhance(id){
+  const inp=document.getElementById(id);if(!inp||inp._tdpBtn)return;
+  const isT=inp.type==='time';
+  const old=inp.nextElementSibling;if(old&&old.classList.contains('tdp-btn'))old.remove();
+  const b=document.createElement('button');b.type='button';b.className='tdp-btn';
+  b.innerHTML=`<i class="ti ti-${isT?'clock':'calendar-event'}"></i><span class="tdp-v" data-no-i18n></span>${isT?'<i class="ti ti-x tdp-x" title="'+tdL('Quitar hora','Clear time')+'"></i>':'<i class="ti ti-chevron-down" style="color:var(--text3);font-size:14px"></i>'}`;
+  b.onclick=e=>{if(e.target.classList.contains('tdp-x')){e.stopPropagation();tdpSet(inp,'');tdpClose();return;}TDP.inp===inp?tdpClose():tdpOpen(inp);};
+  inp.classList.add('tdp-native');inp.insertAdjacentElement('afterend',b);inp._tdpBtn=b;
+  Object.defineProperty(inp,'value',{configurable:true,get(){return TDP_VD.get.call(this);},set(v){TDP_VD.set.call(this,v);tdpSync(this);}});
+  tdpSync(inp);
+}
+function tdpClose(){if(TDP.pop){TDP.pop.remove();TDP.pop=null;}if(TDP.inp&&TDP.inp._tdpBtn)TDP.inp._tdpBtn.classList.remove('open');TDP.inp=null;}
+function tdpPlace(){
+  if(!TDP.pop||!TDP.inp)return;if(window.innerWidth<=768)return;
+  const r=TDP.inp._tdpBtn.getBoundingClientRect(),p=TDP.pop,ph=p.offsetHeight,pw=p.offsetWidth;
+  let top=r.bottom+6;if(top+ph>window.innerHeight-8)top=Math.max(8,r.top-ph-6);
+  let left=Math.min(r.left,window.innerWidth-pw-8);p.style.top=top+'px';p.style.left=Math.max(8,left)+'px';
+}
+function tdpOpen(inp){
+  tdpClose();TDP.inp=inp;inp._tdpBtn.classList.add('open');
+  const p=document.createElement('div');p.className='tdp-pop';p.setAttribute('data-no-i18n','');
+  p.onmousedown=e=>e.stopPropagation();p.ontouchstart=e=>e.stopPropagation();
+  document.body.appendChild(p);TDP.pop=p;
+  if(inp.type==='time'){tdpRenderTime();}
+  else{const v=TDP_VD.get.call(inp),d=v?new Date(v+'T12:00:00'):new Date();TDP.y=d.getFullYear();TDP.m=d.getMonth();TDP.mode='d';tdpRenderDate();}
+  tdpPlace();
+}
+function tdpTradeDays(){const set=new Set();try{(allTrades||[]).forEach(t=>t.date&&set.add(String(t.date).slice(0,10)));(allJournals||[]).forEach(j=>j.date&&set.add(String(j.date).slice(0,10)));}catch(_){}return set;}
+function tdpRenderDate(){
+  const p=TDP.pop,inp=TDP.inp;if(!p)return;
+  const sel=TDP_VD.get.call(inp),today=new Date(),tk=tdpKey(today),ty=today.getFullYear(),tm=today.getMonth();
+  const M=gM(),y=TDP.y,m=TDP.m;
+  if(TDP.mode==='m'){
+    p.innerHTML=`<div class="tdp-hd"><button class="tdp-nav" data-a="py"><i class="ti ti-chevron-left"></i></button><button class="tdp-title" data-a="back">${y}</button><button class="tdp-nav" data-a="ny" ${y>=ty?'disabled':''}><i class="ti ti-chevron-right"></i></button></div>
+      <div class="tdp-ms">${M.map((n,i)=>`<button class="tdp-m${i===m&&sel&&sel.slice(0,7)===y+'-'+String(i+1).padStart(2,'0')?' sel':''}" data-m="${i}" ${y===ty&&i>tm?'disabled':''}>${n.slice(0,3)}</button>`).join('')}</div>`;
+  }else{
+    const first=new Date(y,m,1),off=(first.getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),has=tdpTradeDays();
+    const wd=(lang==='es'?['L','M','X','J','V','S','D']:['M','T','W','T','F','S','S']);
+    let cells='';const start=new Date(y,m,1-off);
+    for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);if(i>=35&&d.getMonth()!==m)break;
+      const k=tdpKey(d),fut=k>tk;
+      cells+=`<button class="tdp-d${d.getMonth()!==m?' out':''}${k===tk?' today':''}${k===sel?' sel':''}${has.has(k)?' has':''}" data-k="${k}" ${fut?'disabled':''}>${d.getDate()}</button>`;}
+    const yd=new Date(today);yd.setDate(today.getDate()-1);const yk=tdpKey(yd);
+    p.innerHTML=`<div class="tdp-hd"><button class="tdp-nav" data-a="pm"><i class="ti ti-chevron-left"></i></button><button class="tdp-title" data-a="mm">${M[m]} ${y}<i class="ti ti-chevron-down"></i></button><button class="tdp-nav" data-a="nm" ${y>ty||(y===ty&&m>=tm)?'disabled':''}><i class="ti ti-chevron-right"></i></button></div>
+      <div class="tdp-wd">${wd.map(x=>`<span>${x}</span>`).join('')}</div><div class="tdp-days">${cells}</div>
+      <div class="tdp-ft"><button class="tdp-q${sel===tk?' on':''}" data-k="${tk}">${tdL('Hoy','Today')}</button><button class="tdp-q${sel===yk?' on':''}" data-k="${yk}">${tdL('Ayer','Yesterday')}</button></div>`;
+  }
+  p.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;e.stopPropagation();
+    const a=b.dataset.a;
+    if(b.dataset.k){tdpSet(inp,b.dataset.k);tdpClose();return;}
+    if(b.dataset.m!=null){TDP.m=+b.dataset.m;TDP.mode='d';}
+    else if(a==='pm'){if(--TDP.m<0){TDP.m=11;TDP.y--;}}
+    else if(a==='nm'){if(++TDP.m>11){TDP.m=0;TDP.y++;}}
+    else if(a==='mm'){TDP.mode='m';}else if(a==='back'){TDP.mode='d';}
+    else if(a==='py'){TDP.y--;}else if(a==='ny'){TDP.y++;}
+    tdpRenderDate();tdpPlace();};
+}
+function tdpRenderTime(){
+  const p=TDP.pop,inp=TDP.inp;if(!p)return;
+  const v=TDP_VD.get.call(inp)||'',hh=v?parseInt(v.slice(0,2),10):null,mm=v?parseInt(v.slice(3,5),10):null;
+  const se=TDP_SESS[tdpSessOf(hh)];
+  const p2=n=>String(n).padStart(2,'0');
+  p.innerHTML=`<div class="tdp-tbig">${hh==null?'<span>--</span>':p2(hh)}<span>:</span>${mm==null?'<span>--</span>':p2(mm)}</div>
+    <div class="tdp-tsess" style="color:${se?se[2]:'var(--text3)'}">${se?tdL('Sesión','Session')+' '+tdL(se[0],se[1]):tdL('Elige hora y minutos','Pick hour and minutes')}</div>
+    <div class="tdp-cols"><div><div class="tdp-cl">${tdL('Hora','Hour')}</div><div class="tdp-col" data-c="h">${Array.from({length:24},(_,h)=>`<div class="tdp-o${h===hh?' sel':''}" data-h="${h}"><i style="background:${TDP_SESS[tdpSessOf(h)][2]}"></i>${p2(h)}</div>`).join('')}</div></div>
+    <div><div class="tdp-cl">${tdL('Minutos','Minutes')}</div><div class="tdp-col" data-c="m">${Array.from({length:60},(_,x)=>`<div class="tdp-o${x===mm?' sel':''}" data-mi="${x}">${p2(x)}</div>`).join('')}</div></div></div>
+    <div class="tdp-ft"><button class="tdp-q" data-a="now">${tdL('Ahora','Now')}</button><button class="tdp-q" data-a="clr">${tdL('Sin hora','No time')}</button><button class="tdp-q on" data-a="ok">OK</button></div>`;
+  p.querySelectorAll('.tdp-o.sel').forEach(o=>{o.parentElement.scrollTop=o.offsetTop-o.parentElement.clientHeight/2+16;});
+  if(hh==null){const c=p.querySelector('[data-c="h"]');const o=c.querySelector('[data-h="9"]');if(o)c.scrollTop=o.offsetTop-8;}
+  p.onclick=e=>{const o=e.target.closest('.tdp-o,button');if(!o)return;e.stopPropagation();
+    const cur=TDP_VD.get.call(inp)||'',ch=cur?parseInt(cur,10):null,cm=cur?parseInt(cur.slice(3,5),10):0;
+    if(o.dataset.h!=null){tdpSet(inp,p2(+o.dataset.h)+':'+p2(ch==null?0:cm));const c1=p.querySelector('[data-c="m"]').scrollTop;tdpRenderTime();p.querySelector('[data-c="m"]').scrollTop=c1;return;}
+    if(o.dataset.mi!=null){tdpSet(inp,p2(ch==null?new Date().getHours():ch)+':'+p2(+o.dataset.mi));tdpClose();return;}
+    const a=o.dataset.a;
+    if(a==='now'){const n=new Date();tdpSet(inp,p2(n.getHours())+':'+p2(n.getMinutes()));tdpClose();}
+    else if(a==='clr'){tdpSet(inp,'');tdpClose();}else tdpClose();};
+}
+document.addEventListener('mousedown',e=>{if(TDP.pop&&!(TDP.inp&&TDP.inp._tdpBtn.contains(e.target)))tdpClose();});
+document.addEventListener('touchstart',e=>{if(TDP.pop&&!(TDP.inp&&TDP.inp._tdpBtn.contains(e.target)))tdpClose();},{passive:true});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&TDP.pop){e.stopPropagation();tdpClose();}},true);
+window.addEventListener('resize',()=>tdpPlace());
+document.addEventListener('scroll',e=>{if(TDP.pop&&!TDP.pop.contains(e.target))tdpPlace();},true);
+function tdpInit(){['t-date','t-time','j-date'].forEach(tdpEnhance);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tdpInit);else tdpInit();
+
+/* ── Nueva estrategia: mini ventana centrada (sustituye al prompt del navegador) ── */
+function openNewStrategy(){
+  const inp=document.getElementById('ns-name');inp.value='';document.getElementById('ns-err').textContent='';
+  const sg=document.getElementById('ns-sugg');const have=strategyList().map(x=>x.toLowerCase());
+  const ideas=tdL('Ruptura de Londres|ICT 2022|Pullback a EMA|Order Block|Rango asiático|Liquidez + FVG','London breakout|ICT 2022|EMA pullback|Order Block|Asian range|Liquidity + FVG').split('|').filter(x=>!have.includes(x.toLowerCase())).slice(0,5);
+  sg.innerHTML=ideas.map(x=>`<button type="button" data-v="${esc(x)}">${esc(x)}</button>`).join('');
+  sg.onclick=e=>{const b=e.target.closest('button');if(b){inp.value=b.dataset.v;inp.focus();}};
+  openModal('modal-newstrat');setTimeout(()=>inp.focus(),60);
+}
+function closeNewStrategy(){closeModal('modal-newstrat');const sel=document.getElementById('t-strategy');if(sel&&sel.value==='__new')sel.value=sel.dataset.prev||'';}
+function saveNewStrategy(){
+  const n=String(document.getElementById('ns-name').value||'').replace(/\s+/g,' ').trim().slice(0,50);
+  if(!n){document.getElementById('ns-err').textContent=tdL('Escribe un nombre','Type a name');return;}
+  const p=jpPrefs();if(!strategyList().some(x=>x.toLowerCase()===n.toLowerCase())){p.strategies.push(n);jpSave();}
+  setTStrategy(strategyList().find(x=>x.toLowerCase()===n.toLowerCase())||n);
+  closeModal('modal-newstrat');
+}
 
 /* ── Métricas: filtro y comparativa por estrategia + rendimiento por confluencia ── */
 let MX_STRAT='all';
@@ -12411,23 +12615,43 @@ function renderMetricsStrategy(full){
   // Confluencias (etiquetas técnicas) con al menos 2 operaciones
   const tagMap={};full.forEach(t=>(Array.isArray(t.technical_tags)?t.technical_tags:[]).forEach(g=>{(tagMap[g]=tagMap[g]||[]).push(t);}));
   const tags=Object.entries(tagMap).filter(([,a])=>a.length>=2).map(([g,a])=>[g,mxGroupStats(a)]).sort((a,b)=>b[1].n-a[1].n).slice(0,10);
-  if(!strats.length&&!tags.length){box.innerHTML=`<div class="mxs-hint"><i class="ti ti-target-arrow"></i><span>${tdL('Elige la <b>estrategia</b> y marca las <b>confluencias</b> al registrar tus trades y aquí verás cuál te funciona mejor.','Pick a <b>strategy</b> and tag <b>confluences</b> when logging trades to see here which works best.')}</span></div>`;return;}
+  if(!strats.length&&!tags.length){box.classList.remove('mxs-card','open');box.innerHTML=`<div class="mxs-hint"><i class="ti ti-target-arrow"></i><span>${tdL('Elige la <b>estrategia</b> y marca las <b>confluencias</b> al registrar tus trades y aquí verás cuál te funciona mejor.','Pick a <b>strategy</b> and tag <b>confluences</b> when logging trades to see here which works best.')}</span></div>`;return;}
   const rows=strats.map(sn=>[sn,mxGroupStats(full.filter(t=>t.strategy===sn))]).sort((a,b)=>b[1].n-a[1].n);
   const best=rows.filter(r=>r[1].n>=3).sort((a,b)=>(b[1].pnl)-(a[1].pnl))[0];
+  const bestTag=tags.filter(r=>r[1].n>=3&&r[1].wr!=null).sort((a,b)=>b[1].wr-a[1].wr)[0];
   const opt=(v,l)=>`<option value="${esc(v)}"${MX_STRAT===v?' selected':''}>${esc(l)}</option>`;
-  box.innerHTML=`<div class="mx-card-head"><div><div class="mx-card-title"><i class="ti ti-target-arrow"></i>${tdL('Estrategias y confluencias','Strategies and confluences')}</div><div class="mx-card-sub">${tdL('Compara qué te funciona mejor. Al filtrar por estrategia cambian todas las métricas de esta página.','Compare what works best. Filtering by strategy updates every metric on this page.')}</div></div>
-      ${strats.length?`<select class="ops-sel${MX_STRAT!=='all'?' on':''}" onchange="mxSetStrategy(this.value)">${opt('all',tdL('Todas las estrategias','All strategies'))}${strats.map(x=>opt(x,x)).join('')}${none?opt('__none',tdL('Sin estrategia','No strategy')+' ('+none+')'):''}</select>`:''}</div>
-    <div class="mxs-grid">
-      ${rows.length?`<div class="mxs-t-wrap"><div class="mxs-h">${tdL('Por estrategia','By strategy')}${best?`<span>${tdL('Mejor','Best')}: <b>${esc(best[0])}</b></span>`:''}</div>
-        <table class="mxs-t"><thead><tr><th>${tdL('Estrategia','Strategy')}</th><th>Ops</th><th>Win rate</th><th>${tdL('PyG','P&L')}</th><th>PF</th><th>${tdL('R medio','Avg R')}</th></tr></thead><tbody>
-        ${rows.map(([k,st])=>`<tr class="${MX_STRAT===k?'on':''}" data-k="${esc(k)}" onclick="mxSetStrategy(MX_STRAT===this.dataset.k?'all':this.dataset.k)"><td data-no-i18n>${esc(k)}</td><td>${st.n}</td><td>${wr(st.wr)}</td><td style="color:${pc(st.pnl)}">${fmtMoneySigned(st.pnl)}</td><td>${pf(st.pf)}</td><td style="color:${pc(st.r||0)}">${rr(st.r)}</td></tr>`).join('')}
-        </tbody></table></div>`:''}
-      ${tags.length?`<div class="mxs-t-wrap"><div class="mxs-h">${tdL('Por confluencia','By confluence')}<span>${tdL('mín. 2 operaciones','min. 2 trades')}</span></div>
-        <table class="mxs-t"><thead><tr><th>${tdL('Confluencia','Confluence')}</th><th>Ops</th><th>Win rate</th><th>${tdL('PyG','P&L')}</th></tr></thead><tbody>
-        ${tags.map(([k,st])=>`<tr class="nohov"><td data-no-i18n>${esc(k)}</td><td>${st.n}</td><td>${wr(st.wr)}</td><td style="color:${pc(st.pnl)}">${fmtMoneySigned(st.pnl)}</td></tr>`).join('')}
-        </tbody></table></div>`:''}
+  if(MX_STRAT_TAB==='s'&&!rows.length)MX_STRAT_TAB='c';if(MX_STRAT_TAB==='c'&&!tags.length)MX_STRAT_TAB='s';
+  const LIM=5,list=MX_STRAT_TAB==='s'?rows:tags,shown=MX_STRAT_ALL?list:list.slice(0,LIM);
+  const kp=(l,v,c)=>`<div class="mxs-k"><small>${l}</small><strong data-no-i18n${c?` style="color:${c}"`:''}>${v}</strong></div>`;
+  const actName=MX_STRAT==='__none'?tdL('Sin estrategia','No strategy'):MX_STRAT;
+  box.classList.add('mxs-card');box.classList.toggle('open',!!MX_STRAT_OPEN);
+  box.innerHTML=`<div class="mxs-sum" onclick="if(!event.target.closest('select,button.mxs-x'))mxToggleStrat()">
+      <div class="mxs-ico"><i class="ti ti-target-arrow"></i></div>
+      <div class="mxs-ttl"><b>${tdL('Estrategias y confluencias','Strategies and confluences')}</b><span>${MX_STRAT!=='all'?`<span class="mxs-act">${tdL('Filtrando','Filtering')}: ${esc(actName)}<button class="mxs-x" onclick="event.stopPropagation();mxSetStrategy('all')" title="${tdL('Quitar filtro','Clear filter')}"><i class="ti ti-x"></i></button></span>`:tdL('Qué te funciona mejor · filtra toda la página','What works best · filter the whole page')}</span></div>
+      <div class="mxs-kp">
+        ${kp(tdL('Estrategias','Strategies'),strats.length)}
+        ${best?kp(tdL('Mejor estrategia','Best strategy'),esc(best[0])+' · '+fmtMoneySigned(best[1].pnl),pc(best[1].pnl)):''}
+        ${bestTag?kp(tdL('Mejor confluencia','Best confluence'),esc(bestTag[0])+' · '+wr(bestTag[1].wr)):''}
+      </div>
+      ${strats.length?`<div class="mxs-sel-w"><select class="ops-sel${MX_STRAT!=='all'?' on':''}" onchange="mxSetStrategy(this.value)">${opt('all',tdL('Todas las estrategias','All strategies'))}${strats.map(x=>opt(x,x)).join('')}${none?opt('__none',tdL('Sin estrategia','No strategy')+' ('+none+')'):''}</select></div>`:''}
+      <div class="mxs-chev"><i class="ti ti-chevron-down"></i></div>
+    </div>
+    <div class="mxs-body">
+      ${rows.length&&tags.length?`<div class="mxs-tabs jr-seg"><button class="jr-chip${MX_STRAT_TAB==='s'?' on':''}" onclick="mxStratTab('s')">${tdL('Por estrategia','By strategy')} · ${rows.length}</button><button class="jr-chip${MX_STRAT_TAB==='c'?' on':''}" onclick="mxStratTab('c')">${tdL('Por confluencia','By confluence')} · ${tags.length}</button></div>`:''}
+      <div class="mxs-t-wrap">
+      ${MX_STRAT_TAB==='s'?`<table class="mxs-t"><thead><tr><th>${tdL('Estrategia','Strategy')}</th><th>Ops</th><th>Win rate</th><th>${tdL('PyG','P&L')}</th><th>PF</th><th>${tdL('R medio','Avg R')}</th></tr></thead><tbody>
+        ${shown.map(([k,st])=>`<tr class="${MX_STRAT===k?'on':''}" data-k="${esc(k)}" onclick="mxSetStrategy(MX_STRAT===this.dataset.k?'all':this.dataset.k)" data-tip="${esc(tdL('Clic para filtrar las métricas por esta estrategia','Click to filter metrics by this strategy'))}"><td data-no-i18n>${esc(k)}</td><td>${st.n}</td><td>${wr(st.wr)}</td><td style="color:${pc(st.pnl)}">${fmtMoneySigned(st.pnl)}</td><td>${pf(st.pf)}</td><td style="color:${pc(st.r||0)}">${rr(st.r)}</td></tr>`).join('')}
+        </tbody></table>`:`<table class="mxs-t"><thead><tr><th>${tdL('Confluencia','Confluence')}</th><th>Ops</th><th>Win rate</th><th>${tdL('PyG','P&L')}</th></tr></thead><tbody>
+        ${shown.map(([k,st])=>`<tr class="nohov"><td data-no-i18n>${esc(k)}</td><td>${st.n}</td><td>${wr(st.wr)}</td><td style="color:${pc(st.pnl)}">${fmtMoneySigned(st.pnl)}</td></tr>`).join('')}
+        </tbody></table><div style="font-size:11px;color:var(--text3);margin-top:6px">${tdL('Confluencias con al menos 2 operaciones','Confluences with at least 2 trades')}</div>`}
+      </div>
+      ${list.length>LIM?`<button class="mxs-more" onclick="MX_STRAT_ALL=!MX_STRAT_ALL;renderMetricsStrategy(allTrades)">${MX_STRAT_ALL?tdL('Ver menos','Show less'):tdL('Ver todas','Show all')+' ('+list.length+')'}</button>`:''}
     </div>`;
+  try{mxInitTips&&mxInitTips();}catch(_){}
 }
+let MX_STRAT_OPEN=false,MX_STRAT_TAB='s',MX_STRAT_ALL=false;
+function mxToggleStrat(){MX_STRAT_OPEN=!MX_STRAT_OPEN;const b=document.getElementById('mx-strat-card');if(b)b.classList.toggle('open',MX_STRAT_OPEN);}
+function mxStratTab(t){MX_STRAT_TAB=t;MX_STRAT_ALL=false;renderMetricsStrategy(allTrades);}
 function renderMetricsPage(){
   const panel=document.getElementById('view-metrics');
   if(!panel)return;
@@ -12824,6 +13048,10 @@ document.addEventListener('visibilitychange',()=>{
    Los datos que escribe el trader NUNCA se traducen. */
 
 var I18N_EN = {
+  'Nueva estrategia':'New strategy',
+  'Ponle un nombre corto. Después podrás comparar en Métricas qué estrategia te funciona mejor.':'Give it a short name. Later you can compare in Metrics which strategy works best for you.',
+  'Crear estrategia':'Create strategy',
+  'Ej. Ruptura de Londres':'E.g. London breakout',
   /* ── Encuesta de backtesting ── */
   'Backtesting':'Backtesting',
   'Pronto':'Soon',
