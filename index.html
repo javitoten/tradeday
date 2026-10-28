@@ -42,7 +42,8 @@
 <meta name="twitter:description" content="Registra tus operaciones, analiza tu comportamiento y construye disciplina real. Diario de trading online, gratis.">
 <meta name="twitter:image" content="https://tradeday.me/og-image.png">
 <meta name="twitter:image:alt" content="TradeDay — Diario de trading online">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2322C55E'/%3E%3Ctext x='50' y='68' font-family='Arial,sans-serif' font-weight='900' font-size='52' fill='%23000' text-anchor='middle'%3ETD%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='103 73 940 940'%3E%3Crect x='103' y='73' width='940' height='940' rx='210' fill='%230A0B0E'/%3E%3Crect x='250' y='300' width='330' height='88' rx='20' fill='%2322C55E'/%3E%3Crect x='372' y='404' width='88' height='270' rx='20' fill='%2322C55E'/%3E%3Crect x='403' y='690' width='26' height='96' rx='13' fill='%2322C55E'/%3E%3Cpath d='M560 300h96a240 240 0 0 1 0 480h-96zM648 388v304h8a152 152 0 0 0 0-304z' fill='%23F0F2F5' fill-rule='evenodd'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -212,7 +213,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* NAV */
 nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;flex-shrink:0}
 .nav-logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color:var(--text);cursor:pointer;letter-spacing:-.02em}
-.logo-mark{width:26px;height:26px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#000}
+.logo-mark{width:26px;height:26px;background:#0D0F13 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='213 183 720 720'%3E%3Crect x='250' y='300' width='330' height='88' rx='20' fill='%2322C55E'/%3E%3Crect x='372' y='404' width='88' height='270' rx='20' fill='%2322C55E'/%3E%3Crect x='403' y='690' width='26' height='96' rx='13' fill='%2322C55E'/%3E%3Cpath d='M560 300h96a240 240 0 0 1 0 480h-96zM648 388v304h8a152 152 0 0 0 0-304z' fill='%23F0F2F5' fill-rule='evenodd'/%3E%3C/svg%3E") center/80% no-repeat;border:1px solid rgba(34,197,94,.28);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0!important;color:transparent!important;flex-shrink:0;box-sizing:border-box}
 .nav-links{display:flex;align-items:center;gap:2px}
 .nav-link{padding:5px 11px;border-radius:var(--radius);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;background:none;border:none;font-family:inherit;font-weight:500}
 .nav-link:hover,.nav-link.active{color:var(--text);background:var(--bg3)}
@@ -238,6 +239,129 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px
 ══════════════════════════════════════════════ */
 
 /* -- reveal-on-scroll -- */
+/* ══ Landing oct-2026: ilustración del hero, pasos ilustrados, opiniones reales ══ */
+#screen-home .ld-price-card .ld-price-badge{position:absolute;left:auto;right:24px;width:auto;z-index:2}
+#screen-home .ld-stats{grid-template-columns:repeat(4,1fr)}
+.ld-stat:hover{background:var(--bg2)}
+.ld-stat:hover .ld-stat-num{color:var(--accent)}
+.ld-stat-num{transition:color .3s}
+/* Hero: dashboard ilustrado */
+.ldh{position:relative;display:grid;grid-template-columns:168px 1fr;min-height:420px;text-align:left;font-size:12px;border-top:1px solid var(--border);background:radial-gradient(120% 80% at 80% 0%,rgba(34,197,94,.06),transparent 60%),var(--bg)}
+.ldh-side{border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:3px;background:rgba(255,255,255,.012)}
+.ldh-logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;padding:2px 8px 14px}
+.ldh-logo .logo-mark{width:22px;height:22px;border-radius:6px}
+.ldh-nav{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;color:var(--text3);font-weight:500;font-size:11.5px;white-space:nowrap}
+.ldh-nav i{font-size:14px}
+.ldh-nav.on{background:var(--bg3);color:var(--text)}
+.ldh-nav.on i{color:var(--accent)}
+.ldh-main{padding:18px 20px 20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ldh-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ldh-hi{font-size:16px;font-weight:800;letter-spacing:-.02em}
+.ldh-acc{display:flex;align-items:center;gap:6px;color:var(--text3);font-size:11px;margin-top:3px}
+.ldh-led{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:ldhPulse 2.2s ease-in-out infinite}
+.ldh-new{display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:#04120a;font-weight:700;font-size:11px;padding:6px 11px;border-radius:8px;white-space:nowrap}
+.ldh-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ldh-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:11px 12px;display:flex;flex-direction:column;gap:3px;opacity:0;transform:translateY(10px);animation:ldhIn .7s cubic-bezier(.16,1,.3,1) forwards}
+.ldh-kpi:nth-child(2){animation-delay:.08s}.ldh-kpi:nth-child(3){animation-delay:.16s}.ldh-kpi:nth-child(4){animation-delay:.24s}
+.ldh-kpi small,.ldh-ch span{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.ldh-kpi b{font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ldh-kpi b span{font-size:11px;color:var(--text3);font-weight:600}
+.ldh-kpi em{font-style:normal;font-size:10.5px;color:var(--text3);font-weight:600}
+.ldh .up{color:var(--accent)!important}.ldh .dn{color:var(--red)!important}.ldh .be{color:var(--text2)!important}
+.ldh-kpi-ring{flex-direction:row;align-items:center;gap:10px}
+.ldh-kpi-ring>div{display:flex;flex-direction:column;gap:3px}
+.ldh-kpi-ring svg,.ldsa-3 .rg svg{width:38px;height:38px;transform:rotate(-90deg);flex-shrink:0}
+.ldh-kpi-ring .tr,.ldsa-3 .tr{fill:none;stroke:var(--bg4);stroke-width:4}
+.ldh-kpi-ring .fg,.ldsa-3 .fg{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round;stroke-dasharray:94.25;stroke-dashoffset:94.25;animation:ldhRing 1.6s .5s cubic-bezier(.16,1,.3,1) forwards}
+.ldh-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:10px}
+.ldh-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;opacity:0;transform:translateY(12px);animation:ldhIn .8s .3s cubic-bezier(.16,1,.3,1) forwards}
+.ldh-plan{animation-delay:.42s}.ldh-trades{animation-delay:.54s}
+.ldh-ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ldh-ch em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--text3);display:inline-flex;align-items:center;gap:4px}
+.ldh-ch em.ok{color:var(--accent);background:var(--green-bg);border:1px solid var(--green-border);padding:2px 7px;border-radius:20px}
+.ldh-eqsvg{width:100%;height:112px;display:block;overflow:visible}
+.ldh-gridl line{stroke:var(--border);stroke-width:1;vector-effect:non-scaling-stroke}
+.ldh-line{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:ldhDraw 2.2s .55s cubic-bezier(.65,0,.35,1) forwards}
+.ldh-area{opacity:0;animation:ldhFade 1.2s 1.6s ease forwards}
+.ldh-dot{fill:var(--accent);opacity:0;transform-origin:400px 22px;animation:ldhFade .4s 2.6s forwards,ldhDot 2s 3s ease-in-out infinite}
+.ldh-bar{margin-top:9px}
+.ldh-bar .l{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text2);margin-bottom:5px}
+.ldh-bar .l b{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.ldh-bar .t{height:5px;border-radius:5px;background:var(--bg4);overflow:hidden}
+.ldh-bar .t i{display:block;height:100%;width:0;border-radius:5px;background:var(--accent);animation:ldhW 1.2s .9s cubic-bezier(.16,1,.3,1) forwards}
+.ldh-bar .t.warn i{background:#F59E0B}
+.ldh-tr{display:grid;grid-template-columns:62px 40px 78px 1fr auto;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:11.5px;opacity:0;transform:translateX(-10px);animation:ldhIn .6s cubic-bezier(.16,1,.3,1) forwards}
+.ldh-tr:nth-of-type(1){animation-delay:.9s}.ldh-tr:nth-of-type(2){animation-delay:1.05s}.ldh-tr:nth-of-type(3){animation-delay:1.2s}
+.ldh-tr .p{font-weight:800}
+.ldh-tr .d{font-size:10px;font-weight:700;text-align:center;padding:2px 0;border-radius:6px}
+.ldh-tr .d.buy{background:var(--green-bg);color:var(--accent)}.ldh-tr .d.sell{background:var(--red-bg);color:var(--red)}
+.ldh-tr .s{color:var(--text3);font-size:10.5px;white-space:nowrap}
+.ldh-tr .n{color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ldh-tr b{font-weight:800;font-variant-numeric:tabular-nums}
+.ldh-toast{position:absolute;right:18px;bottom:18px;display:flex;align-items:center;gap:10px;background:rgba(17,19,24,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--green-border);border-radius:12px;padding:10px 14px;box-shadow:0 18px 40px -12px rgba(0,0,0,.7),0 0 0 1px rgba(34,197,94,.08);opacity:0;transform:translateY(14px) scale(.97);animation:ldhToast 7s 2.4s cubic-bezier(.16,1,.3,1) infinite;z-index:3}
+.ldh-toast i{font-size:20px;color:var(--accent)}
+.ldh-toast b{display:block;font-size:12px}.ldh-toast span{font-size:11px;color:var(--text2)}
+.ldh-chip{position:absolute;left:14px;bottom:20px;display:flex;align-items:center;gap:6px;background:rgba(17,19,24,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:20px;padding:6px 11px;font-size:11px;color:var(--text2);opacity:0;animation:ldhIn .8s 1.8s cubic-bezier(.16,1,.3,1) forwards,ldhFloat 5s 2.6s ease-in-out infinite;z-index:3}
+.ldh-chip i{color:#F59E0B;font-size:14px}.ldh-chip b{color:var(--text)}
+@keyframes ldhIn{to{opacity:1;transform:none}}
+@keyframes ldhFade{to{opacity:1}}
+@keyframes ldhDraw{to{stroke-dashoffset:0}}
+@keyframes ldhRing{to{stroke-dashoffset:15}}
+@keyframes ldhW{to{width:var(--w)}}
+@keyframes ldhPulse{50%{opacity:.35}}
+@keyframes ldhDot{50%{transform:scale(1.6);opacity:.55}}
+@keyframes ldhFloat{50%{transform:translateY(-5px)}}
+@keyframes ldhToast{0%{opacity:0;transform:translateY(14px) scale(.97)}8%,62%{opacity:1;transform:none}72%,100%{opacity:0;transform:translateY(8px) scale(.98)}}
+@media(max-width:900px){.ldh{grid-template-columns:1fr;min-height:0}.ldh-side{display:none}.ldh-grid{grid-template-columns:1fr}.ldh-chip{display:none}}
+@media(max-width:600px){.ldh-kpis{grid-template-columns:1fr 1fr}.ldh-main{padding:14px}.ldh-tr{grid-template-columns:56px 36px 1fr auto}.ldh-tr .s{display:none}.ldh-toast{left:14px;right:14px;bottom:12px}.ldh-plan{display:none}#screen-home .ld-stats{grid-template-columns:1fr 1fr}#screen-home .ld-stat{border-right:1px solid var(--border)}}
+/* Pasos ilustrados */
+.ld-step-art{height:96px;margin:-6px 0 22px;border-radius:14px;background:linear-gradient(180deg,var(--bg2),transparent);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.ld-step-art svg{width:86%;height:84px}
+.ldsa-1 .g{fill:var(--accent);stroke:var(--accent);stroke-width:1.4}.ldsa-1 .r{fill:var(--red);stroke:var(--red);stroke-width:1.4}
+.ldsa-1 .c>*{opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.ld-reveal.in .ldsa-1 .c>*{opacity:1;transform:none}
+.ldsa-1 .c>*:nth-child(n+3){transition-delay:.1s}.ldsa-1 .c>*:nth-child(n+5){transition-delay:.2s}.ldsa-1 .c>*:nth-child(n+7){transition-delay:.3s}.ldsa-1 .c>*:nth-child(n+9){transition-delay:.4s}.ldsa-1 .c>*:nth-child(n+11){transition-delay:.5s}.ldsa-1 .c>*:nth-child(n+13){transition-delay:.6s}.ldsa-1 .c>*:nth-child(n+15){transition-delay:.7s}
+.ldsa-1 .tp{stroke:var(--accent);stroke-dasharray:4 4;opacity:.7}.ldsa-1 .sl{stroke:var(--red);stroke-dasharray:4 4;opacity:.7}
+.ldsa-1 .lb{font:700 9px Inter,sans-serif;fill:var(--accent)}.ldsa-1 .sl2{fill:var(--red)}
+.ldsa-1 .en{fill:var(--bg);stroke:#fff;stroke-width:2;animation:ldhDot 2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.ldsa-2 .nt{width:78%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:9px 11px;transform:rotate(-1.5deg);transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.ld-step:hover .ldsa-2 .nt{transform:rotate(0) scale(1.02)}
+.ldsa-2 .nh{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px}.ldsa-2 .nh i{color:#A78BFA;font-size:13px}
+.ldsa-2 .ln{height:4px;border-radius:4px;background:var(--bg4);margin-bottom:5px;overflow:hidden}
+.ldsa-2 .ln i{display:block;height:100%;width:0;background:var(--text3);border-radius:4px;transition:width 1s cubic-bezier(.16,1,.3,1)}
+.ld-reveal.in .ldsa-2 .ln i{width:var(--w)}
+.ldsa-2 .ln:nth-child(3) i{transition-delay:.25s}.ldsa-2 .ln:nth-child(4) i{transition-delay:.5s}
+.ldsa-2 .cp{display:flex;gap:5px;margin-top:7px}
+.ldsa-2 .cp span{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--purple-bg,#1E1535);color:#A78BFA;opacity:0;transition:opacity .4s .8s}
+.ldsa-2 .cp span.ok{background:var(--green-bg);color:var(--accent);transition-delay:1s}
+.ld-reveal.in .ldsa-2 .cp span{opacity:1}
+.ldsa-3{gap:18px;padding:0 18px;justify-content:space-between}
+.ldsa-3 .bars{flex:1;height:64px;display:flex;align-items:flex-end;gap:6px}
+.ldsa-3 .bars i{flex:1;height:0;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--accent),rgba(34,197,94,.35));transition:height .9s cubic-bezier(.16,1,.3,1)}
+.ld-reveal.in .ldsa-3 .bars i{height:var(--h)}
+.ldsa-3 .bars i:nth-child(2){transition-delay:.06s}.ldsa-3 .bars i:nth-child(3){transition-delay:.12s}.ldsa-3 .bars i:nth-child(4){transition-delay:.18s}.ldsa-3 .bars i:nth-child(5){transition-delay:.24s}.ldsa-3 .bars i:nth-child(6){transition-delay:.3s}.ldsa-3 .bars i:nth-child(7){transition-delay:.36s}
+.ldsa-3 .rg{position:relative;display:flex;flex-direction:column;align-items:center}
+.ldsa-3 .rg svg{width:52px;height:52px}
+.ldsa-3 .fg{animation:none;transition:stroke-dashoffset 1.4s .3s cubic-bezier(.16,1,.3,1)}
+.ld-reveal.in .ldsa-3 .fg{stroke-dashoffset:15}
+.ldsa-3 .rg b{position:absolute;top:15px;font-size:15px;font-weight:800}
+.ldsa-3 .rg small{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+/* Opiniones reales */
+.ld-rv-score{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px auto 30px;color:var(--text2);font-size:14px}
+.ld-rv-score b{font-size:22px;font-weight:800;color:var(--text)}
+.ld-rv-score .st,.ld-rv-st{color:#00B67A;letter-spacing:2px;font-size:17px}
+.ld-rv-score .st i,.ld-rv-st i{font-style:normal;color:var(--bg4)}
+.ld-rv-grid{max-width:1080px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ld-rv{display:flex;flex-direction:column;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:24px;text-decoration:none;color:inherit;transition:transform .4s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .4s}
+.ld-rv:hover{transform:translateY(-4px);border-color:var(--border3);box-shadow:0 22px 44px -26px rgba(0,0,0,.85)}
+.ld-rv-st{font-size:15px}
+.ld-rv p{margin:0;font-size:14.5px;line-height:1.65;color:var(--text);flex:1}
+.ld-rv-who{display:flex;align-items:center;gap:10px}
+.ld-rv-who .av{width:34px;height:34px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);color:var(--accent);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.ld-rv-who b{display:block;font-size:13px}.ld-rv-who small{font-size:11.5px;color:var(--text3)}
+.ld-rv-cta{text-align:center;margin-top:26px}
+@media(max-width:900px){.ld-rv-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.ldh *,.ld-step-art *{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}.ldh-line{stroke-dashoffset:0!important}.ldh-bar .t i{width:var(--w)!important}.ldh-kpi-ring .fg{stroke-dashoffset:15!important}.ldh-toast{opacity:1!important}}
 .ld-reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
 .ld-reveal.in{opacity:1;transform:none}
 .ld-reveal-1{transition-delay:.08s}
@@ -2488,18 +2612,63 @@ function initLandingFX(){
           <div class="ld-mock-dot"></div><div class="ld-mock-dot"></div><div class="ld-mock-dot"></div>
           <div class="ld-mock-title"><i class="ti ti-lock" style="font-size:10px;margin-right:4px"></i>tradeday.me — Tu día de trading</div>
         </div>
-        <img class="ld-mock-img" src="/tradeday-operaciones.webp" width="1600" height="654"
-             alt="Pantalla Mis operaciones de TradeDay: cada trade con su gráfico, resultado, dirección y sesión de mercado"
-             decoding="async" fetchpriority="high">
+        <div class="ldh" aria-label="Vista del dashboard de TradeDay: capital, win rate, disciplina, curva de capital, límites del plan y últimas operaciones" role="img">
+          <aside class="ldh-side" aria-hidden="true">
+            <div class="ldh-logo"><span class="logo-mark"></span>TradeDay</div>
+            <div class="ldh-nav on"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+            <div class="ldh-nav"><i class="ti ti-notebook"></i>Journal</div>
+            <div class="ldh-nav"><i class="ti ti-calendar"></i>Calendario</div>
+            <div class="ldh-nav"><i class="ti ti-list-details"></i>Mis operaciones</div>
+            <div class="ldh-nav"><i class="ti ti-chart-bar"></i>Métricas</div>
+            <div class="ldh-nav"><i class="ti ti-history"></i>Backtesting</div>
+            <div class="ldh-nav"><i class="ti ti-target-arrow"></i>Mi plan</div>
+          </aside>
+          <div class="ldh-main" aria-hidden="true">
+            <div class="ldh-top"><div><div class="ldh-hi">Buenos días, trader</div><div class="ldh-acc"><span class="ldh-led"></span>Cuenta fondeada · 50.000$</div></div><span class="ldh-new"><i class="ti ti-plus"></i>Nueva entrada</span></div>
+            <div class="ldh-kpis">
+              <div class="ldh-kpi"><small>Capital</small><b data-no-i18n>52.340$</b><em class="up">+4,7%</em></div>
+              <div class="ldh-kpi"><small>Win rate</small><b data-no-i18n>62%</b><em>34 trades</em></div>
+              <div class="ldh-kpi"><small>Profit factor</small><b data-no-i18n>2,14</b><em class="up">Con ventaja</em></div>
+              <div class="ldh-kpi ldh-kpi-ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="tr"/><circle cx="18" cy="18" r="15" class="fg"/></svg><div><small>Disciplina</small><b data-no-i18n>84<span>/100</span></b></div></div>
+            </div>
+            <div class="ldh-grid">
+              <div class="ldh-card ldh-eq">
+                <div class="ldh-ch"><span>Evolución del capital</span><em class="up" data-no-i18n>+2.340$</em></div>
+                <svg viewBox="0 0 400 120" preserveAspectRatio="none" class="ldh-eqsvg">
+                  <defs><linearGradient id="ldhg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22C55E" stop-opacity=".32"/><stop offset="1" stop-color="#22C55E" stop-opacity="0"/></linearGradient></defs>
+                  <g class="ldh-gridl"><line x1="0" y1="30" x2="400" y2="30"/><line x1="0" y1="60" x2="400" y2="60"/><line x1="0" y1="90" x2="400" y2="90"/></g>
+                  <path class="ldh-area" d="M0,98 L25,92 L50,95 L75,84 L100,86 L125,74 L150,78 L175,66 L200,70 L225,58 L250,61 L275,47 L300,52 L325,38 L350,42 L375,28 L400,22 L400,120 L0,120 Z" fill="url(#ldhg)"/>
+                  <path class="ldh-line" pathLength="1" d="M0,98 L25,92 L50,95 L75,84 L100,86 L125,74 L150,78 L175,66 L200,70 L225,58 L250,61 L275,47 L300,52 L325,38 L350,42 L375,28 L400,22"/>
+                  <circle class="ldh-dot" cx="400" cy="22" r="4"/>
+                </svg>
+              </div>
+              <div class="ldh-card ldh-plan">
+                <div class="ldh-ch"><span>Hoy según tu plan</span><em class="ok"><i class="ti ti-circle-check"></i>Puedes operar</em></div>
+                <div class="ldh-bar"><div class="l"><span>Pérdida diaria</span><b data-no-i18n>120$ / 500$</b></div><div class="t"><i style="--w:24%"></i></div></div>
+                <div class="ldh-bar"><div class="l"><span>Operaciones</span><b data-no-i18n>2 / 3</b></div><div class="t"><i style="--w:66%"></i></div></div>
+                <div class="ldh-bar"><div class="l"><span>Pérdidas seguidas</span><b data-no-i18n>1 / 2</b></div><div class="t warn"><i style="--w:50%"></i></div></div>
+              </div>
+            </div>
+            <div class="ldh-card ldh-trades">
+              <div class="ldh-ch"><span>Últimas operaciones</span><em>Hoy</em></div>
+              <div class="ldh-tr"><span class="p" data-no-i18n>NAS100</span><span class="d buy">Buy</span><span class="s">🇺🇸 NY</span><span class="n">Esperé el retesteo, entrada según plan</span><b class="up" data-no-i18n>+2,1R</b></div>
+              <div class="ldh-tr"><span class="p" data-no-i18n>EURUSD</span><span class="d sell">Sell</span><span class="s">🇬🇧 Londres</span><span class="n">Stop en BE tras el primer objetivo</span><b class="be" data-no-i18n>0R</b></div>
+              <div class="ldh-tr"><span class="p" data-no-i18n>XAUUSD</span><span class="d buy">Buy</span><span class="s">🇬🇧 Londres</span><span class="n">Entré antes de la confirmación</span><b class="dn" data-no-i18n>−1R</b></div>
+            </div>
+          </div>
+          <div class="ldh-toast" aria-hidden="true"><i class="ti ti-circle-check-filled"></i><div><b>Trade guardado</b><span data-no-i18n>NAS100 · +2,1R · siguió el plan</span></div></div>
+          <div class="ldh-chip" aria-hidden="true"><i class="ti ti-flame"></i><span>Racha de disciplina: <b data-no-i18n>6 días</b></span></div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- TRUST STATS -->
   <div class="ld-stats">
-    <div class="ld-stat ld-reveal"><div class="ld-stat-num" data-count="100" data-suf="%">100%</div><div class="ld-stat-lbl">Privado y tuyo</div></div>
-    <div class="ld-stat ld-reveal ld-reveal-1"><div class="ld-stat-num">0€</div><div class="ld-stat-lbl">Para empezar</div></div>
-    <div class="ld-stat ld-reveal ld-reveal-2"><div class="ld-stat-num">2 min</div><div class="ld-stat-lbl">Y estás registrando</div></div>
+    <div class="ld-stat ld-reveal"><div class="ld-stat-num" data-count="300" data-pre="+">+300</div><div class="ld-stat-lbl">Traders registrados</div></div>
+    <div class="ld-stat ld-reveal ld-reveal-1"><div class="ld-stat-num" data-count="1500" data-pre="+">+1.500</div><div class="ld-stat-lbl">Operaciones analizadas</div></div>
+    <div class="ld-stat ld-reveal ld-reveal-2"><div class="ld-stat-num">0€</div><div class="ld-stat-lbl">Para empezar</div></div>
+    <div class="ld-stat ld-reveal ld-reveal-3"><div class="ld-stat-num">2 min</div><div class="ld-stat-lbl">Y estás registrando</div></div>
   </div>
 
 
@@ -2529,18 +2698,41 @@ function initLandingFX(){
   </div>
   <div class="ld-steps">
     <div class="ld-step ld-spot ld-reveal">
+      <div class="ld-step-art ldsa-1" aria-hidden="true">
+        <svg viewBox="0 0 220 90"><g class="c">
+          <rect x="14" y="40" width="9" height="22" rx="1.5" class="r"/><line x1="18.5" y1="34" x2="18.5" y2="68" class="r"/>
+          <rect x="34" y="46" width="9" height="16" rx="1.5" class="r"/><line x1="38.5" y1="42" x2="38.5" y2="66" class="r"/>
+          <rect x="54" y="50" width="9" height="12" rx="1.5" class="g"/><line x1="58.5" y1="46" x2="58.5" y2="68" class="g"/>
+          <rect x="74" y="40" width="9" height="16" rx="1.5" class="g"/><line x1="78.5" y1="36" x2="78.5" y2="60" class="g"/>
+          <rect x="94" y="32" width="9" height="14" rx="1.5" class="g"/><line x1="98.5" y1="28" x2="98.5" y2="50" class="g"/>
+          <rect x="114" y="34" width="9" height="10" rx="1.5" class="r"/><line x1="118.5" y1="30" x2="118.5" y2="48" class="r"/>
+          <rect x="134" y="22" width="9" height="16" rx="1.5" class="g"/><line x1="138.5" y1="18" x2="138.5" y2="42" class="g"/>
+          <rect x="154" y="14" width="9" height="14" rx="1.5" class="g"/><line x1="158.5" y1="10" x2="158.5" y2="32" class="g"/>
+        </g>
+        <line x1="60" y1="16" x2="206" y2="16" class="tp"/><line x1="60" y1="70" x2="206" y2="70" class="sl"/>
+        <text x="206" y="12" class="lb" text-anchor="end">TP</text><text x="206" y="82" class="lb sl2" text-anchor="end">SL</text>
+        <circle cx="58.5" cy="56" r="4" class="en"/></svg>
+      </div>
       <div class="ld-step-num">01 · OPERA</div>
       <div class="ld-step-title">Cierras tu operación</div>
       <div class="ld-step-desc">O decides no operar porque no aparecía tu setup. Las dos cosas cuentan, y las dos se registran: esperar es ejecutar el plan, no perder el día.</div>
-      <div class="ld-step-note"><i class="ti ti-point"></i>Y también los días que decides no operar: esperar es ejecución, no inactividad.</div>
     </div>
     <div class="ld-step ld-spot ld-reveal ld-reveal-1">
+      <div class="ld-step-art ldsa-2" aria-hidden="true">
+        <div class="nt"><div class="nh"><i class="ti ti-notebook"></i><span>Nota del trade</span></div>
+          <div class="ln"><i style="--w:92%"></i></div><div class="ln"><i style="--w:74%"></i></div><div class="ln"><i style="--w:56%"></i></div>
+          <div class="cp"><span>😌 Tranquilo</span><span class="ok">✅ Seguí el plan</span></div></div>
+      </div>
       <div class="ld-step-num">02 · ESCRIBE</div>
       <div class="ld-step-title">Anotas qué hiciste y por qué</div>
       <div class="ld-step-desc">En caliente, mientras lo recuerdas. Datos, captura del gráfico, si seguiste tu plan y cómo te sentías. Uno o dos minutos por operación.</div>
       <div class="ld-step-note"><i class="ti ti-point"></i>Con unas treinta operaciones las métricas empiezan a significar algo.</div>
     </div>
     <div class="ld-step ld-spot ld-reveal ld-reveal-2">
+      <div class="ld-step-art ldsa-3" aria-hidden="true">
+        <div class="bars"><i style="--h:34%"></i><i style="--h:42%"></i><i style="--h:38%"></i><i style="--h:55%"></i><i style="--h:61%"></i><i style="--h:72%"></i><i style="--h:84%"></i></div>
+        <div class="rg"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="tr"/><circle cx="18" cy="18" r="15" class="fg"/></svg><b data-no-i18n>84</b><small>Disciplina</small></div>
+      </div>
       <div class="ld-step-num">03 · MEJORA</div>
       <div class="ld-step-title">Quince minutos cada semana</div>
       <div class="ld-step-desc">Métricas, calendario, tus peores decisiones y tu índice de disciplina. Aquí es donde el registro deja de ser un trámite y se convierte en mejora.</div>
@@ -2577,6 +2769,23 @@ function initLandingFX(){
   </div>
 
   <!-- PRICING (subida justo tras el hero para que se vea sin apenas scroll) -->
+  <!-- ══ TRUSTPILOT: confianza (widget oficial GRATUITO con fallback nativo; sin datos inventados) ══ -->
+  <div class="ld-section" id="ld-trust" style="padding-bottom:0">
+    <div class="ld-section-head ld-reveal">
+      <div class="ld-eyebrow">Confianza</div>
+      <h2 class="ld-h2">¿Qué opinan otros traders?</h2>
+    </div>
+    <div class="ld-rv-score ld-reveal ld-reveal-1"><span class="st" aria-hidden="true">★★★★<i>★</i></span><b data-no-i18n>4,2</b><span>de 5 en Trustpilot · opiniones reales y sin filtrar</span></div>
+    <div class="ld-rv-grid">
+      <a class="ld-rv ld-spot ld-reveal" href="https://www.trustpilot.com/reviews/6acba33828e3d521212a9da0" target="_blank" rel="noopener"><div class="ld-rv-st" aria-label="5 de 5">★★★★★</div><p data-no-i18n>«Diría que es la mejor que he probado con diferencia. Continuamente la actualizan, es muy intuitiva y la uso tanto en el ordenador como en el móvil.»</p><div class="ld-rv-who"><span class="av">M</span><div><b data-no-i18n>María A.</b><small>España · Trustpilot</small></div></div></a>
+      <a class="ld-rv ld-spot ld-reveal ld-reveal-1" href="https://www.trustpilot.com/reviews/6ae1eff8b8c4f243b42412e7" target="_blank" rel="noopener"><div class="ld-rv-st" aria-label="4 de 5">★★★★<i>★</i></div><p data-no-i18n>«Te arroja estadísticas y métricas con mucho valor para que puedas ver en qué vas bien, qué fallaste y qué mejorar.»</p><div class="ld-rv-who"><span class="av">F</span><div><b data-no-i18n>Fernando G.</b><small>México · Trustpilot</small></div></div></a>
+      <a class="ld-rv ld-spot ld-reveal ld-reveal-2" href="https://www.trustpilot.com/reviews/6acb7f982156334cd0e9e100" target="_blank" rel="noopener"><div class="ld-rv-st" aria-label="5 de 5">★★★★★</div><p data-no-i18n>«Acumula toda la estadística, el plan gratuito es muy completo y es de gran ayuda para quienes buscamos conocer las estadísticas de nuestra estrategia.»</p><div class="ld-rv-who"><span class="av">M</span><div><b data-no-i18n>Marcel C.</b><small>Venezuela · Trustpilot</small></div></div></a>
+    </div>
+    <div class="ld-rv-cta ld-reveal"><a class="ld-btn ld-btn-ghost" href="https://www.trustpilot.com/review/tradeday.me" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Ver todas las opiniones</a></div>
+    <div id="tp-widget" class="trustpilot-widget" data-locale="es-ES" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="" data-style-height="52px" data-style-width="100%" style="display:none" hidden></div>
+    <div id="tp-fallback" hidden></div>
+  </div>
+
   <div class="ld-pricing" id="precios">
     <div class="ld-section-head ld-reveal">
       <div class="ld-eyebrow">Precios</div>
@@ -2777,26 +2986,6 @@ function initLandingFX(){
   </div>
 
   <!-- CTA -->
-  <!-- ══ TRUSTPILOT: confianza (widget oficial GRATUITO con fallback nativo; sin datos inventados) ══ -->
-  <div class="ld-section" id="ld-trust" style="padding-bottom:0">
-    <div class="ld-section-head ld-reveal">
-      <div class="ld-eyebrow">Confianza</div>
-      <h2 class="ld-h2">¿Qué opinan otros traders?</h2>
-    </div>
-    <div style="max-width:640px;margin:22px auto 0;padding:0 24px">
-      <!-- Widget oficial de Trustpilot (Review Collector, plan GRATUITO). Se activa al poner TRUSTPILOT_BUSINESSUNIT_ID. -->
-      <div id="tp-widget" class="trustpilot-widget" data-locale="es-ES" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="" data-style-height="52px" data-style-width="100%" style="display:none">
-        <a href="https://www.trustpilot.com/review/tradeday.me" target="_blank" rel="noopener">Trustpilot</a>
-      </div>
-      <!-- Fallback nativo (sin puntuaciones ni nº de reviews inventados) mientras no haya widget configurado -->
-      <div id="tp-fallback" class="card ld-reveal ld-reveal-1" style="text-align:center;padding:28px 24px">
-        <div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:8px">Opiniones reales en Trustpilot</div>
-        <p style="font-size:14.5px;color:var(--text2);line-height:1.6;margin:0 0 18px">Descubre las opiniones de personas que utilizan TradeDay. Sin filtros: buenas y malas.</p>
-        <a class="ld-btn ld-btn-secondary" href="https://www.trustpilot.com/review/tradeday.me" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Ver opiniones en Trustpilot</a>
-      </div>
-    </div>
-  </div>
-
   <div class="ld-cta">
     <div class="ld-cta-glow"></div>
     <h2 class="ld-cta-title ld-reveal">Empieza a construir<br>disciplina real hoy</h2>
@@ -4346,8 +4535,8 @@ function initLandingFX(){
       </div>
       <div class="form-section">Operación</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')">📈 Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')">📉 Sell</div></div></div>
-        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()">✅ Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()">❌ Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()">➖ BE</div></div></div>
+        <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')"><i class="ti ti-trending-up"></i>Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')"><i class="ti ti-trending-down"></i>Sell</div></div></div>
+        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()"><i class="ti ti-circle-check"></i>Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()"><i class="ti ti-circle-x"></i>Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()"><i class="ti ti-circle-minus"></i>BE</div></div></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">P&L ($ o %)</label><input class="form-input" type="text" placeholder="300 o 3%" id="t-amount"><div class="form-hint">Sin signo: se aplica según el resultado. Con % se calcula el $ (y al revés).</div></div>
@@ -4357,7 +4546,7 @@ function initLandingFX(){
         <div class="form-group"><label class="form-label">Duración (min) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 45 (= 45 min)" id="t-duration"><div class="form-hint">Ej: 150 = 2 h 30 min. Activa la Duración media.</div></div>
         <div class="form-group" id="t-be-type-group" style="display:none">
         <label class="form-label">¿Cómo terminó el Breakeven?</label>
-        <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')">✅ BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')">❌ BE Loss</div></div>
+        <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')"><i class="ti ti-circle-check"></i>BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')"><i class="ti ti-circle-x"></i>BE Loss</div></div>
         <div class="form-hint">Win: fue a favor y protegiste. Loss: nunca fue a favor.</div>
       </div>
       </div>
@@ -4373,7 +4562,7 @@ function initLandingFX(){
       <div class="form-section">Análisis</div>
       <div class="form-group"><label class="form-label">¿Cómo te sentiste?</label><div class="chip-group" id="t-emo"><div class="chip" onclick="toggleChip(this,'sel-emotion')">😌 Tranquilo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😤 Impaciente</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😨 Con miedo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">🤑 Eufórico</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😡 Frustrado</div></div></div>
       <div class="form-group"><label class="form-label">Notas <span class="badge badge-journal" style="text-transform:none;vertical-align:1px"><i class="ti ti-notebook" style="font-size:10px"></i>Se analiza en Journal</span></label><textarea class="form-input" id="t-notes" rows="4" placeholder="¿Qué salió bien? ¿Qué mejorar?&#10;¿Cómo te sentiste antes, durante y al cerrar la operación?&#10;¿Hubo ansiedad, miedo, FOMO o frustración? ¿Fuiste disciplinado o impulsivo?&#10;¿Qué emoción predominó hoy y qué crees que te afectó?" maxlength="2000"></textarea></div>
-      <div class="form-group"><label class="form-label">¿Seguiste el plan?</label><div class="chip-group" id="t-plan"><div class="chip" onclick="selectChip('t-plan',this,'sel-win')">✅ Sí, al 100%</div><div class="chip" onclick="selectChip('t-plan',this,'sel-be')">⚠️ Parcialmente</div><div class="chip" onclick="selectChip('t-plan',this,'sel-loss')">❌ No</div></div></div>
+      <div class="form-group"><label class="form-label">¿Seguiste el plan?</label><div class="chip-group" id="t-plan"><div class="chip" onclick="selectChip('t-plan',this,'sel-win')"><i class="ti ti-circle-check"></i>Sí, al 100%</div><div class="chip" onclick="selectChip('t-plan',this,'sel-be')"><i class="ti ti-alert-triangle"></i>Parcialmente</div><div class="chip" onclick="selectChip('t-plan',this,'sel-loss')"><i class="ti ti-circle-x"></i>No</div></div></div>
       <div class="form-group">
         <label class="form-label">Capturas del trade (opcional)</label>
         <div class="form-hint" style="margin:-4px 0 8px">Antes de entrar, durante, al cerrar, tu análisis... Añade las que quieras y marca una como portada (<i class="ti ti-star" style="vertical-align:-2px"></i>).</div>
@@ -6435,7 +6624,7 @@ const TP_MIN_TRADES=3, TP_MIN_DAYS=7; // gate: ≥3 operaciones y ≥7 días de 
 
 function initTrustpilotLanding(){
   const w=document.getElementById('tp-widget'), fb=document.getElementById('tp-fallback');
-  if(!w||!fb)return;
+  if(!w||!fb||w.hasAttribute('hidden'))return;
   if(!TRUSTPILOT_BUSINESSUNIT_ID){ w.style.display='none'; fb.style.display=''; return; }
   // Activa el widget oficial gratuito y oculta el fallback.
   w.setAttribute('data-businessunit-id',TRUSTPILOT_BUSINESSUNIT_ID);
@@ -13072,6 +13261,31 @@ document.addEventListener('visibilitychange',()=>{
    Los datos que escribe el trader NUNCA se traducen. */
 
 var I18N_EN = {
+  'Traders registrados':'Registered traders',
+  'Operaciones analizadas':'Trades analysed',
+  'Buenos días, trader':'Good morning, trader',
+  'Cuenta fondeada · 50.000$':'Funded account · $50,000',
+  'Capital':'Capital',
+  'Profit factor':'Profit factor',
+  'Con ventaja':'With an edge',
+  '34 trades':'34 trades',
+  'Hoy según tu plan':'Today vs your plan',
+  'Puedes operar':'You can trade',
+  'Pérdida diaria':'Daily loss',
+  'Pérdidas seguidas':'Losses in a row',
+  'Últimas operaciones':'Latest trades',
+  'Esperé el retesteo, entrada según plan':'Waited for the retest, entry per plan',
+  'Stop en BE tras el primer objetivo':'Stop to BE after the first target',
+  'Entré antes de la confirmación':'Entered before confirmation',
+  'Trade guardado':'Trade saved',
+  'Racha de disciplina:':'Discipline streak:',
+  'Nota del trade':'Trade note',
+  '✅ Seguí el plan':'✅ Followed the plan',
+  'de 5 en Trustpilot · opiniones reales y sin filtrar':'out of 5 on Trustpilot · real, unfiltered reviews',
+  'Ver todas las opiniones':'See all reviews',
+  'España · Trustpilot':'Spain · Trustpilot',
+  'México · Trustpilot':'Mexico · Trustpilot',
+  'Venezuela · Trustpilot':'Venezuela · Trustpilot',
   'Sí, al 100%':'Yes, 100%',
   'Operación':'Trade',
   'Win: fue a favor y protegiste. Loss: nunca fue a favor.':'Win: it went your way and you protected it. Loss: it never went your way.',
