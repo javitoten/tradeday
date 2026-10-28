@@ -638,44 +638,44 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .mxs-t tbody tr:not(.nohov){cursor:pointer}.mxs-t tbody tr:not(.nohov):hover td{background:var(--bg4)}.mxs-t tr.on td{background:var(--green-bg)}
 /* Selector de fecha/hora propio (tdp) */
 .tdp-native{display:none!important}
-.tdp-btn{width:100%;display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font:inherit;font-size:13.5px;font-weight:600;padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
-.tdp-btn:hover{border-color:var(--border2,#3a3a3a);background:var(--bg4)}
+.tdp-btn{width:100%;display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;font-weight:400;line-height:normal;padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.tdp-btn:hover{border-color:var(--border3)}
 .tdp-btn.open{border-color:var(--green);box-shadow:0 0 0 3px var(--green-bg)}
-.tdp-btn i{font-size:17px;color:var(--green);flex-shrink:0}
+.tdp-btn i{font-size:14px;color:var(--green);flex-shrink:0}
 .tdp-btn .tdp-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tdp-btn .tdp-v.ph{color:var(--text3);font-weight:500}
-.tdp-btn .tdp-x{font-size:15px;color:var(--text3)}.tdp-btn .tdp-x:hover{color:var(--red)}
-.tdp-pop{position:fixed;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px #000a,0 0 0 1px #ffffff08;padding:12px;width:292px;animation:tdpIn .14s ease-out;user-select:none}
+.tdp-btn .tdp-v.ph{color:var(--text3)}
+.tdp-btn .tdp-x{font-size:13px;color:var(--text3)}.tdp-btn .tdp-x:hover{color:var(--red)}
+.tdp-pop{position:fixed;z-index:400;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px #000a,0 0 0 1px #ffffff08;padding:10px;width:264px;animation:tdpIn .14s ease-out;user-select:none}
 @keyframes tdpIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
 .tdp-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.tdp-nav{width:30px;height:30px;border-radius:8px;border:0;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}.tdp-nav:hover{background:var(--bg4);color:var(--text)}
+.tdp-nav{width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}.tdp-nav:hover{background:var(--bg4);color:var(--text)}
 .tdp-nav:disabled{opacity:.25;cursor:default;background:transparent}
-.tdp-title{border:0;background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:800;cursor:pointer;padding:5px 10px;border-radius:8px;display:flex;align-items:center;gap:4px}.tdp-title:hover{background:var(--bg4)}.tdp-title i{font-size:13px;color:var(--text3)}
+.tdp-title{border:0;background:transparent;color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:5px 10px;border-radius:8px;display:flex;align-items:center;gap:4px}.tdp-title:hover{background:var(--bg4)}.tdp-title i{font-size:13px;color:var(--text3)}
 .tdp-wd{display:grid;grid-template-columns:repeat(7,1fr);font-size:10.5px;font-weight:700;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
 .tdp-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.tdp-d{position:relative;height:36px;border:0;border-radius:9px;background:transparent;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.tdp-d{position:relative;height:31px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
 .tdp-d:hover:not(:disabled){background:var(--bg4)}
 .tdp-d.out{color:var(--text3);opacity:.45}
 .tdp-d.today{box-shadow:inset 0 0 0 1px var(--green);color:var(--green)}
-.tdp-d.sel{background:var(--green)!important;color:#04140b!important;font-weight:800}
+.tdp-d.sel{background:var(--green)!important;color:#04140b!important;font-weight:700}
 .tdp-d:disabled{opacity:.2;cursor:default}
 .tdp-d.has::after{content:'';position:absolute;left:50%;bottom:4px;width:4px;height:4px;border-radius:50%;background:var(--green);transform:translateX(-50%)}
 .tdp-d.sel.has::after{background:#04140b}
 .tdp-ms{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.tdp-m{height:40px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}.tdp-m:hover:not(:disabled){border-color:var(--green)}.tdp-m.sel{background:var(--green);color:#04140b;border-color:var(--green)}.tdp-m:disabled{opacity:.25;cursor:default}
-.tdp-ft{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
-.tdp-q{flex:1;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font:inherit;font-size:12px;font-weight:700;border-radius:999px;padding:7px 8px;cursor:pointer}.tdp-q:hover{border-color:var(--green);color:var(--green)}
+.tdp-m{height:34px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text);font:inherit;font-size:12px;font-weight:600;cursor:pointer}.tdp-m:hover:not(:disabled){border-color:var(--green)}.tdp-m.sel{background:var(--green);color:#04140b;border-color:var(--green)}.tdp-m:disabled{opacity:.25;cursor:default}
+.tdp-ft{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.tdp-q{flex:1;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font:inherit;font-size:11.5px;font-weight:600;border-radius:999px;padding:5px 8px;cursor:pointer}.tdp-q:hover{border-color:var(--green);color:var(--green)}
 .tdp-q.on{background:var(--green-bg);border-color:var(--green);color:var(--green)}
-.tdp-tbig{text-align:center;font-size:30px;font-weight:800;letter-spacing:.02em;font-variant-numeric:tabular-nums;margin:2px 0 4px}.tdp-tbig span{color:var(--text3)}
-.tdp-tsess{text-align:center;font-size:11.5px;font-weight:700;margin-bottom:8px;min-height:16px}
+.tdp-tbig{text-align:center;font-size:20px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;margin:2px 0 4px}.tdp-tbig span{color:var(--text3)}
+.tdp-tsess{text-align:center;font-size:11px;font-weight:600;margin-bottom:8px;min-height:16px}
 .tdp-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tdp-cl{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;text-align:center;margin-bottom:4px}
-.tdp-col{position:relative;height:190px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:4px;scrollbar-width:thin}
-.tdp-o{display:flex;align-items:center;justify-content:center;gap:6px;height:32px;border-radius:7px;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--text2)}
-.tdp-o:hover{background:var(--bg4);color:var(--text)}.tdp-o.sel{background:var(--green);color:#04140b}
+.tdp-col{position:relative;height:168px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:4px;scrollbar-width:thin}
+.tdp-o{display:flex;align-items:center;justify-content:center;gap:6px;height:28px;border-radius:6px;font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--text2)}
+.tdp-o:hover{background:var(--bg4);color:var(--text)}.tdp-o.sel{background:var(--green);color:#04140b;font-weight:700}
 .tdp-o i{width:6px;height:6px;border-radius:50%;display:inline-block}
 .tdp-o.sel i{background:#04140b!important}
-@media(max-width:768px){.tdp-pop{left:50%!important;top:auto!important;bottom:12px!important;transform:translateX(-50%);width:min(340px,calc(100vw - 24px));animation:none}.tdp-d{height:40px}}
+@media(max-width:768px){.tdp-pop{left:50%!important;top:auto!important;bottom:12px!important;transform:translateX(-50%);width:min(340px,calc(100vw - 24px));animation:none}.tdp-d{height:38px}.tdp-o{height:34px}}
 /* Mini ventana centrada (nueva estrategia) */
 #modal-newstrat{z-index:420}
 #modal-newstrat .modal{max-width:400px;animation:tpWeekModalIn .22s cubic-bezier(.2,.7,.2,1)}
@@ -4314,7 +4314,7 @@ function initLandingFX(){
       <div class="form-section">Información básica</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="t-date"></div>
-        <div class="form-group"><label class="form-label">Hora <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="time" id="t-time" oninput="handleTradeTimeInput()"><div class="form-hint">Sugiere automáticamente la sesión</div></div>
+        <div class="form-group"><label class="form-label">Hora <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="time" id="t-time" oninput="handleTradeTimeInput()"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Par</label><select class="form-select" id="t-pair" onchange="tPairChanged()"><option value="">Seleccionar...</option><optgroup label="Forex y CFD"><option>XAUUSD</option><option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option><option>GBPJPY</option><option>NAS100</option><option value="US30">US30 (Dow Jones)</option><option>SP500</option></optgroup><optgroup label="Futuros · índices"><option value="ES">ES (S&amp;P 500)</option><option value="MES">MES (Micro S&amp;P 500)</option><option value="NQ">NQ (Nasdaq 100)</option><option value="MNQ">MNQ (Micro Nasdaq 100)</option><option value="YM">YM (Dow Jones)</option><option value="MYM">MYM (Micro Dow Jones)</option><option value="RTY">RTY (Russell 2000)</option><option value="M2K">M2K (Micro Russell 2000)</option></optgroup><optgroup label="Futuros · materias primas"><option value="GC">GC (Oro)</option><option value="MGC">MGC (Micro Oro)</option><option value="SI">SI (Plata)</option><option value="CL">CL (Petróleo)</option><option value="MCL">MCL (Micro Petróleo)</option><option value="NG">NG (Gas natural)</option></optgroup><optgroup label="Futuros · divisas"><option value="6E">6E (Euro)</option><option value="6B">6B (Libra)</option><option value="6J">6J (Yen)</option></optgroup><option value="Otro">Otro</option></select><input class="form-input" id="t-pair-custom" maxlength="40" placeholder="Escribe el activo (ej. DAX40, BTCUSD, ZN…)" style="display:none;margin-top:6px" data-no-i18n></div>
@@ -4328,11 +4328,11 @@ function initLandingFX(){
       <div class="form-section">Resultado</div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()">✅ Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()">❌ Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()">➖ BE</div></div></div>
-        <div class="form-group"><label class="form-label">P&L ($ o %)</label><input class="form-input" type="text" placeholder="300 o 3%" id="t-amount"><div class="form-hint">No hace falta poner +/−, se aplica según el resultado. Si pones %, se calcula el $ según el capital actual de la cuenta (y viceversa)</div></div>
+        <div class="form-group"><label class="form-label">P&L ($ o %)</label><input class="form-input" type="text" placeholder="300 o 3%" id="t-amount"><div class="form-hint">Sin signo: se aplica según el resultado. Con % se calcula el $ (y al revés).</div></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Riesgo asumido (%) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 1 (= 1% del capital)" id="t-risk"><div class="form-hint">% del capital que arriesgabas en esta operación (según tu stop loss). Rellénalo para desbloquear las métricas de Riesgo.</div></div>
-        <div class="form-group"><label class="form-label">Duración de la operación (min) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 45 (= 45 min)" id="t-duration"><div class="form-hint">Cuánto tiempo estuvo abierta la operación, en minutos (ej: 150 = 2h 30min). Rellénalo para desbloquear la Duración media.</div></div>
+        <div class="form-group"><label class="form-label">Riesgo (%) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 1 (= 1% del capital)" id="t-risk"><div class="form-hint">% del capital en juego según tu stop. Activa las métricas de Riesgo.</div></div>
+        <div class="form-group"><label class="form-label">Duración (min) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 45 (= 45 min)" id="t-duration"><div class="form-hint">Ej: 150 = 2 h 30 min. Activa la Duración media.</div></div>
       </div>
       <div class="form-group" id="t-be-type-group" style="display:none">
         <label class="form-label">¿Cómo terminó el Breakeven?</label>
@@ -12515,6 +12515,7 @@ function tdpOpen(inp){
   tdpClose();TDP.inp=inp;inp._tdpBtn.classList.add('open');
   const p=document.createElement('div');p.className='tdp-pop';p.setAttribute('data-no-i18n','');
   p.onmousedown=e=>e.stopPropagation();p.ontouchstart=e=>e.stopPropagation();
+  p.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});p.addEventListener('touchmove',e=>e.stopPropagation(),{passive:true});
   document.body.appendChild(p);TDP.pop=p;
   if(inp.type==='time'){tdpRenderTime();}
   else{const v=TDP_VD.get.call(inp),d=v?new Date(v+'T12:00:00'):new Date();TDP.y=d.getFullYear();TDP.m=d.getMonth();TDP.mode='d';tdpRenderDate();}
@@ -13048,6 +13049,11 @@ document.addEventListener('visibilitychange',()=>{
    Los datos que escribe el trader NUNCA se traducen. */
 
 var I18N_EN = {
+  'Sin signo: se aplica según el resultado. Con % se calcula el $ (y al revés).':'No sign needed: applied from the result. With % the $ is worked out (and vice versa).',
+  'Riesgo (%)':'Risk (%)',
+  '% del capital en juego según tu stop. Activa las métricas de Riesgo.':'% of capital at stake based on your stop. Unlocks the Risk metrics.',
+  'Duración (min)':'Duration (min)',
+  'Ej: 150 = 2 h 30 min. Activa la Duración media.':'E.g. 150 = 2 h 30 min. Unlocks Average duration.',
   'Nueva estrategia':'New strategy',
   'Ponle un nombre corto. Después podrás comparar en Métricas qué estrategia te funciona mejor.':'Give it a short name. Later you can compare in Metrics which strategy works best for you.',
   'Crear estrategia':'Create strategy',
