@@ -637,6 +637,30 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 .mxs-t td{padding:7px 6px;border-bottom:1px solid var(--border);white-space:nowrap}.mxs-t tr:last-child td{border-bottom:0}
 .mxs-t tbody tr:not(.nohov){cursor:pointer}.mxs-t tbody tr:not(.nohov):hover td{background:var(--bg4)}.mxs-t tr.on td{background:var(--green-bg)}
 /* Selector de fecha/hora propio (tdp) */
+/* Nueva entrada: secciones numeradas, chips tipo segmento a ancho completo, sin emojis */
+#modal-trade .modal-body{counter-reset:tsec}
+#modal-trade .form-section{display:flex;align-items:center;gap:8px;border-bottom:0;padding-bottom:0;margin-top:4px;counter-increment:tsec}
+#modal-trade .form-section::before{content:counter(tsec);width:17px;height:17px;border-radius:6px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;letter-spacing:0;flex-shrink:0}
+#modal-trade .form-section::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+#modal-trade .form-section:first-child{margin-top:0}
+#modal-trade #t-dir,#modal-trade #t-res,#modal-trade #t-sess,#modal-trade #t-be-type,#modal-trade #t-plan{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:3px}
+#modal-trade #t-dir .chip,#modal-trade #t-res .chip,#modal-trade #t-sess .chip,#modal-trade #t-be-type .chip,#modal-trade #t-plan .chip{display:flex;align-items:center;justify-content:center;gap:5px;border-color:transparent;background:transparent;border-radius:calc(var(--radius) - 2px);padding:6px;white-space:nowrap;min-width:0}
+#modal-trade #t-dir .chip:hover,#modal-trade #t-res .chip:hover,#modal-trade #t-sess .chip:hover,#modal-trade #t-be-type .chip:hover,#modal-trade #t-plan .chip:hover{background:var(--bg4)}
+#modal-trade .chip-group .chip i{font-size:14px}
+#modal-trade .chip.sel-buy,#modal-trade .chip.sel-win{background:var(--green-bg)!important;border-color:var(--green-border)!important;color:var(--green)}
+#modal-trade .chip.sel-sell,#modal-trade .chip.sel-loss{background:var(--red-bg)!important;border-color:var(--red-border)!important;color:var(--red)}
+#modal-trade .chip.sel-be{background:var(--bg4)!important;border-color:var(--border3)!important;color:var(--text)}
+#modal-trade .chip.sel-london{background:var(--amber-bg)!important;border-color:#3A2800!important}
+#modal-trade .chip.sel-ny{background:var(--blue-bg)!important;border-color:var(--blue-border)!important}
+#modal-trade .chip.sel-asia{background:var(--purple-bg)!important;border-color:#1A1A3A!important}
+#modal-trade .sdot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55;flex-shrink:0}
+#modal-trade #t-sess .chip:nth-child(1) .sdot{background:#F59E0B;opacity:1}#modal-trade #t-sess .chip:nth-child(2) .sdot{background:#60A5FA;opacity:1}#modal-trade #t-sess .chip:nth-child(3) .sdot{background:#A78BFA;opacity:1}
+#modal-trade .chip-group-invalid{border:1px dashed var(--red)!important;padding:3px!important}
+/* El P&L toma el color del resultado elegido */
+#modal-trade:has(#t-res .sel-win) #t-amount{border-color:var(--green-border);color:var(--green)}
+#modal-trade:has(#t-res .sel-loss) #t-amount{border-color:var(--red-border);color:var(--red)}
+#modal-trade .form-input:focus,#modal-trade .form-select:focus{border-color:var(--green)!important}
+@media(max-width:768px){#modal-trade #t-plan{grid-auto-flow:row;grid-template-columns:1fr 1fr 1fr}#modal-trade #t-plan .chip{white-space:normal;text-align:center;line-height:1.2}}
 .tdp-native{display:none!important}
 .tdp-btn{width:100%;display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;font-weight:400;line-height:normal;padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
 .tdp-btn:hover{border-color:var(--border3)}
@@ -4318,26 +4342,24 @@ function initLandingFX(){
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Par</label><select class="form-select" id="t-pair" onchange="tPairChanged()"><option value="">Seleccionar...</option><optgroup label="Forex y CFD"><option>XAUUSD</option><option>EURUSD</option><option>GBPUSD</option><option>USDJPY</option><option>GBPJPY</option><option>NAS100</option><option value="US30">US30 (Dow Jones)</option><option>SP500</option></optgroup><optgroup label="Futuros · índices"><option value="ES">ES (S&amp;P 500)</option><option value="MES">MES (Micro S&amp;P 500)</option><option value="NQ">NQ (Nasdaq 100)</option><option value="MNQ">MNQ (Micro Nasdaq 100)</option><option value="YM">YM (Dow Jones)</option><option value="MYM">MYM (Micro Dow Jones)</option><option value="RTY">RTY (Russell 2000)</option><option value="M2K">M2K (Micro Russell 2000)</option></optgroup><optgroup label="Futuros · materias primas"><option value="GC">GC (Oro)</option><option value="MGC">MGC (Micro Oro)</option><option value="SI">SI (Plata)</option><option value="CL">CL (Petróleo)</option><option value="MCL">MCL (Micro Petróleo)</option><option value="NG">NG (Gas natural)</option></optgroup><optgroup label="Futuros · divisas"><option value="6E">6E (Euro)</option><option value="6B">6B (Libra)</option><option value="6J">6J (Yen)</option></optgroup><option value="Otro">Otro</option></select><input class="form-input" id="t-pair-custom" maxlength="40" placeholder="Escribe el activo (ej. DAX40, BTCUSD, ZN…)" style="display:none;margin-top:6px" data-no-i18n></div>
-        <div class="form-group"></div>
+        <div class="form-group"><label class="form-label">Sesión</label><div class="chip-group" id="t-sess"><div class="chip" onclick="selectChip('t-sess',this,'sel-london');tSessManuallySet=true"><span class="sdot"></span>Londres</div><div class="chip" onclick="selectChip('t-sess',this,'sel-ny');tSessManuallySet=true"><span class="sdot"></span>NY</div><div class="chip" onclick="selectChip('t-sess',this,'sel-asia');tSessManuallySet=true"><span class="sdot"></span>Asia</div></div></div>
       </div>
-      <div class="form-section">Tipo y sesión</div>
+      <div class="form-section">Operación</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')">📈 Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')">📉 Sell</div></div></div>
-        <div class="form-group"><label class="form-label">Sesión</label><div class="chip-group" id="t-sess"><div class="chip" onclick="selectChip('t-sess',this,'sel-london');tSessManuallySet=true">🇬🇧 Londres</div><div class="chip" onclick="selectChip('t-sess',this,'sel-ny');tSessManuallySet=true">🇺🇸 NY</div><div class="chip" onclick="selectChip('t-sess',this,'sel-asia');tSessManuallySet=true">🌏 Asia</div></div></div>
+        <div class="form-group"><label class="form-label">Dirección</label><div class="chip-group" id="t-dir"><div class="chip" onclick="selectChip('t-dir',this,'sel-buy')"><i class="ti ti-trending-up"></i>Buy</div><div class="chip" onclick="selectChip('t-dir',this,'sel-sell')"><i class="ti ti-trending-down"></i>Sell</div></div></div>
+        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()"><i class="ti ti-circle-check"></i>Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()"><i class="ti ti-circle-x"></i>Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()"><i class="ti ti-circle-minus"></i>BE</div></div></div>
       </div>
-      <div class="form-section">Resultado</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Resultado</label><div class="chip-group" id="t-res"><div class="chip" onclick="selectChip('t-res',this,'sel-win');updateBeTypeVisibility()">✅ Win</div><div class="chip" onclick="selectChip('t-res',this,'sel-loss');updateBeTypeVisibility()">❌ Loss</div><div class="chip" onclick="selectChip('t-res',this,'sel-be');updateBeTypeVisibility()">➖ BE</div></div></div>
         <div class="form-group"><label class="form-label">P&L ($ o %)</label><input class="form-input" type="text" placeholder="300 o 3%" id="t-amount"><div class="form-hint">Sin signo: se aplica según el resultado. Con % se calcula el $ (y al revés).</div></div>
+        <div class="form-group"><label class="form-label">Riesgo (%) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 1 (= 1% del capital)" id="t-risk"><div class="form-hint">% del capital en juego según tu stop. Activa las métricas de Riesgo.</div></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Riesgo (%) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 1 (= 1% del capital)" id="t-risk"><div class="form-hint">% del capital en juego según tu stop. Activa las métricas de Riesgo.</div></div>
         <div class="form-group"><label class="form-label">Duración (min) <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><input class="form-input" type="text" placeholder="Ej: 45 (= 45 min)" id="t-duration"><div class="form-hint">Ej: 150 = 2 h 30 min. Activa la Duración media.</div></div>
-      </div>
-      <div class="form-group" id="t-be-type-group" style="display:none">
+        <div class="form-group" id="t-be-type-group" style="display:none">
         <label class="form-label">¿Cómo terminó el Breakeven?</label>
-        <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')">✅ BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')">❌ BE Loss</div></div>
-        <div class="form-hint">BE Win: llegó a ir a favor y se protegió en breakeven. BE Loss: nunca se desarrolló a favor y se cerró en breakeven.</div>
+        <div class="chip-group" id="t-be-type"><div class="chip" onclick="selectChip('t-be-type',this,'sel-win')"><i class="ti ti-circle-check"></i>BE Win</div><div class="chip" onclick="selectChip('t-be-type',this,'sel-loss')"><i class="ti ti-circle-x"></i>BE Loss</div></div>
+        <div class="form-hint">Win: fue a favor y protegiste. Loss: nunca fue a favor.</div>
+      </div>
       </div>
       <div class="form-section">Estrategia</div>
       <div class="form-group"><label class="form-label">¿Qué estrategia usaste? <span style="color:var(--text3);font-weight:400;text-transform:none">· opcional</span></label><select class="form-select" id="t-strategy" onchange="tStrategyChanged(this)" data-no-i18n></select><div class="form-hint">Así podrás comparar en Métricas qué estrategia te funciona mejor.</div></div>
@@ -4351,7 +4373,7 @@ function initLandingFX(){
       <div class="form-section">Análisis</div>
       <div class="form-group"><label class="form-label">¿Cómo te sentiste?</label><div class="chip-group" id="t-emo"><div class="chip" onclick="toggleChip(this,'sel-emotion')">😌 Tranquilo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😤 Impaciente</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😨 Con miedo</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">🤑 Eufórico</div><div class="chip" onclick="toggleChip(this,'sel-emotion')">😡 Frustrado</div></div></div>
       <div class="form-group"><label class="form-label">Notas <span class="badge badge-journal" style="text-transform:none;vertical-align:1px"><i class="ti ti-notebook" style="font-size:10px"></i>Se analiza en Journal</span></label><textarea class="form-input" id="t-notes" rows="4" placeholder="¿Qué salió bien? ¿Qué mejorar?&#10;¿Cómo te sentiste antes, durante y al cerrar la operación?&#10;¿Hubo ansiedad, miedo, FOMO o frustración? ¿Fuiste disciplinado o impulsivo?&#10;¿Qué emoción predominó hoy y qué crees que te afectó?" maxlength="2000"></textarea></div>
-      <div class="form-group"><label class="form-label">¿Seguiste el plan?</label><div class="chip-group" id="t-plan"><div class="chip" onclick="selectChip('t-plan',this,'sel-win')">✅ Sí, al 100%</div><div class="chip" onclick="selectChip('t-plan',this,'sel-be')">⚠️ Parcialmente</div><div class="chip" onclick="selectChip('t-plan',this,'sel-loss')">❌ No</div></div></div>
+      <div class="form-group"><label class="form-label">¿Seguiste el plan?</label><div class="chip-group" id="t-plan"><div class="chip" onclick="selectChip('t-plan',this,'sel-win')"><i class="ti ti-circle-check"></i>Sí, al 100%</div><div class="chip" onclick="selectChip('t-plan',this,'sel-be')"><i class="ti ti-alert-triangle"></i>Parcialmente</div><div class="chip" onclick="selectChip('t-plan',this,'sel-loss')"><i class="ti ti-circle-x"></i>No</div></div></div>
       <div class="form-group">
         <label class="form-label">Capturas del trade (opcional)</label>
         <div class="form-hint" style="margin:-4px 0 8px">Antes de entrar, durante, al cerrar, tu análisis... Añade las que quieras y marca una como portada (<i class="ti ti-star" style="vertical-align:-2px"></i>).</div>
@@ -9256,7 +9278,8 @@ function editTradeEntry(id){
   if(t.direction==='Buy')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(1)'),'sel-buy');
   if(t.direction==='Sell')selectChip('t-dir',document.querySelector('#t-dir .chip:nth-child(2)'),'sel-sell');
   document.querySelectorAll('#t-sess .chip').forEach(c=>{
-    if(c.textContent.includes(t.session))selectChip('t-sess',c,c.textContent.includes('Londres')?'sel-london':c.textContent.includes('NY')?'sel-ny':'sel-asia');
+    const k=t.session==='Londres'?'sel-london':(t.session==='New York'||t.session==='NY')?'sel-ny':t.session==='Asia'?'sel-asia':null;
+    if(k&&(c.getAttribute('onclick')||'').includes(k))selectChip('t-sess',c,k);
   });
   if(t.result==='win')selectChip('t-res',document.querySelector('#t-res .chip:nth-child(1)'),'sel-win');
   if(t.result==='loss')selectChip('t-res',document.querySelector('#t-res .chip:nth-child(2)'),'sel-loss');
@@ -10423,7 +10446,7 @@ function updateBeTypeVisibility(){
   const resEl=document.querySelector('#t-res .chip[class*="sel-"]');
   const isBE=!!(resEl&&resEl.classList.contains('sel-be'));
   const grp=document.getElementById('t-be-type-group');
-  if(grp)grp.style.display=isBE?'block':'none';
+  if(grp)grp.style.display=isBE?'flex':'none';
   if(!isBE){
     const beGroup=document.getElementById('t-be-type');
     if(beGroup)beGroup.querySelectorAll('.chip').forEach(c=>c.className='chip');
@@ -13049,6 +13072,9 @@ document.addEventListener('visibilitychange',()=>{
    Los datos que escribe el trader NUNCA se traducen. */
 
 var I18N_EN = {
+  'Sí, al 100%':'Yes, 100%',
+  'Operación':'Trade',
+  'Win: fue a favor y protegiste. Loss: nunca fue a favor.':'Win: it went your way and you protected it. Loss: it never went your way.',
   'Sin signo: se aplica según el resultado. Con % se calcula el $ (y al revés).':'No sign needed: applied from the result. With % the $ is worked out (and vice versa).',
   'Riesgo (%)':'Risk (%)',
   '% del capital en juego según tu stop. Activa las métricas de Riesgo.':'% of capital at stake based on your stop. Unlocks the Risk metrics.',
