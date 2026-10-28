@@ -2328,6 +2328,16 @@ html.td-scroll-lock,html.td-scroll-lock body,html.td-scroll-lock .main-content,h
 const SUPABASE_URL  = 'https://btbtvwaiqvgwoivjsiim.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0YnR2d2FpcXZnd29pdmpzaWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTAyMzQsImV4cCI6MjA5NzA4NjIzNH0.aaOPMZOPp_xTsDIkvpwCihneBuhmtfW4JqKIULiEt_g';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+/* Landing: traders registrados y operaciones analizadas, redondeados hacia abajo a centenas (función landing_stats, solo devuelve los 2 números) */
+(function loadLandingStats(){
+  try{ sb.rpc('landing_stats').then(function(r){ var d=r&&r.data; if(!d)return;
+    [['ld-st-traders',d.traders],['ld-st-trades',d.trades]].forEach(function(p){ var el=document.getElementById(p[0]),n=+p[1]; if(!el||!(n>0))return;
+      el.setAttribute('data-count',n);
+      var put=function(){ if(el.dataset.counted)el.textContent='+'+String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); };
+      put(); setTimeout(put,1100);
+    });
+  },function(){}); }catch(_){}
+})();
 const HCAPTCHA_SITEKEY = 'bbe863a0-5f52-46be-b604-ce72684a29f6';
 let hcapLoginId, hcapSignupId, hcapForgotId;
 document.addEventListener('DOMContentLoaded', function(){
@@ -2427,6 +2437,7 @@ function initLandingFX2(){
   var fmt=function(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');};
   var runCount=function(el){
     var end=parseFloat(el.getAttribute('data-count'))||0;
+    el.dataset.counted='1';
     var pre=el.getAttribute('data-pre')||'',suf=el.getAttribute('data-suf')||'';
     if(reduce){el.textContent=pre+fmt(end)+suf;return;}
     var dur=900,t0=null;
@@ -2665,8 +2676,8 @@ function initLandingFX(){
 
   <!-- TRUST STATS -->
   <div class="ld-stats">
-    <div class="ld-stat ld-reveal"><div class="ld-stat-num" data-count="300" data-pre="+">+300</div><div class="ld-stat-lbl">Traders registrados</div></div>
-    <div class="ld-stat ld-reveal ld-reveal-1"><div class="ld-stat-num" data-count="1500" data-pre="+">+1.500</div><div class="ld-stat-lbl">Operaciones analizadas</div></div>
+    <div class="ld-stat ld-reveal"><div class="ld-stat-num" id="ld-st-traders" data-count="300" data-pre="+">+300</div><div class="ld-stat-lbl">Traders registrados</div></div>
+    <div class="ld-stat ld-reveal ld-reveal-1"><div class="ld-stat-num" id="ld-st-trades" data-count="1500" data-pre="+">+1.500</div><div class="ld-stat-lbl">Operaciones analizadas</div></div>
     <div class="ld-stat ld-reveal ld-reveal-2"><div class="ld-stat-num">0€</div><div class="ld-stat-lbl">Para empezar</div></div>
     <div class="ld-stat ld-reveal ld-reveal-3"><div class="ld-stat-num">2 min</div><div class="ld-stat-lbl">Y estás registrando</div></div>
   </div>
