@@ -271,8 +271,8 @@
       const s = this.s, tf = this.tf, out = []; let cur = null;
       for (let i = 0; i <= this.cursor; i++) {
         const b = bucketStart(s.t[i], tf);
-        if (!cur || cur._b !== b) { cur = { _b: b, time: displayTime(b, tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; out.push(cur); }
-        else { if (s.h[i] > cur.high) cur.high = s.h[i]; if (s.l[i] < cur.low) cur.low = s.l[i]; cur.close = s.c[i]; }
+        if (!cur || cur._b !== b) { cur = { _b: b, time: displayTime(b, tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; if (s.v) cur.v = s.v[i] || 0; out.push(cur); }
+        else { if (s.h[i] > cur.high) cur.high = s.h[i]; if (s.l[i] < cur.low) cur.low = s.l[i]; cur.close = s.c[i]; if (s.v) cur.v += s.v[i] || 0; }
       }
       this.bars = out.length > this.maxBars ? out.slice(out.length - this.maxBars) : out;
     }
@@ -283,10 +283,10 @@
       const i = ++this.cursor, s = this.s, b = bucketStart(s.t[i], this.tf);
       let last = this.bars[this.bars.length - 1], isNew = false;
       if (!last || last._b !== b) {
-        last = { _b: b, time: displayTime(b, this.tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; this.bars.push(last); isNew = true;
+        last = { _b: b, time: displayTime(b, this.tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; if (s.v) last.v = s.v[i] || 0; this.bars.push(last); isNew = true;
         if (this.bars.length > this.maxBars + this.trimStep) { this.bars.splice(0, this.trimStep); this.trimmed += this.trimStep; }
       }
-      else { if (s.h[i] > last.high) last.high = s.h[i]; if (s.l[i] < last.low) last.low = s.l[i]; last.close = s.c[i]; }
+      else { if (s.h[i] > last.high) last.high = s.h[i]; if (s.l[i] < last.low) last.low = s.l[i]; last.close = s.c[i]; if (s.v) last.v += s.v[i] || 0; }
       return { m1: this.m1(i), bar: last, isNew };
     }
     /* Avanza hasta completar la vela visible actual (la siguiente M1 abriría una vela nueva). */
@@ -576,37 +576,55 @@
     return out;
   }
 
-  /* VWAP de sesión. Los datos M1 de HistData NO traen volumen real → cada vela pesa lo mismo
-   * (VWAP sin volumen = media del precio típico (H+L+C)/3 desde el inicio del periodo).
-   * Se reinicia al empezar el día de negociación (17:00 Nueva York, como las velas diarias), la semana o el mes.
-   * Bandas: ± mult × desviación típica del precio típico en el periodo (mult 0 = sin bandas). */
+  /* VWAP anclado al periodo (como el VWAP de TradingView).
+   * VWAP = Σ(precio·volumen) / Σ(volumen) desde el inicio del periodo (sesión = día de negociación, 17:00 Nueva York;
+   * semana, mes, trimestre o año). Si las velas traen volumen (`v`) se pondera por volumen; si no, cada vela pesa igual.
+   * Bandas como en TradingView: desviación típica ponderada (σ) o porcentaje sobre el VWAP, hasta 3 bandas.
+   * `pk` = clave del periodo de cada vela (para cortar la línea al empezar un periodo nuevo, igual que TradingView). */
   function engine() { return root.BT || (typeof require === 'function' ? require('./bt-engine.js') : null); }
+  const VWAP_DEF = { reset: 'D', src: 'hlc3', mode: 'sd', b1: 1, e1: 1, b2: 2, e2: 0, b3: 3, e3: 0, hideD: 1 };
+  function vwapParams(params) {
+    const p = Object.assign({}, VWAP_DEF, params || {});
+    if (params && params.mult != null && params.b1 == null) { p.b1 = +params.mult || 1; p.e1 = +params.mult > 0 ? 1 : 0; }
+    return p;
+  }
   function vwapKeyFn(reset) {
     const B = engine();
-    const day = t => Math.floor((t + (B && B.usDST && B.usDST(t) ? 3 * 3600 : 2 * 3600)) / 86400); // día de negociación
-    if (reset === 'W') return t => { const d = day(t); return Math.floor((d + 3) / 7); };            // semanas de lunes (día 0 = jueves 1-1-1970)
-    if (reset === 'M') return t => { const x = new Date(day(t) * 86400000); return x.getUTCFullYear() * 12 + x.getUTCMonth(); };
+    const day = t => Math.floor((t + (B && B.usDST && B.usDST(t) ? 3 * 3600 : 2 * 3600)) / 86400); // día de negociación (17:00 NY)
+    const ym = t => { const x = new Date(day(t) * 86400000); return [x.getUTCFullYear(), x.getUTCMonth()]; };
+    if (reset === 'W') return t => Math.floor((day(t) + 3) / 7);          // semanas de lunes
+    if (reset === 'M') return t => { const a = ym(t); return a[0] * 12 + a[1]; };
+    if (reset === 'Q') return t => { const a = ym(t); return a[0] * 4 + Math.floor(a[1] / 3); };
+    if (reset === 'Y') return t => ym(t)[0];
     return day;
   }
-  // st = sumas acumuladas por vela dentro del periodo (k, w, sp, sq) → reanudar sin recorrer el día/semana/mes entero
-  function vwapFill(bars, p, out, from, st) {
-    const key = vwapKeyFn(p.reset), mult = +p.mult || 0, n = bars.length;
+  const VWAP_SRC = {
+    hlc3: b => (b.high + b.low + b.close) / 3, hl2: b => (b.high + b.low) / 2, ohlc4: b => (b.open + b.high + b.low + b.close) / 4,
+    close: b => b.close, open: b => b.open, high: b => b.high, low: b => b.low,
+  };
+  const VWAP_LINES = ['v', 'u1', 'l1', 'u2', 'l2', 'u3', 'l3'];
+  // st = sumas acumuladas por vela (k, w, sp, sq) → reanudar sin recorrer el periodo entero
+  function vwapFill(bars, params, out, from, st) {
+    const p = vwapParams(params), key = vwapKeyFn(p.reset), src = VWAP_SRC[p.src] || VWAP_SRC.hlc3, n = bars.length;
+    const bands = [[+p.e1 ? +p.b1 : 0], [+p.e2 ? +p.b2 : 0], [+p.e3 ? +p.b3 : 0]].map(a => a[0] > 0 ? a[0] : 0), pct = p.mode === 'pct';
     let ck = null, sw = 0, sp = 0, sq = 0;
     if (from > 0 && st && st.k[from - 1] != null) { ck = st.k[from - 1]; sw = st.w[from - 1]; sp = st.sp[from - 1]; sq = st.sq[from - 1]; }
     else from = 0;
     for (let i = from; i < n; i++) {
       const b = bars[i], k = key(b.time); if (k !== ck) { ck = k; sw = 0; sp = 0; sq = 0; }
-      const tp = (b.high + b.low + b.close) / 3; sw += 1; sp += tp; sq += tp * tp;
+      const x = src(b), w = b.v > 0 ? +b.v : 1; sw += w; sp += x * w; sq += x * x * w;
       if (st) { st.k[i] = k; st.w[i] = sw; st.sp[i] = sp; st.sq[i] = sq; }
       const m = sp / sw, sd = Math.sqrt(Math.max(0, sq / sw - m * m));
-      out.v[i] = m; out.up[i] = mult > 0 ? m + mult * sd : null; out.lo[i] = mult > 0 ? m - mult * sd : null;
+      out.v[i] = m; out.pk[i] = k;
+      for (let j = 0; j < 3; j++) { const d = bands[j] ? (pct ? m * bands[j] / 100 : sd * bands[j]) : null;
+        out['u' + (j + 1)][i] = d == null ? null : m + d; out['l' + (j + 1)][i] = d == null ? null : m - d; }
     }
     if (st) { st.k.length = n; st.w.length = n; st.sp.length = n; st.sq.length = n; }
   }
   function vwap(bars, params) {
-    const p = Object.assign({ reset: 'D', mult: 1 }, params || {}), n = bars.length;
-    const out = { v: new Array(n).fill(null), up: new Array(n).fill(null), lo: new Array(n).fill(null) };
-    out._st = { k: [], w: [], sp: [], sq: [] }; if (n) vwapFill(bars, p, out, 0, out._st); return out;
+    const n = bars.length, out = { pk: new Array(n).fill(null) };
+    VWAP_LINES.forEach(k => { out[k] = new Array(n).fill(null); });
+    out._st = { k: [], w: [], sp: [], sq: [] }; if (n) vwapFill(bars, params, out, 0, out._st); return out;
   }
 
   /* Catálogo: cómo se llama, parámetros por defecto y si va sobre el precio o en panel propio */
@@ -618,7 +636,7 @@
     rsi: { name: 'RSI', short: 'RSI', overlay: false, params: { period: 14 }, color: '#E879F9' },
     macd: { name: 'MACD', short: 'MACD', overlay: false, params: { fast: 12, slow: 26, signal: 9 }, color: '#38BDF8' },
     atr: { name: 'ATR (rango medio)', short: 'ATR', overlay: false, params: { period: 14 }, color: '#FBBF24' },
-    vwap: { name: 'VWAP de sesión', short: 'VWAP', overlay: true, note: 'Precio medio de la sesión con bandas. Se reinicia cada día (17:00 Nueva York), semana o mes. Los datos de forex/CFD no traen volumen real: cada vela pesa lo mismo.', params: { reset: 'D', mult: 1 }, color: '#F472B6' },
+    vwap: { name: 'VWAP', short: 'VWAP', overlay: true, note: 'Precio medio ponderado por volumen desde el inicio del periodo (sesión, semana, mes…), con hasta 3 bandas. Doble clic en su nombre del gráfico para editarlo.', params: Object.assign({}, VWAP_DEF), color: '#2962FF', colors: { b1: '#4CAF50', b2: '#808000', b3: '#00897B' } },
   };
 
   /* Calcula las líneas de un indicador. Devuelve { lines: {clave: valores[]}, hist?: valores[] } */
@@ -631,7 +649,7 @@
       case 'rsi': return { lines: { v: rsi(c, +p.period) } };
       case 'macd': { const r = macd(c, +p.fast, +p.slow, +p.signal); return { lines: { line: r.line, signal: r.signal }, hist: r.hist }; }
       case 'atr': return { lines: { v: atr(bars, +p.period) } };
-      case 'vwap': { const r = vwap(bars, p); return { lines: { v: r.v, up: r.up, lo: r.lo }, _vst: r._st }; }
+      case 'vwap': { const r = vwap(bars, params); const lines = {}; VWAP_LINES.forEach(k => { lines[k] = r[k]; }); return { lines, pk: r.pk, _vst: r._st }; }
       default: return { lines: {} };
     }
   }
@@ -682,13 +700,14 @@
         L.line[i] = st.f[i] - st.s[i]; L.signal[i] = L.line[i] * kg + L.signal[i - 1] * (1 - kg); prev.hist[i] = L.line[i] - L.signal[i];
       }
     } else if (type === 'vwap') {
-      if (!prev._st.k) return FULL(type, params, bars);
-      fit(L.v); fit(L.up); fit(L.lo); vwapFill(bars, p, L, from, prev._st);
+      if (!prev._st.k || !prev.pk) return FULL(type, params, bars);
+      VWAP_LINES.forEach(k => fit(L[k])); fit(prev.pk);
+      const tmp = Object.assign({ pk: prev.pk }, L); vwapFill(bars, params, tmp, from, prev._st);
     } else return FULL(type, params, bars);
     prev._n = n; return prev;
   }
 
-  const API = { sma, ema, bollinger, rsi, macd, atr, vwap, compute, update, CATALOG };
+  const API = { sma, ema, bollinger, rsi, macd, atr, vwap, vwapParams, VWAP_LINES, compute, update, CATALOG };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.BTInd = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -2343,6 +2362,33 @@ body.resizing iframe,body.resizing canvas{pointer-events:none}
 .ind-act input[type=color]{width:22px;height:22px;border:0;background:none;padding:0;cursor:pointer}
 .ind-act button{width:22px!important;height:22px!important;padding:0!important;justify-content:center!important}
 .legend .ind{display:block;margin-top:3px;font-size:11px}
+.legend .ind{pointer-events:auto;cursor:pointer;display:flex;align-items:center;gap:5px;width:max-content;max-width:100%;padding:1px 6px 1px 2px;margin-left:-2px;border-radius:5px;border:1px solid transparent;transition:background .15s,border-color .15s}
+.legend .ind:hover{background:rgba(19,21,26,.85);border-color:var(--border2)}
+.legend .ind.off{opacity:.55}
+.legend .ind .ib{display:none;gap:2px;margin-left:4px}
+.legend .ind:hover .ib{display:inline-flex}
+.legend .ind .ib button{width:20px;height:20px;border:0;border-radius:4px;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;padding:0}
+.legend .ind .ib button:hover{background:var(--bg4);color:var(--text)}
+.ic{width:min(440px,94vw)}
+.ic-tabs{display:flex;gap:18px;padding:0 18px;border-bottom:1px solid var(--border)}
+.ic-tabs button{border:0;background:transparent;color:var(--text2);font:inherit;font-size:13px;font-weight:600;padding:10px 0;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.ic-tabs button.on{color:var(--text);border-bottom-color:var(--green)}
+.ic-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.ic-row>span{color:var(--text2)}
+.ic-c{display:flex;align-items:center;gap:8px}
+.ic-c .ctl{height:30px;min-width:120px}
+.ic-c input[type=number].ctl{width:80px;min-width:0}
+.ic-c input[type=color]{width:34px;height:26px;border:1px solid var(--border2);border-radius:6px;background:transparent;padding:2px;cursor:pointer}
+.ic-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-top:4px;padding-top:10px;border-top:1px solid var(--border)}
+.ic-chk{position:relative;display:inline-flex;cursor:pointer}
+.ic-chk input{position:absolute;opacity:0;pointer-events:none}
+.ic-chk span{width:18px;height:18px;border-radius:5px;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center}
+.ic-chk input:checked+span{background:var(--green);border-color:var(--green)}
+.ic-chk input:checked+span::after{content:'';width:5px;height:9px;border:solid #04140b;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.ic-note{display:flex;gap:7px;font-size:11.5px;line-height:1.5;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.ic-note i{font-size:14px;color:var(--text2);margin-top:1px}
+.ic-f{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid var(--border)}
+
 /* panel inferior */
 .bottom{position:relative;display:grid;grid-template-rows:38px 1fr;min-height:0;background:var(--bg2);border-top:1px solid var(--border)}
 .tabs{display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;container-type:inline-size}.tabs::-webkit-scrollbar{display:none}.tabs #dataInfo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}@container (max-width:760px){.tabs #dataInfo{display:none}}
@@ -2704,6 +2750,12 @@ tr.row:hover td{background:var(--bg3);cursor:pointer}
     <p class="mc-note">El resultado se suma al balance al momento. La operación sigue siendo una sola: al cerrarse, su P/L y su R incluyen los parciales.</p>
   </div>
   <div class="om-ft"><button class="btn" onclick="ptClose()">Cancelar</button><button class="btn save pt-go" id="ptGo">Cerrar parcial</button></div>
+</div></div>
+<div class="mbg" id="mIndCfg"><div class="om ic" role="dialog" aria-label="Ajustes del indicador">
+  <div class="om-h"><h3 id="icTitle">Indicador</h3><button class="btn icon" id="icX" title="Cerrar"><i class="ti ti-x"></i></button></div>
+  <div class="ic-tabs" id="icTabs"><button data-t="in" class="on">Entradas</button><button data-t="st">Estilo</button></div>
+  <div class="om-b" id="icBody"></div>
+  <div class="ic-f"><button class="btn" id="icDef">Valores por defecto</button><span style="flex:1"></span><button class="btn" id="icCancel">Cancelar</button><button class="btn primary" id="icOk">Aceptar</button></div>
 </div></div>
 <div class="mbg" id="mOrd"><div class="om" role="dialog" aria-label="Colocar orden">
   <div class="om-h"><h3>Colocar orden</h3><button class="btn icon" id="omX" title="Cerrar"><i class="ti ti-x"></i></button></div>
@@ -3883,6 +3935,7 @@ function buildIndMenu() {
   const C = BTInd.CATALOG;
   const act = S.indicators.map(ind => {
     const meta = C[ind.type], ps = Object.keys(meta.params);
+    if (ind.type === 'vwap') return `<div class="ind-act" data-id="${ind.id}"><b>${meta.short}</b><button data-cfg="${ind.id}" title="Ajustes"><i class="ti ti-settings"></i></button><button data-rm="${ind.id}" title="Quitar"><i class="ti ti-x"></i></button></div>`;
     return `<div class="ind-act" data-id="${ind.id}"><b>${meta.short}</b>${ps.map(k => k === 'reset' ? `<select data-k="reset" title="Se reinicia cada…">${[['D', 'Día'], ['W', 'Semana'], ['M', 'Mes']].map(([v, l]) => `<option value="${v}"${ind.params.reset === v ? ' selected' : ''}>${l}</option>`).join('')}</select>` : `<input type="number" min="${ind.type === 'vwap' && k === 'mult' ? 0 : 1}" step="${k === 'mult' ? '0.1' : '1'}" data-k="${k}" value="${ind.params[k]}" title="${ind.type === 'vwap' && k === 'mult' ? 'Bandas (desviaciones, 0 = sin bandas)' : k}">`).join('')}
       ${ind.type !== 'sessions' ? `<input type="color" data-k="color" value="${ind.color}" title="Color">` : ''}<button data-rm="${ind.id}" title="Quitar"><i class="ti ti-x"></i></button></div>`;
   }).join('');
@@ -3910,10 +3963,14 @@ function rebuildIndicators() {
     const meta = BTInd.CATALOG[ind.type]; if (!meta || ind.type === 'sessions') return;
     const pi = meta.overlay ? 0 : ++pane, o = { series: [], keys: [], hist: null, pane: pi };
     if (ind.type === 'bb') { o.keys = ['up', 'mid', 'lo']; o.series = [line(ind.color, 0, 1), line(ind.color + 'AA', 0, 1, 2), line(ind.color, 0, 1)]; }
-    else if (ind.type === 'vwap') { o.keys = ['up', 'v', 'lo']; o.series = [line(ind.color + '99', 0, 1, 2), line(ind.color, 0, 2), line(ind.color + '99', 0, 1, 2)]; }
+    else if (ind.type === 'vwap') {
+      const C = vwapColors(ind); o.vw = true; o.keys = BTInd.VWAP_LINES;
+      o.series = o.keys.map(k => { const x = line(k === 'v' ? C.v : C['b' + k[1]], 0, k === 'v' ? 2 : 1); x.applyOptions({ lastValueVisible: k === 'v' }); return x; });
+    }
     else if (ind.type === 'macd') { o.keys = ['line', 'signal']; o.series = [line(ind.color, pi), line('#F59E0B', pi)]; o.hist = chart.addSeries(LW.HistogramSeries, { priceLineVisible: false, lastValueVisible: false }, pi); o.series.push(o.hist); }
     else { o.keys = ['v']; o.series = [line(ind.color, pi, meta.overlay ? 1.5 : 1.5)]; }
     if (ind.type === 'rsi') { o.series[0].createPriceLine({ price: 70, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); o.series[0].createPriceLine({ price: 30, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); }
+    if (ind.hidden) o.series.forEach(x => { try { x.applyOptions({ visible: false }); } catch (_) {} });
     indSeries[ind.id] = o;
   });
   // Reparto de alto: el precio manda; cada oscilador ~1/4 del alto del panel principal
@@ -3929,6 +3986,7 @@ function updateIndicators(full) {
     const o = indSeries[ind.id]; if (!o) return;
     // completo al reconstruir; durante el replay se reanuda desde la última vela (mismo resultado, mucho más rápido)
     const r = full || !o.last ? BTInd.update(ind.type, ind.params, bars, null) : BTInd.update(ind.type, ind.params, bars, o.last);
+    if (o.vw) { vwapPaint(ind, o, r, bars, full); o.lastT = n ? bars[n - 1].time : null; o.last = r; return; }
     // Lightweight Charts solo deja actualizar la última vela: la anterior se cierra solo si acaba de aparecer una nueva
     const i0 = n > 1 && o.lastT === bars[n - 2].time ? n - 2 : Math.max(0, n - 1);
     const pts = arr => full ? arr.map((v, i) => v == null ? { time: bars[i].time } : { time: bars[i].time, value: v }) : null;
@@ -3946,6 +4004,67 @@ function updateIndicators(full) {
   });
   renderIndLegend();
 }
+/* ══ VWAP (como TradingView) + ventana de ajustes de indicadores (doble clic en la leyenda) ══ */
+const VWAP_ANCHOR = { D: 'Sesión', W: 'Semana', M: 'Mes', Q: 'Trimestre', Y: 'Año' };
+const VWAP_SRCS = { hlc3: '(Máx + Mín + Cierre) / 3', hl2: '(Máx + Mín) / 2', ohlc4: '(Ap + Máx + Mín + Cierre) / 4', close: 'Cierre', open: 'Apertura', high: 'Máximo', low: 'Mínimo' };
+function vwapColors(ind) { return Object.assign({ v: ind.color || '#2962FF', b1: '#4CAF50', b2: '#808000', b3: '#00897B' }, ind.colors || {}, { v: ind.color || '#2962FF' }); }
+function vwapPaint(ind, o, r, bars, full) {
+  const n = bars.length, p = BTInd.vwapParams(ind.params), hide = +p.hideD && S.tf >= 1440, pk = r.pk || [];
+  // En Lightweight Charts el color de un punto pinta el tramo que SALE de él: el último punto de cada periodo va
+  // transparente → la línea se corta al empezar el periodo siguiente (como TradingView), sin saltos verticales.
+  const pt = (k, i) => { const v = r.lines[k][i]; if (hide || v == null) return { time: bars[i].time };
+    const p = { time: bars[i].time, value: v }; if (i < n - 1 && pk[i + 1] !== pk[i]) p.color = 'rgba(0,0,0,0)'; return p; };
+  if (full) { o.keys.forEach((k, j) => o.series[j].setData(bars.map((_, i) => pt(k, i)))); return; }
+  const i0 = n > 1 && o.lastT === bars[n - 2].time ? n - 2 : Math.max(0, n - 1);
+  o.keys.forEach((k, j) => { for (let i = i0; i < n; i++) o.series[j].update(pt(k, i)); });
+}
+let IC = null; // ajustes en edición
+function openIndCfg(id) {
+  const ind = S.indicators.find(x => x.id === id); if (!ind) return;
+  const meta = BTInd.CATALOG[ind.type]; IC = { id, tab: 'in', orig: JSON.stringify({ params: ind.params, color: ind.color, colors: ind.colors }) };
+  if (ind.type === 'vwap') ind.params = BTInd.vwapParams(ind.params);
+  $('icTitle').textContent = meta.name; renderIndCfg(); $('mIndCfg').classList.add('show');
+}
+function renderIndCfg() {
+  const ind = S.indicators.find(x => x.id === IC.id); if (!ind) return;
+  const p = ind.params, isV = ind.type === 'vwap';
+  document.querySelectorAll('#icTabs button').forEach(b => b.classList.toggle('on', b.dataset.t === IC.tab));
+  const sel = (k, opts) => `<select class="ctl" data-k="${k}">${Object.entries(opts).map(([v, l]) => `<option value="${v}"${String(p[k]) === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+  const num = (k, step) => `<input class="ctl" type="number" step="${step || 1}" min="0" data-k="${k}" value="${p[k]}">`;
+  const chk = (k) => `<label class="ic-chk"><input type="checkbox" data-k="${k}"${+p[k] ? ' checked' : ''}><span></span></label>`;
+  const row = (label, ctl, extra) => `<div class="ic-row"><span>${label}</span><div class="ic-c">${extra || ''}${ctl}</div></div>`;
+  let h = '';
+  if (IC.tab === 'in') {
+    if (isV) {
+      h += row('Ocultar el VWAP en 1D o superior', chk('hideD'));
+      h += row('Periodo de anclaje', sel('reset', VWAP_ANCHOR));
+      h += row('Fuente', sel('src', VWAP_SRCS));
+      h += `<div class="ic-sec">Ajustes de las bandas</div>`;
+      h += row('Modo de cálculo', sel('mode', { sd: 'Desviación típica', pct: 'Porcentaje' }));
+      [1, 2, 3].forEach(n => { h += row('Multiplicador de banda #' + n, num('b' + n, 0.1), chk('e' + n)); });
+      h += `<div class="ic-note"><i class="ti ti-info-circle"></i>${S.hasVolume ? 'Ponderado por el volumen de las velas.' : 'Estos datos no traen volumen: cada vela pesa lo mismo, por eso puede diferir del VWAP de TradingView.'} Semana/mes/trimestre/año empiezan en el primer dato cargado si la sesión empezó después.</div>`;
+    } else Object.keys(BTInd.CATALOG[ind.type].params).forEach(k => { h += row(k === 'period' ? 'Periodo' : k === 'mult' ? 'Desviaciones' : k === 'fast' ? 'Rápida' : k === 'slow' ? 'Lenta' : k === 'signal' ? 'Señal' : k, num(k, k === 'mult' ? 0.1 : 1)); });
+  } else {
+    const C = isV ? vwapColors(ind) : { v: ind.color };
+    h += row(isV ? 'VWAP' : 'Línea', `<input type="color" data-c="v" value="${C.v}">`);
+    if (isV) [1, 2, 3].forEach(n => { h += row('Bandas #' + n + ' (superior e inferior)', `<input type="color" data-c="b${n}" value="${C['b' + n]}">`); });
+  }
+  $('icBody').innerHTML = h;
+}
+function icApply(e) {
+  const ind = S.indicators.find(x => x.id === IC.id); if (!ind) return; const t = e.target;
+  if (t.dataset.c) { if (t.dataset.c === 'v') ind.color = t.value; else { ind.colors = Object.assign({}, ind.colors || {}); ind.colors[t.dataset.c] = t.value; } }
+  else if (t.dataset.k) { const k = t.dataset.k; if (t.type === 'checkbox') ind.params[k] = t.checked ? 1 : 0; else if (t.tagName === 'SELECT') ind.params[k] = t.value; else { const v = parseFloat(t.value); if (v >= 0) ind.params[k] = /^(period|fast|slow|signal)$/.test(k) ? Math.max(1, Math.round(v)) : v; } }
+  else return;
+  rebuildIndicators(); buildIndMenu();
+}
+function icClose(ok) {
+  const ind = S.indicators.find(x => x.id === (IC && IC.id));
+  if (!ok && ind && IC) { const o = JSON.parse(IC.orig); ind.params = o.params; ind.color = o.color; ind.colors = o.colors; rebuildIndicators(); buildIndMenu(); }
+  else sessionSaveSoon();
+  $('mIndCfg').classList.remove('show'); IC = null;
+}
+function icDefaults() { const ind = S.indicators.find(x => x.id === IC.id); if (!ind) return; const m = BTInd.CATALOG[ind.type]; ind.params = Object.assign({}, m.params); ind.color = m.color; ind.colors = m.colors ? Object.assign({}, m.colors) : undefined; renderIndCfg(); rebuildIndicators(); buildIndMenu(); }
 function renderIndLegend() {
   const el = $('indLegend'); if (!el) return;
   const fmt = (v, d) => v == null ? '—' : v.toFixed(d);
@@ -3953,9 +4072,9 @@ function renderIndLegend() {
     const o = indSeries[ind.id], r = o && o.last, meta = BTInd.CATALOG[ind.type]; if (!r) return '';
     const last = k => { const a = r.lines[k] || []; return a[a.length - 1]; };
     const dg = meta.overlay ? sym().digits : 2;
-    const pv = ind.type === 'vwap' ? ({ D: 'Día', W: 'Semana', M: 'Mes' })[ind.params.reset] || 'Día' : Object.values(ind.params).join(',');
-    const vals = ind.type === 'vwap' ? fmt(last('v'), dg) + (ind.params.mult > 0 ? ` <span style="color:#8B93A1">±${ind.params.mult}σ ${fmt(last('up'), dg)} / ${fmt(last('lo'), dg)}</span>` : '') : ind.type === 'bb' ? `${fmt(last('up'), dg)} / ${fmt(last('mid'), dg)} / ${fmt(last('lo'), dg)}` : ind.type === 'macd' ? `${fmt(last('line'), 2)} / ${fmt(last('signal'), 2)}` : fmt(last('v'), dg);
-    return `<span class="ind"><span style="color:${ind.color}">●</span> ${meta.short} ${pv} <span style="color:#F0F2F5">${vals}</span></span>`;
+    const pv = ind.type === 'vwap' ? (VWAP_ANCHOR[BTInd.vwapParams(ind.params).reset] || 'Sesión') + ' ' + (BTInd.vwapParams(ind.params).src) : Object.values(ind.params).join(',');
+    const vals = ind.type === 'vwap' ? fmt(last('v'), dg) + ['1', '2', '3'].map(n => last('u' + n) != null ? ` <span style="color:${vwapColors(ind)['b' + n]}">${fmt(last('u' + n), dg)} / ${fmt(last('l' + n), dg)}</span>` : '').join('') : ind.type === 'bb' ?  `${fmt(last('up'), dg)} / ${fmt(last('mid'), dg)} / ${fmt(last('lo'), dg)}` : ind.type === 'macd' ? `${fmt(last('line'), 2)} / ${fmt(last('signal'), 2)}` : fmt(last('v'), dg);
+    return `<span class="ind${ind.hidden ? ' off' : ''}" data-id="${ind.id}" title="Doble clic para editar"><span style="color:${ind.color}">●</span> ${meta.short} ${pv} <span class="iv" style="color:#F0F2F5">${ind.hidden ? '' : vals}</span><span class="ib"><button data-a="eye" title="${ind.hidden ? 'Mostrar' : 'Ocultar'}"><i class="ti ti-eye${ind.hidden ? '-off' : ''}"></i></button><button data-a="cfg" title="Ajustes"><i class="ti ti-settings"></i></button><button data-a="rm" title="Quitar"><i class="ti ti-x"></i></button></span></span>`;
   }).join('');
 }
 
@@ -5659,7 +5778,17 @@ function bindUI() {
     e.stopPropagation();
     const a = e.target.closest('[data-add]'); if (a) { addIndicator(a.dataset.add); return; }
     const rm = e.target.closest('[data-rm]'); if (rm) { S.indicators = S.indicators.filter(i => i.id !== rm.dataset.rm); indicatorsChanged(); }
+    const cf = e.target.closest('[data-cfg]'); if (cf) { $('indDD').classList.remove('open'); openIndCfg(cf.dataset.cfg); }
   });
+  $('indLegend').addEventListener('click', e => { const b = e.target.closest('.ib button'), it = e.target.closest('.ind'); if (!b || !it) return; e.stopPropagation();
+    const ind = S.indicators.find(x => x.id === it.dataset.id); if (!ind) return;
+    if (b.dataset.a === 'rm') { S.indicators = S.indicators.filter(x => x.id !== ind.id); indicatorsChanged(); }
+    else if (b.dataset.a === 'eye') { ind.hidden = !ind.hidden; indicatorsChanged(); }
+    else openIndCfg(ind.id); });
+  $('icX').onclick = () => icClose(false); $('icCancel').onclick = () => icClose(false); $('icOk').onclick = () => icClose(true); $('icDef').onclick = icDefaults;
+  $('mIndCfg').addEventListener('click', e => { if (e.target.id === 'mIndCfg') icClose(false); const tb = e.target.closest('#icTabs button'); if (tb) { IC.tab = tb.dataset.t; renderIndCfg(); } });
+  $('icBody').addEventListener('change', icApply); $('icBody').addEventListener('input', e => { if (e.target.type === 'color' || e.target.type === 'number') icApply(e); });
+  $('indLegend').addEventListener('dblclick', e => { const it = e.target.closest('.ind'); if (it) { e.stopPropagation(); openIndCfg(it.dataset.id); } });
   $('indMenu').addEventListener('change', e => {
     const row = e.target.closest('.ind-act'); if (!row) return;
     const ind = S.indicators.find(i => i.id === row.dataset.id), k = e.target.dataset.k; if (!ind || !k) return;
