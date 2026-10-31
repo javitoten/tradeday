@@ -9192,8 +9192,9 @@ async function saveDisciplineScoreSnapshot(current){
 
 async function renderDisciplineHistory(){
   if(!currentUser)return;
-  const{data}=await sb.from('discipline_scores').select('*').eq('user_id',currentUser.id).order('week_start',{ascending:true}).limit(8);
-  disciplineHistory=data||[];
+  // Las 8 semanas MÁS RECIENTES (antes cogía las 8 primeras y la gráfica se quedaba congelada en el pasado)
+  const{data}=await sb.from('discipline_scores').select('*').eq('user_id',currentUser.id).order('week_start',{ascending:false}).limit(8);
+  disciplineHistory=(data||[]).reverse();
   const el=document.getElementById('ds-history-chart');
   if(!el)return;
   if(disciplineHistory.length<2){
