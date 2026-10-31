@@ -1903,6 +1903,7 @@ html.td-scroll-lock,html.td-scroll-lock body,html.td-scroll-lock .main-content,h
 .journal-analysis{background:var(--purple-bg);border:1px solid #2A1A4A;border-radius:var(--radius-lg);padding:14px 16px;margin-top:10px}
 .journal-analysis-title{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .journal-analysis-row{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:6px}
+.journal-analysis-row.ja-lesson{border-left:2px solid var(--accent);padding:4px 0 4px 10px;color:var(--text)}
 .journal-analysis-row:last-child{margin-bottom:0}
 .journal-analysis-row strong{color:var(--text)}
 .sentiment-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;margin-right:5px}
@@ -7280,7 +7281,7 @@ function normText(s){
 /* Conectores que delimitan el alcance de una negación: dentro de la misma cláusula, "no" aplica a
    cualquier palabra posterior aunque haya varias palabras de por medio (p.ej. "no he tenido un día
    muy disciplinado" → "disciplinado" sigue estando negado por el "no" inicial). */
-const CLAUSE_BOUNDARY_RE=/[.,;:]|\b(?:pero|aunque|sin embargo|no obstante|y|o|porque|but|although|though|however|and|or|because|so|yet)\b/g;
+const CLAUSE_BOUNDARY_RE=/[.,;:!?\n]|\b(?:pero|aunque|sin embargo|no obstante|y|o|porque|cuando|mientras|luego|despues|entonces|but|although|though|however|and|or|because|so|yet|when|while|then)\b/g;
 function clauseStartBefore(normStr,idx){
   CLAUSE_BOUNDARY_RE.lastIndex=0;
   let start=0,m;
@@ -7294,7 +7295,8 @@ function clauseStartBefore(normStr,idx){
    (p.ej. "no fui disciplinado", "sin confianza", "no he tenido un día muy disciplinado") */
 function isNegatedAt(normStr,idx){
   const start=clauseStartBefore(normStr,idx);
-  const before=normStr.slice(start,idx);
+  // Solo las ~6 palabras previas: «sin desespero ni nada … acepté la pérdida» ya no niega «acepté»
+  const before=normStr.slice(start,idx).trim().split(/\s+/).slice(-6).join(' ')+' ';
   return /\b(no|sin|nunca|jamas|ni|tampoco|apenas|nada|evite|evito|deje de|decidi no)\b/.test(before)
       || /\b(not|never|without|neither|nor|hardly|barely|didn'?t|did not|don'?t|do not|wasn'?t|was not|weren'?t|were not|couldn'?t|could not|wouldn'?t|would not|shouldn'?t|should not|haven'?t|have not|hadn'?t|had not|avoided|failed to|refused to|decided not to|chose not to|stopped myself from|no longer)\b/.test(before);
 }
@@ -7302,6 +7304,17 @@ function isNegatedAt(normStr,idx){
    anterior"). Una emoción marcada como pasada no debe contarse como el estado emocional dominante
    de HOY, aunque sí puede usarse para explicar una decisión posterior (ver isPastMarked). */
 const TEMPORAL_PAST_RE=/\b(ayer|el dia anterior|la sesion anterior|la jornada anterior|el otro dia|yesterday|the day before|the previous session|the previous day|last session|the other day|earlier this week)\b/;
+/* «debo esperar…», «para la próxima…», «tengo que ser más disciplinado» → es una INTENCIÓN o lección,
+   no algo que ya hiciste: no cuenta como emoción ni comportamiento (antes «debo esperar» sumaba Paciencia). */
+const INTENT_RE=/\b(debo|deberia|tengo que|tendria que|tenia que|hay que|necesito|voy a|para la proxima|la proxima vez|proxima vez|a mejorar|solo ser|intentar|intentare|procurar|procurare|me gustaria|ojala|quisiera|quiero ser|quiero aprender|aprender a)\b|\b(should|must|need to|have to|next time|i will|i'?ll|going to|want to be|try to)\b/;
+function isIntentAt(normStr,idx){
+  const start=clauseStartBefore(normStr,idx);
+  // Alcance: la FRASE (no la cláusula): en «solo ser más constante y disciplinado» la «y» no corta la intención
+  const head=normStr.slice(0,idx);let st=0,m;const re=/[.!?\n;]|\b(?:pero|aunque|sin embargo|but|although)\b/g;
+  while((m=re.exec(head)))st=m.index+m[0].length;
+  const before=head.slice(st).trim().split(/\s+/).slice(-9).join(' ')+' ';
+  return INTENT_RE.test(before);
+}
 function isPastMarked(normStr,idx){
   const start=clauseStartBefore(normStr,idx);
   const before=normStr.slice(start,idx);
@@ -7324,7 +7337,7 @@ function findHits(normStr,triggers){
     let idx=normStr.indexOf(t);
     while(idx!==-1){
       const negated=isNegatedAt(normStr,idx)||(t.indexOf(' ')===-1&&isPrefixNegated(normStr,idx));
-      hits.push({trigger:t,index:idx,weight:t.split(' ').length,negated});
+      hits.push({trigger:t,index:idx,weight:t.split(' ').length,negated,intent:isIntentAt(normStr,idx)});
       idx=normStr.indexOf(t,idx+t.length);
     }
   });
@@ -7828,9 +7841,98 @@ const SUGGESTION_BANK_POSITIVE_BEHAVIOR={
 })();
 
 
+/* ══ MEJORAS DEL MOTOR (31-oct-2026), sacadas de cómo escriben de verdad los usuarios ══
+   Frases reales que antes no se detectaban, comportamientos nuevos, la alegría ya no cuenta como
+   «euforia» y negaciones que pasan a ser un comportamiento POSITIVO («no entré por FOMO»). */
+(function(){
+  const addE=(k,arr)=>{EMOTION_LEXICON[k]=(EMOTION_LEXICON[k]||[]).concat(arr);};
+  const addB=(k,arr)=>{if(BEHAVIOR_LEXICON[k])BEHAVIOR_LEXICON[k].triggers=BEHAVIOR_LEXICON[k].triggers.concat(arr);};
+  // Alegría/satisfacción ≠ euforia (la euforia es exceso de confianza): pasan a Motivación
+  const HAPPY=['alegria','feliz','contento','contenta','orgullo','orgulloso','orgullosa','satisfaccion','satisfecho','satisfecha','emocionado','emocionada','joy','happy','pleased','glad','pride','proud','satisfaction','satisfied','thrilled'];
+  EMOTION_LEXICON['Euforia']=EMOTION_LEXICON['Euforia'].filter(w=>!HAPPY.includes(w));
+  addE('Motivación',HAPPY);
+  addE('Confianza',['confiando','confio en','confie en mi','me senti bien','me siento bien','me sentia bien','depende de la estadistica','confianza en mi sistema','confianza en mi estrategia','seguro de la entrada']);
+  addE('Duda',['confund','confuso','confusa','confusion','me complique','no me dio seguridad','no lo veia claro','por dudar']);
+  addE('Miedo',['me cague','me temblo la mano','temblo el pulso','acojon','cagado','cagada']);
+  addE('Frustración',['enojad','enoja','coraje','cabread','me da rabia','joder','que asco']);
+  addE('Ansiedad',['alterado','alterada','acelerado','acelerada','desespero','desesperad']);
+  addE('Paciencia',['tuve paciencia','tuve la paciencia','me calme','respire','mantuve la calma','entrene la paciencia']);
+  addE('Desmotivación',['no me sentia concentrado','no me sentia concentrada','desconcentrad','sin concentracion','no estuve fino','no estaba fino']);
+  addB('Seguir el plan',['respetando el plan','respetando mi plan','respeto el plan','respeto mi plan','plan fue respetado','plan fue respectado','se respeto el plan','cumpli el plan','cumpli mi plan','segui mi plan','segui mis reglas','respete plan','decidi respetar mi plan','al pie de la letra','followed my rules']);
+  addB('Buena gestión del riesgo',['respete la gestion de riesgo','respete la gestion del riesgo','respeto mi riesgo','respetando el riesgo','respetando mi riesgo','sin salirme de mi riesgo','riesgo controlado']);
+  addB('Esperar con paciencia',['espere a que se me diera','espere a que se diera','espere mi entrada','espere mi oportunidad','no busque el trade','no busque la entrada','se dio mi oportunidad']);
+  addB('Aceptar la pérdida sin frustración',['aceptando el resultado','acepto el resultado','acepte el resultado','acepte el sl','acepte el stop']);
+  addB('Buena gestión emocional',['no me calente','me calme','mantuve la calma','respire y analice']);
+  addB('Evitar operar por autocontrol',['preferi quedarme fuera','decidi no ingresar','decido no ingresar','decidi no mover nada','decidi no arriesgarme','mejor no hacer nada','no buscaria nada','no entrar por entrar','se reservo capital','decidi no entrar','decido no entrar']);
+  addB('Operar fuera de horario',['fuera de horario','trade fuera de horario','outside my hours','outside my session']);
+  addB('Cerrar antes de tiempo',['sali antes de','sali antes del','cerre antes de tiempo','sali antes de tiempo','cerrar antes de tiempo','cerre manualmente','cerrar el trade manualmente','cerre a mano','be demasiado pronto','be muy pronto','puse en be demasiado','movi a be demasiado pronto','proteger demasiado pronto','cerre en be por miedo','closed too early','closed early']);
+  addB('Falta de control emocional',['deje llevar por el miedo','deje llevar por la emocion','deje llevar por las emociones']);
+  addB('No respetar el riesgo',['arriesgue demasiado','arriesgue mucho','arriesgar tanto','demasiado riesgo','no gestione bien mi riesgo','no gestione bien el riesgo','mala gestion del riesgo','mala gestion de riesgo','risked too much']);
+  addB('No esperar confirmación',['deberia haber esperado','deberia de haber esperado','debi esperar','debi haber esperado','tenia que haber esperado','tendria que haber esperado','me falto esperar','should have waited']);
+  addB('Entrar demasiado pronto',['entre antes de tiempo','entrar antes de tiempo','entre anticipado','entre anticipada','me anticipe','entre muy rapido','entre muy pronto','entered too early']);
+  addB('Operar por FOMO',['no querer quedarme fuera','quedarme fuera del movimiento','me iba a perder','perderme la entrada','perderme el movimiento','por no perderme']);
+  addB('Operar por venganza',['volver a entrar tras el sl','volvi a entrar tras el sl','recibir un sl y volver a entrar','recuperar el sl']);
+  addB('Mover el stop',['movi el sl','mover el sl','baje el stop','subi el stop','baje el sl','amplie el sl','quite el sl']);
+  BEHAVIOR_LEXICON['Mover el stop'].except=/\ba (be|break ?even)\b|\bbreakeven\b/;
+  addB('Setup poco claro',['no habia estructura','sin estructura definida','estructura no definida','sin criterio','ninguna era valida','no era valida']);
+  addB('Saltarse el plan',['no fueron con criterio','no hubiera entrado','no cumplia mis reglas','no cumplia el plan','fuera de mi plan']);
+  // Comportamientos nuevos
+  BEHAVIOR_LEXICON['Dejar pasar una entrada válida']={polarity:'negative',triggers:['las deje pasar','la deje pasar','lo deje pasar','deje pasar la entrada','deje pasar el trade','deje pasar la oportunidad','me temblo la mano','no me atrevi','por dudar','se fue sin mi','se fue el precio sin mi','no ejecute por miedo','por miedo no opere','por miedo no entre','no opere por miedo','no entre por miedo','por mi miedo e inseguridad','let it go by','hesitated','didn\'t pull the trigger']};
+  BEHAVIOR_LEXICON['Operar contra tendencia']={polarity:'negative',triggers:['contra tendencia','contratendencia','en contra de la tendencia','direccion contraria','en contra de mi sesgo','en contra del sesgo','against the trend','counter-trend','counter trend']};
+  BEHAVIOR_LEXICON['Operar en mercado lateral']={polarity:'negative',triggers:['mercado lateral','estaba lateral','muy lateral','lateralizado','dia muy chop','chopin','choppy','mercado sin direccion','sin direccion clara','sideways market']};
+  BEHAVIOR_LEXICON['Buena ejecución']={polarity:'positive',triggers:['opere perfecto','opere bien','operando bien','ejecute bien','buena ejecucion','ejecute cuando tocaba','la volveria a tomar','lo volveria a hacer','la repetiria','volveria a tomarla','buen trade','trade de manual','cumplia todos los parametros','cumplia todas mis reglas','cumplia mis reglas','cumplia el checklist','i\'d take it again','would take it again','textbook trade']};
+  BEHAVIOR_LEXICON['Dejar correr la ganancia']={polarity:'positive',triggers:['deje correr','dejar que corra','deje que corriera','espere a que llegara','respete el tp','espere el tp','let it run','let the trade run']};
+  // Negaciones que se convierten en un comportamiento POSITIVO
+  Object.assign(NEGATION_FLIP_STEMS,{
+    'fomo':{kind:'behavior',tag:'Control de impulsos'},
+    'por impulso':{kind:'behavior',tag:'Control de impulsos'},
+    'force':{kind:'behavior',tag:'Control de impulsos'},
+    'sobreopere':{kind:'behavior',tag:'Control de impulsos'},
+    'calente':{kind:'behavior',tag:'Buena gestión emocional'},
+    'cerro antes':{kind:'behavior',tag:'Dejar correr la ganancia'},
+    'cerre antes':{kind:'behavior',tag:'Dejar correr la ganancia'},
+    'movi el stop':{kind:'behavior',tag:'Buena gestión del riesgo'},
+    'movi el sl':{kind:'behavior',tag:'Buena gestión del riesgo'},
+  });
+})();
+
+/* Campos estructurados del formulario (emociones elegidas y «¿Seguiste el plan?»): son evidencia explícita
+   del propio usuario y antes se ignoraban si la nota no lo repetía. Entran como etiquetas directas. */
+const CHIP_EMOTION_TAG={'Tranquilo':'Paciencia','Impaciente':'Impulsividad','Con miedo':'Miedo','Eufórico':'Euforia','Eufrico':'Euforia','Frustrado':'Frustración',
+  'Confianza':'Confianza','Paciencia':'Paciencia','Duda':'Duda','Ansiedad':'Ansiedad','Frustración':'Frustración','Impulsividad':'Impulsividad','Miedo':'Miedo'};
+function synthesizeStructured(e){
+  const emo=[],beh=[];
+  (Array.isArray(e&&e.emotions)?e.emotions:[]).forEach(x=>{const k=String(x||'').replace(/[^\wáéíóúñÁÉÍÓÚÑ ]/g,'').trim();const t=CHIP_EMOTION_TAG[k];if(t&&!emo.includes(t))emo.push(t);});
+  const fp=String(e&&e.followed_plan||'');
+  if(/100/.test(fp))beh.push('Seguir el plan');else if(/^\s*no\s*$/i.test(fp))beh.push('Saltarse el plan');
+  return {emo,beh};
+}
+/* La lección que el propio usuario se escribe («debo esperar…», «para la próxima…», «Mal: …»).
+   Se muestra tal cual: es lo más valioso del registro y el motor ya no la confunde con algo que hizo. */
+function extractLesson(raw){
+  if(!raw||!String(raw).trim())return '';
+  const txt=String(raw).replace(/\s+/g,' ').trim();
+  const mal=txt.match(/\b(?:mal|a mejorar|para mejorar|errores?)\s*:\s*(.+?)(?=\b(?:bien|lo bueno)\s*:|$)/i);
+  let cand='';
+  if(mal&&mal[1].replace(/[-–•\s]/g,'').length>8)cand=mal[1];
+  else{
+    const sents=txt.split(/(?<=[.!?])\s+|\s+-\s+/).map(x=>x.trim()).filter(Boolean);
+    cand=sents.find(x=>/\b(debo|deberia|tengo que|tendria que|hay que|necesito|para la proxima|la proxima vez|a mejorar|me falto|me falta|aprender a|should|must|need to|next time)\b/.test(normText(x)))||'';
+  }
+  { const parts=cand.split(/\s*\b(?:pero|but)\b\s*/i); if(parts.length>1){ const p=parts.find(x=>/\b(debo|deberia|tengo que|tendria que|hay que|necesito|para la proxima|la proxima vez|a mejorar|me falto|me falta|aprender a|should|must|need to|next time)\b/.test(normText(x))); if(p)cand=p; } }
+  cand=cand.replace(/^[-–•\s]+/,'').replace(/\s+-\s+/g,'; ').trim();
+  cand=cand.charAt(0).toUpperCase()+cand.slice(1);
+  if(cand.length<10)return '';
+  if(cand===cand.toUpperCase())cand=cand.charAt(0)+cand.slice(1).toLowerCase();
+  return cand.length>160?cand.slice(0,157).replace(/\s+\S*$/,'')+'…':cand;
+}
+
 /* ── MOTOR PRINCIPAL ── */
-function analyzeJournalText(text,seedKey){
-  if(!text||!text.trim())return null;
+function analyzeJournalText(text,seedKey,ctx){
+  ctx=ctx||{};
+  const st=ctx.structured||{emo:[],beh:[]};
+  if((!text||!text.trim())&&!st.emo.length&&!st.beh.length)return null;
+  text=text||'';
   const norm=normText(text);
 
   // Palabras/frases explícitamente cubiertas por un trigger literal (emoción o comportamiento). Se usa
@@ -7842,7 +7944,7 @@ function analyzeJournalText(text,seedKey){
   const pastEmoTags=new Set();
   Object.keys(EMOTION_LEXICON).forEach(tag=>{
     const allHits=findHits(norm,EMOTION_LEXICON[tag]);
-    const activeHits=allHits.filter(h=>!h.negated);
+    const activeHits=allHits.filter(h=>!h.negated&&!h.intent);
     // Solo los aciertos NO negados cuentan como "cubiertos": un acierto negado (p.ej. "disciplin" dentro
     // de "no ... disciplinado") no aporta evidencia propia y no debe bloquear el mecanismo de flip, que
     // existe precisamente para reinterpretar ese mismo tramo negado.
@@ -7854,7 +7956,8 @@ function analyzeJournalText(text,seedKey){
   const behHitsAll={};
   Object.entries(BEHAVIOR_LEXICON).forEach(([tag,def])=>{
     const hits=findHits(norm,def.triggers);
-    const activeHits=hits.filter(h=>!h.negated);
+    // Excepciones (p.ej. «moví el SL a BE» no es «mover el stop» a peor)
+    const activeHits=hits.filter(h=>!h.negated&&!h.intent&&!(def.except&&def.except.test(norm.slice(h.index,h.index+h.trigger.length+16))));
     activeHits.forEach(h=>coveredSpans.push([h.index,h.index+h.trigger.length]));
     if(activeHits.length)behHitsAll[tag]=activeHits.reduce((a,h)=>a+h.weight,0);
   });
@@ -7866,7 +7969,7 @@ function analyzeJournalText(text,seedKey){
   Object.entries(NEGATION_FLIP_STEMS).forEach(([stem,flip])=>{
     let idx=norm.indexOf(stem);
     while(idx!==-1){
-      if(isNegatedAt(norm,idx)&&!isCovered(idx)){
+      if(isNegatedAt(norm,idx)&&!isCovered(idx)&&!isIntentAt(norm,idx)){
         if(flip.kind==='emotion')emoHitsAll[flip.tag]=(emoHitsAll[flip.tag]||0)+1;
         else{
           behHitsAll[flip.tag]=(behHitsAll[flip.tag]||0)+1;
@@ -7882,6 +7985,14 @@ function analyzeJournalText(text,seedKey){
   if(behHitsAll['Evitar operar por autocontrol']||behHitsAll['Control de impulsos']){
     ['Falta de disciplina','Setup poco claro'].forEach(t=>{if(flipOnlyTags.has(t))delete behHitsAll[t];});
   }
+  // En un día SIN operar, «mercado lateral / sin dirección» es el motivo para no entrar, no un error
+  if(ctx.noTrade||behHitsAll['Evitar operar por autocontrol']){delete behHitsAll['Operar en mercado lateral'];if(ctx.noTrade)delete behHitsAll['Setup poco claro'];}
+  // «Dejar pasar una entrada» por miedo no es autocontrol: si aparecen ambos, manda el miedo a ejecutar
+  if(behHitsAll['Dejar pasar una entrada válida'])delete behHitsAll['Evitar operar por autocontrol'];
+  // Lo que el usuario marcó en el formulario (emociones y «¿Seguiste el plan?»)
+  st.emo.forEach(t=>{emoHitsAll[t]=(emoHitsAll[t]||0)+1;});
+  st.beh.forEach(t=>{behHitsAll[t]=(behHitsAll[t]||0)+1;});
+  if(behHitsAll['Saltarse el plan']&&st.beh.includes('Saltarse el plan'))delete behHitsAll['Seguir el plan'];
 
   const emoSorted=Object.entries(emoHitsAll).sort((a,b)=>b[1]-a[1]);
   const behSorted=Object.entries(behHitsAll).sort((a,b)=>b[1]-a[1]);
@@ -7893,14 +8004,14 @@ function analyzeJournalText(text,seedKey){
   const segEmoTags=segments.map(seg=>{
     const s=new Set();
     Object.keys(EMOTION_LEXICON).forEach(tag=>{
-      if(findHits(seg.text,EMOTION_LEXICON[tag]).some(h=>!h.negated&&!isPastMarked(seg.text,h.index)))s.add(tag);
+      if(findHits(seg.text,EMOTION_LEXICON[tag]).some(h=>!h.negated&&!h.intent&&!isPastMarked(seg.text,h.index)))s.add(tag);
     });
     return s;
   });
   const segBehTags=segments.map(seg=>{
     const s=new Set();
     Object.entries(BEHAVIOR_LEXICON).forEach(([tag,def])=>{
-      if(findHits(seg.text,def.triggers).some(h=>!h.negated))s.add(tag);
+      if(findHits(seg.text,def.triggers).some(h=>!h.negated&&!h.intent&&!(def.except&&def.except.test(seg.text.slice(h.index,h.index+h.trigger.length+16)))))s.add(tag);
     });
     return s;
   });
@@ -7972,8 +8083,11 @@ const IMPROVE_FAMILIES={
   'Mover el stop':'salida','Cerrar antes de tiempo':'salida','Dejar correr una pérdida':'salida',
   'Saltarse el plan':'plan','Falta de disciplina':'plan','Operar fuera de horario':'plan',
   'Indecisión / cambios de opinión':'indecision','Falta de control emocional':'emocional',
+  'Dejar pasar una entrada válida':'miedoEjecutar','Operar contra tendencia':'contexto','Operar en mercado lateral':'contexto',
 };
 const IMPROVE_FAMILY_LABEL={
+  miedoEjecutar:'dejar pasar entradas válidas por miedo o duda',
+  contexto:'operar en contra del contexto del mercado',
   fomo:'entrar cuando el movimiento ya está en marcha',
   precipitacion:'adelantarte a la confirmación que sueles pedir',
   recuperar:'seguir operando después de una pérdida',
@@ -8030,6 +8144,21 @@ const IMPROVE_BANK={
   contradiction:[
     'Hay algo revelador en que supieras lo que tocaba y aun así decidieras lo contrario. Ahí el punto no es de conocimiento, sino ese instante concreto en el que la excepción parece justificada; reconocerlo suele valer más que repetirte la regla.',
     'Lo que cuentas no parece falta de criterio, sino una excepción que en el momento tuvo sentido para ti. Observar qué la hizo parecer razonable puede darte más margen que proponerte no repetirla.'],
+  missedByFear:[
+    'Lo que describes no es un problema de análisis: la lectura era buena y la entrada estaba ahí. Lo que falló fue el disparo. Dejar la orden preparada (límite o stop) antes de que llegue el momento, o entrar con menos tamaño, suele quitarle peso a esa decisión.',
+    'Dejar pasar una entrada válida también es un error de ejecución, aunque no cueste dinero. Si se repite, conviene mirar qué parte te frena: el tamaño, la última pérdida o no tener definido de antemano dónde entras.'],
+  counterTrend:[
+    'Lo que señalas aquí es el contexto: la entrada iba en contra de la dirección dominante. No tiene por qué ser un error, pero si no forma parte de tu plan merece una regla clara: cuándo sí y cuándo no operas contra tendencia.',
+    'Operar contra la tendencia puede funcionar, pero pide más confirmación que una entrada a favor. Vale la pena comparar en Métricas cómo te van esas operaciones frente a las que van con la tendencia.'],
+  choppy:[
+    'Tú mismo apuntas que el mercado estaba lateral. Muchas de las peores operaciones salen de esos días; una condición previa en tu plan (por ejemplo, no operar sin estructura clara en tu temporalidad de referencia) te ahorra decidirlo en caliente.',
+    'Reconocer que el mercado no estaba para operar ya es la mitad del trabajo. La otra mitad es detectarlo antes de entrar, no después; puede ayudarte apuntar qué señales te lo indican.'],
+  partialPlan:[
+    'Marcaste que seguiste el plan solo en parte. Lo útil aquí es concretar qué parte no seguiste —entrada, gestión o salida—: es justo esa la que conviene vigilar en las próximas operaciones.',
+    'Un «parcialmente» suele esconder una sola regla que se rompió. Si la identificas y la anotas, en unas semanas sabrás si es algo puntual o un patrón.'],
+  ownLesson:[
+    'Tú mismo lo has identificado: «{lesson}». Convertirlo en una regla concreta y comprobable antes de entrar es lo que hace que no dependa de acordarte en el momento.',
+    'La conclusión ya la has escrito tú: «{lesson}». Si la conviertes en una condición de tu plan, la próxima vez podrás comprobar si la cumpliste en lugar de recordarla.'],
   positiveReinforce:[
     'Aquí no aparece un comportamiento concreto que necesites corregir. Lo importante es que mantuviste tu forma de ejecutar; este tipo de sesiones son buenas para guardarlas como referencia.',
     'No parece haber nada que arreglar en lo que describes. Cuando la ejecución acompaña, el trabajo es simplemente repetirla; registrar estos días te ayuda a recordar cómo se siente hacerlo bien.'],
@@ -8084,6 +8213,21 @@ IMPROVE_BANK.__en={
   contradiction:[
     'There\'s something revealing in the fact that you knew what to do and still decided otherwise. The issue there isn\'t knowledge, it\'s that particular instant when the exception seems justified; recognising it is usually worth more than repeating the rule to yourself.',
     'What you describe doesn\'t look like poor judgement, more an exception that made sense to you at the time. Looking at what made it seem reasonable may give you more room than resolving not to repeat it.'],
+  missedByFear:[
+    'What you describe isn\'t an analysis problem: the read was good and the entry was there. What failed was pulling the trigger. Having the order ready in advance (limit or stop), or entering with smaller size, usually takes weight off that decision.',
+    'Letting a valid entry go is an execution mistake too, even if it costs nothing. If it repeats, look at what holds you back: size, the last loss, or not having defined in advance where you get in.'],
+  counterTrend:[
+    'What you point out here is context: the entry went against the dominant direction. It isn\'t necessarily a mistake, but if it\'s not part of your plan it deserves a clear rule on when you do and don\'t trade against the trend.',
+    'Trading against the trend can work, but it asks for more confirmation than an entry with it. It\'s worth comparing in Metrics how those trades do against the ones with the trend.'],
+  choppy:[
+    'You note yourself that the market was ranging. Many of the worst trades come from days like that; a precondition in your plan (e.g. no trading without clear structure on your reference timeframe) saves you deciding it in the heat of the moment.',
+    'Recognising the market wasn\'t worth trading is half the work. The other half is spotting it before entering, not after; noting which signals tell you can help.'],
+  partialPlan:[
+    'You marked that you only partly followed the plan. The useful thing is to pin down which part you didn\'t follow — entry, management or exit — because that\'s the one to watch in your next trades.',
+    'A "partly" usually hides one rule that got broken. If you identify it and write it down, in a few weeks you\'ll know whether it\'s a one-off or a pattern.'],
+  ownLesson:[
+    'You\'ve spotted it yourself: "{lesson}". Turning it into a concrete, checkable rule before you enter is what stops it depending on remembering it in the moment.',
+    'You\'ve already written the conclusion: "{lesson}". If you make it a condition in your plan, next time you can check whether you met it instead of trying to remember it.'],
   positiveReinforce:[
     'There\'s no specific behaviour here that needs correcting. What matters is that you held to how you execute; sessions like this are good ones to keep as a reference.',
     'There doesn\'t seem to be anything to fix in what you describe. When the execution holds up, the work is simply repeating it; logging these days helps you remember what doing it well feels like.'],
@@ -8127,7 +8271,7 @@ function improveHistoryFamilies(){
     entries.forEach(e=>{
       const txt=[e.content||'',e.notes||'',e.technical_notes||'',synthesizeTechTagPhrases(e.technical_tags)].filter(Boolean).join('. ');
       if(!txt.trim())return;
-      const a=analyzeJournalText(txt,'hist:'+(e.id||e.date||''));
+      const a=analyzeJournalText(txt,'hist:'+(e.id||e.date||''),{structured:synthesizeStructured(e),noTrade:!!e.reason});
       const seen=new Set();
       a.behaviors.negative.forEach(b=>{const f=IMPROVE_FAMILIES[b.tag];if(f&&!seen.has(f)){seen.add(f);fams[f]=(fams[f]||0)+1;}});
     });
@@ -8140,13 +8284,18 @@ function improveHistoryFamilies(){
    reconocido > no operar bien > incumplimiento de plan > venganza tras pérdida > reencuadre por
    categoría de ejecución > contradicción intención/conducta > refuerzo positivo > banco clásico. */
 function buildImprovement(ctx){
+  ctx=ctx||{};
   const analysis=ctx.analysis,isTrade=ctx.isTrade,seedKey=ctx.seedKey,entry=ctx.entry||{},plan=ctx.plan||null;
   const S=k=>pick((lang==='en'&&IMPROVE_BANK.__en&&IMPROVE_BANK.__en[k])||IMPROVE_BANK[k],seedKey,'imp-'+k);
   const neg=_improveNegSet(analysis),pos=_improvePosSet(analysis);
   const emos=new Set(analysis?analysis.emotions.map(e=>e.tag):[]);
   const combos=analysis?analysis.combos:[];
   const hasNegCombo=combos.some(c=>c.type==='negative');
-  const positiveCombo=combos.find(c=>c.type==='positive'&&(String(c.id).indexOf('autocontrol')===0||String(c.id).indexOf('resiliencia')===0));
+  // La «resiliencia» (emoción negativa superada) solo implica autocontrol en un día SIN operar; en un trade se refuerza sin más
+  const positiveCombo=combos.find(c=>c.type==='positive'&&(String(c.id).indexOf('autocontrol')===0||(!ctx.isTrade&&String(c.id).indexOf('resiliencia')===0)));
+  const lesson=ctx.lesson||'';
+  const partial=!!ctx.isTrade&&/parcial/i.test(ctx.entry&&ctx.entry.followed_plan||'');
+  const planNo=!!ctx.isTrade&&/^\s*no\s*$/i.test(ctx.entry&&ctx.entry.followed_plan||'');
   const result=isTrade?entry.result:null;
   const followedFull=isTrade&&/100/.test(entry.followed_plan||'');
   const isNoTrade=!isTrade&&!!entry.reason;
@@ -8162,11 +8311,14 @@ function buildImprovement(ctx){
   if(result==='loss'&&!anyNeg&&(followedFull||pos.has('Seguir el plan')||pos.has('Esperar con paciencia')||pos.has('Buena gestión del riesgo')||pos.has('Aceptar la pérdida sin frustración')||_improveMentionsPlan(entry)))return S('lossGoodExecution');
   // 3) Ganar con ejecución mejorable (el resultado no valida la decisión)
   if(result==='win'&&(has('No esperar confirmación','Entrar demasiado pronto','Forzar operaciones','Setup poco claro','Saltarse el plan','Operar por FOMO','Aumentar el lotaje','Operar fuera de horario','Resultado no refleja ejecución')||sig.uncertain||sig.forced||sig.fomo))return (emos.has('Euforia')||emos.has('Confianza'))?S('winOverconfident'):S('winBadExecution');
+  // 3b) Miedo a ejecutar: la entrada era válida y se dejó pasar
+  if(has('Dejar pasar una entrada válida'))return S('missedByFear');
   // 4) Reconocer el estado y decidir no operar / autocontrol
   if(positiveCombo||(!isTrade&&(pos.has('Evitar operar por autocontrol')||pos.has('Control de impulsos'))))return S('selfControlPrior');
   // 5) No operar bien (día sin oportunidad)
   if(isNoTrade&&!anyNeg)return S('noTradeGood');
   // 6) Incumplimiento del plan (cuando hay plan definido)
+  if(planNo&&(anyNeg||!pos.size))return S('planViolation');
   if(plan&&anyNeg){
     const planText=normText([plan.entryConfirm,plan.entryPatterns,plan.entryInvalid,plan.setups].filter(Boolean).join(' . '));
     const wantsConfirm=/confirmac|retest|cierre de vela|estructura/.test(planText);
@@ -8180,10 +8332,15 @@ function buildImprovement(ctx){
   if(has('Cerrar antes de tiempo','Dejar correr una pérdida'))return S('closedEarly');
   if(has('Aumentar el lotaje','No respetar el riesgo'))return S('oversize');
   if(has('No esperar confirmación','Entrar demasiado pronto'))return S('impatience');
+  if(has('Operar en mercado lateral'))return S('choppy');
+  if(has('Operar contra tendencia'))return S('counterTrend');
   // 9) Contradicción entre intención y conducta
   if(anyNeg&&_improveContradiction(entry))return S('contradiction');
+  // 9b) La lección que se ha escrito el propio usuario vale más que cualquier frase genérica
+  if(lesson)return fillTemplate(S('ownLesson'),{lesson:esc(lesson)});
+  if(partial)return S('partialPlan');
   // 10) Refuerzo positivo (buena ejecución, nada que corregir)
-  if(!anyNeg&&(pos.size>0||positiveCombo))return S('positiveReinforce');
+  if(!anyNeg&&(pos.size>0||positiveCombo||(isTrade&&/100/.test(entry.followed_plan||''))))return S('positiveReinforce');
   // 11) Fallback al banco clásico (compatibilidad)
   return buildSuggestion(analysis,isTrade,seedKey);
 }
@@ -8313,6 +8470,15 @@ function buildEmotionText(analysis,seedKey,opts){
 function buildExecutionText(analysis,seedKey,opts){
   if(!analysis)return '';
   const parts=[];
+  const onlyPosCombos=analysis.combos.length&&analysis.combos.every(c=>c.type==='positive');
+  if(onlyPosCombos&&analysis.behaviors.negative.length){
+    const issue=lowLabel(analysis.behaviors.negative[0].tag);
+    if(opts.isTrade){const bank=opts.resultWin?EXECUTION_VS_RESULT_WIN_TEMPLATES:EXECUTION_ISSUE_TEMPLATES;parts.push(fillTemplate(pick(bank,seedKey,'execution'),{result:opts.resultWord,pair:opts.pairSafe,issue}));}
+    else parts.push(fillTemplate(pick(JOURNAL_EXECUTION_TEMPLATES,seedKey,'execution'),{issue}));
+    const c0=analysis.combos[0].text;
+    parts.push((lang==='en'?'On the positive side: ':'En lo positivo: ')+c0.charAt(0).toLowerCase()+c0.slice(1));
+    return parts.join(' ');
+  }
   if(analysis.combos.length){
     analysis.combos.forEach(c=>parts.push(c.text));
     return parts.join(' ');
@@ -8345,7 +8511,8 @@ function generateJournalSummary(j){
   const seedKey='j:'+(j.id||j.date||Math.random());
   const techPhrases=synthesizeTechTagPhrases(j.technical_tags);
   const combinedText=[j.content||'',j.technical_notes||'',techPhrases].filter(Boolean).join('. ');
-  const analysis=analyzeJournalText(combinedText,seedKey);
+  const analysis=analyzeJournalText(combinedText,seedKey,{noTrade:!!j.reason});
+  const lesson=extractLesson(j.content||'');
   const hasContent=j.content&&j.content.trim().length>0;
   const openingParts=[];
   if(!hasContent)openingParts.push('Entrada de diario sin contenido escrito.');
@@ -8359,7 +8526,8 @@ function generateJournalSummary(j){
     opening:openingParts.join(' '),emotionText,executionText,noSignal,
     technical,technicalNotes:j.technical_notes||'',
     sentiment:analysis,
-    suggestion:buildImprovement({analysis,isTrade:false,seedKey,entry:j,plan:(typeof currentPlan!=='undefined'&&currentPlan&&currentPlan.data)?currentPlan.data:null})
+    lesson,
+    suggestion:buildImprovement({analysis,isTrade:false,seedKey,entry:j,lesson,plan:(typeof currentPlan!=='undefined'&&currentPlan&&currentPlan.data)?currentPlan.data:null})
   };
 }
 
@@ -8367,7 +8535,8 @@ function generateTradeSummary(t){
   const seedKey='t:'+(t.id||t.date||Math.random());
   const techPhrases=synthesizeTechTagPhrases(t.technical_tags);
   const combinedText=[t.notes||'',t.technical_notes||'',techPhrases].filter(Boolean).join('. ');
-  const analysis=analyzeJournalText(combinedText,seedKey);
+  const analysis=analyzeJournalText(combinedText,seedKey,{structured:synthesizeStructured(t)});
+  const lesson=extractLesson(t.notes||'');
   const hasNotes=t.notes&&t.notes.trim().length>0;
   const resultWord=lang==='en'?(t.result==='win'?'winning':t.result==='loss'?'losing':'breakeven')
                             :(t.result==='win'?'ganadora':t.result==='loss'?'perdedora':'en breakeven');
@@ -8384,7 +8553,8 @@ function generateTradeSummary(t){
     opening,emotionText,executionText,noSignal,
     technical,technicalNotes:t.technical_notes||'',
     sentiment:analysis,
-    suggestion:buildImprovement({analysis,isTrade:true,seedKey,entry:t,plan:(typeof currentPlan!=='undefined'&&currentPlan&&currentPlan.data)?currentPlan.data:null})
+    lesson,
+    suggestion:buildImprovement({analysis,isTrade:true,seedKey,entry:t,lesson,plan:(typeof currentPlan!=='undefined'&&currentPlan&&currentPlan.data)?currentPlan.data:null})
   };
 }
 
@@ -8429,6 +8599,7 @@ function analysisBlockHTML(g,title){
         : `<div class="journal-analysis-row" style="display:flex;align-items:center;gap:6px;cursor:pointer" onclick="showUpgradePrompt('El análisis avanzado del Journal')"><i class="ti ti-lock" style="color:var(--text3)"></i><strong>Posible mejora:</strong> <span style="color:var(--text3);filter:blur(3px);user-select:none">${g.suggestion}</span> <span style="color:var(--accent);font-weight:700;white-space:nowrap">👑 Premium</span></div>`)
     : '';
   const openingRow=g.opening?`<div class="journal-analysis-row">${g.opening}</div>`:'';
+  const lessonRow=(g.lesson&&!(premium&&String(g.suggestion||'').includes(g.lesson)))?`<div class="journal-analysis-row ja-lesson" data-no-i18n><strong>${window.t('Tu lección:')}</strong> «${esc(g.lesson)}»</div>`:'';
   const noSignalRow=g.noSignal?`<div class="journal-analysis-row">${g.noSignal}</div>`:'';
   const techBlock=technicalBlockHTML(g.technical,g.technicalNotes);
   const emoBlock=emotionBlockHTML(g.sentiment,g.emotionText);
@@ -8449,6 +8620,7 @@ function analysisBlockHTML(g,title){
       ${techBlock}
       ${emoBlock}
       ${execBlock}
+      ${lessonRow}
       ${suggestionRow}
       </div>
     </details>`;
@@ -13855,6 +14027,12 @@ var I18N_EN = {
   'Euforia':'Euphoria',
   'Euforia tras ganar':'Euphoria after a win',
   'Evitar operar por autocontrol':'Not trading, by choice',
+  'Dejar pasar una entrada válida':'Letting a valid entry go',
+  'Operar contra tendencia':'Trading against the trend',
+  'Operar en mercado lateral':'Trading a ranging market',
+  'Buena ejecución':'Good execution',
+  'Dejar correr la ganancia':'Letting the winner run',
+  'Tu lección:':'Your own takeaway:',
   'Evolución de tu balance neto a lo largo del tiempo (todas las cuentas)':'How your net balance has moved over time (all accounts)',
   'Evolución del capital':'Capital over time',
   'Evolución durante la semana':'How the week developed',
