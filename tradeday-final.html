@@ -5345,7 +5345,7 @@ async function confirmDeleteAccount(){
   await sb.from('journals').delete().eq('account_id',id);
   await sb.from('balance_events').delete().eq('account_id',id);
   await sb.from('accounts').delete().eq('id',id);
-  try{if(imgPaths.length)await sb.storage.from('trade-images').remove(imgPaths);}catch(_){}
+  try{if(imgPaths.length)await sb.storage.from('trade-images').remove(withThumbPaths(imgPaths));}catch(_){}
   allAccounts=allAccounts.filter(a=>a.id!==id);
   if(currentAccountId===id)currentAccountId=allAccounts[0]?.id||null;
   await loadData();
@@ -6211,26 +6211,9 @@ async function saveTrade(){
   }
 
   // Subir todas las imágenes nuevas (las que ya venían de antes, con url, no se vuelven a subir)
-  for(const img of tradeImagesDraft){
-    if(!img.file)continue;
-    if(!isAllowedImageFile(img.file)){
-      toast('Solo se permiten imágenes JPG, PNG, WEBP o GIF de hasta 8 MB.');
-      btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
-      return;
-    }
-    let uploadFile=img.file;
-    try{uploadFile=await compressImageFile(img.file);}catch(_){uploadFile=img.file;}
-    const safeExt=IMAGE_MIME_EXT[uploadFile.type]||'jpg';
-    const fileName=`${currentUser.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${safeExt}`;
-    const{error:uploadErr}=await sb.storage.from('trade-images').upload(fileName,uploadFile,{upsert:false,contentType:uploadFile.type});
-    if(uploadErr){
-      toast('Error subiendo una imagen. Inténtalo de nuevo.');
-      console.error('[Storage error]',uploadErr);
-      btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
-      return;
-    }
-    const{data:urlData}=sb.storage.from('trade-images').getPublicUrl(fileName);
-    img.url=urlData.publicUrl;
+  if(!(await uploadDraftImages(tradeImagesDraft))){
+    btn.disabled=false;btn.innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
+    return;
   }
   const finalImages=tradeImagesDraft.map(img=>({url:img.url,isCover:!!img.isCover}));
   const coverEntry=finalImages.find(i=>i.isCover)||finalImages[0];
@@ -6271,7 +6254,7 @@ async function saveTrade(){
   const removedUrls=originalTradeImageUrls.filter(u=>u&&!keptUrls.has(u));
   if(removedUrls.length){
     const paths=removedUrls.map(tradeImageStoragePath).filter(Boolean);
-    if(paths.length)sb.storage.from('trade-images').remove(paths).catch(()=>{});
+    if(paths.length)sb.storage.from('trade-images').remove(withThumbPaths(paths)).catch(()=>{});
   }
 
   tradeImagesDraft=[];originalTradeImageUrls=[];
@@ -6294,16 +6277,48 @@ async function uploadDraftImages(draft){
   for(const img of draft){
     if(!img.file)continue;
     if(!isAllowedImageFile(img.file)){toast('Solo se permiten imágenes JPG, PNG, WEBP o GIF de hasta 8 MB.');return false;}
-    let uploadFile=img.file;
-    try{uploadFile=await compressImageFile(img.file);}catch(_){uploadFile=img.file;}
-    const safeExt=IMAGE_MIME_EXT[uploadFile.type]||'jpg';
-    const fileName=`${currentUser.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${safeExt}`;
-    const{error:uploadErr}=await sb.storage.from('trade-images').upload(fileName,uploadFile,{upsert:false,contentType:uploadFile.type});
-    if(uploadErr){toast('Error subiendo una imagen. Inténtalo de nuevo.');console.error('[Storage error]',uploadErr);return false;}
-    const{data:urlData}=sb.storage.from('trade-images').getPublicUrl(fileName);
-    img.url=urlData.publicUrl;
+    const url=await uploadTradeImageFile(img.file);
+    if(!url){toast('Error subiendo una imagen. Inténtalo de nuevo.');return false;}
+    img.url=url;
   }
   return true;
+}
+/* Sube UNA imagen: la comprime (WebP, o JPG si el navegador no codifica WebP), genera una miniatura
+   (TIMG_THUMB_DIM) que usan las listas y la sube con caché larga del navegador (las rutas nunca se
+   reutilizan). Convención de nombres: «…_m.ext» = tiene miniatura WebP en «…_t.webp»; «…_mj.ext» =
+   miniatura JPG en «…_t.jpg»; sin sufijo = imagen antigua o sin miniatura (se usa la grande). */
+const TIMG_CACHE='31536000';
+async function uploadTradeImageFile(file){
+  const st=sb.storage.from('trade-images');
+  let main=file;
+  try{main=await compressImageFile(file);}catch(_){main=file;}
+  let thumb=null;
+  try{thumb=await makeImageThumb(file);}catch(_){thumb=null;}
+  const base=`${currentUser.id}/${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+  let mark='';
+  if(thumb){
+    const tExt=thumb.type==='image/webp'?'webp':'jpg';
+    const{error:tErr}=await st.upload(`${base}_t.${tExt}`,thumb,{upsert:false,contentType:thumb.type,cacheControl:TIMG_CACHE});
+    if(!tErr)mark=tExt==='webp'?'_m':'_mj';
+  }
+  const fileName=`${base}${mark}.${IMAGE_MIME_EXT[main.type]||'jpg'}`;
+  const{error:uploadErr}=await st.upload(fileName,main,{upsert:false,contentType:main.type,cacheControl:TIMG_CACHE});
+  if(uploadErr){
+    console.error('[Storage error]',uploadErr);
+    if(mark)st.remove([tradeImgThumbPath(fileName)]).catch(()=>{});
+    return null;
+  }
+  return st.getPublicUrl(fileName).data.publicUrl;
+}
+function tradeImgThumbPath(path){
+  const m=/^(.*)_(m|mj)\.[a-z0-9]+$/i.exec(path||'');
+  return m?`${m[1]}_t.${m[2]==='m'?'webp':'jpg'}`:null;
+}
+// Rutas a borrar de Storage incluyendo la miniatura de cada imagen (si la tiene)
+function withThumbPaths(paths){
+  const out=[];
+  (paths||[]).forEach(p=>{if(!p)return;out.push(p);const t=tradeImgThumbPath(p);if(t)out.push(t);});
+  return out;
 }
 /* Extrae la ruta dentro del bucket 'trade-images' a partir de la URL pública,
    para poder borrar el archivo de Storage cuando el usuario quita una imagen. */
@@ -6325,22 +6340,35 @@ function tradeAllImageUrls(t){
 // sube igual que hoy, solo que el archivo pesa mucho menos (menos almacenamiento y descarga).
 // Los GIF (y cualquier tipo no rasterizable a JPEG con seguridad) se dejan intactos para no
 // romper animaciones. Si el resultado no fuera más pequeño, se conserva el original.
-const TIMG_MAX_DIM=1920, TIMG_QUALITY=0.82;
-async function compressImageFile(file){
-  if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type||''))return file;
+const TIMG_MAX_DIM=1920, TIMG_QUALITY=0.82, TIMG_THUMB_DIM=640, TIMG_THUMB_QUALITY=0.72;
+// Dibuja la imagen reducida y la codifica en WebP; si el navegador no sabe (devuelve PNG), en JPG.
+async function encodeImage(file,maxDim,q){
   let bitmap=null;
-  try{bitmap=await createImageBitmap(file);}catch(_){return file;}
-  if(!bitmap)return file;
-  const scale=Math.min(1,TIMG_MAX_DIM/Math.max(bitmap.width,bitmap.height));
+  try{bitmap=await createImageBitmap(file);}catch(_){return null;}
+  if(!bitmap)return null;
+  const scale=Math.min(1,maxDim/Math.max(bitmap.width,bitmap.height));
   const w=Math.max(1,Math.round(bitmap.width*scale)), h=Math.max(1,Math.round(bitmap.height*scale));
   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
   const ctx=canvas.getContext('2d');
-  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h); // fondo blanco por si la imagen tiene transparencia
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);
   ctx.drawImage(bitmap,0,0,w,h);
   if(bitmap.close)bitmap.close();
-  const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',TIMG_QUALITY));
+  let blob=await new Promise(res=>canvas.toBlob(res,'image/webp',q));
+  if(!blob||blob.type!=='image/webp')blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',q));
+  return blob||null;
+}
+async function compressImageFile(file){
+  if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type||''))return file;
+  const blob=await encodeImage(file,TIMG_MAX_DIM,TIMG_QUALITY);
   if(!blob||blob.size>=file.size)return file;
-  return new File([blob],(file.name||'trade').replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
+  const ext=blob.type==='image/webp'?'.webp':'.jpg';
+  return new File([blob],(file.name||'trade').replace(/\.[^.]+$/,'')+ext,{type:blob.type});
+}
+// Miniatura para las listas (Journal, Mis operaciones, Mejores trades, detalle del día…)
+async function makeImageThumb(file){
+  if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type||''))return null;
+  const blob=await encodeImage(file,TIMG_THUMB_DIM,TIMG_THUMB_QUALITY);
+  return blob?new File([blob],'thumb',{type:blob.type}):null;
 }
 
 /* ── URLs firmadas para el bucket privado 'trade-images' ──
@@ -6349,19 +6377,47 @@ async function compressImageFile(file){
    hay que pedir a Supabase una URL firmada (temporal) cada vez, así que se cachea en
    memoria mientras dure la sesión para no repetir peticiones de red innecesarias. */
 const _signedUrlCache=new Map(); // path -> {signedUrl, exp(ms epoch)}
-const SIGNED_URL_TTL=3600; // segundos de validez que pedimos a Supabase
+/* 7 días y guardadas en localStorage (por usuario): la URL firmada de cada imagen es la MISMA entre
+   sesiones, así el navegador reutiliza lo que ya descargó en vez de volver a bajarlo (egress). */
+const SIGNED_URL_TTL=604800; // segundos de validez que pedimos a Supabase
+let _sigLSKey=null,_sigSaveT=null;
+function _sigLSLoad(){
+  const uid=(typeof currentUser!=='undefined'&&currentUser&&currentUser.id)||'';
+  if(!uid){return;}
+  const key='td_simg_'+uid;
+  if(_sigLSKey===key)return;
+  _sigLSKey=key;_signedUrlCache.clear();
+  try{
+    const o=JSON.parse(localStorage.getItem(key)||'{}'),now=Date.now();
+    Object.keys(o).forEach(p=>{const v=o[p];if(v&&v.u&&v.e>now)_signedUrlCache.set(p,{signedUrl:v.u,exp:v.e});});
+  }catch(_){}
+}
+function _sigLSSave(){
+  if(!_sigLSKey)return;
+  clearTimeout(_sigSaveT);
+  _sigSaveT=setTimeout(()=>{
+    try{
+      const now=Date.now(),o={};
+      [..._signedUrlCache.entries()].filter(([,v])=>v.exp>now).slice(-3000).forEach(([p,v])=>{o[p]={u:v.signedUrl,e:v.exp};});
+      localStorage.setItem(_sigLSKey,JSON.stringify(o));
+    }catch(_){}
+  },800);
+}
 const TRADE_IMG_PLACEHOLDER='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
-async function resolveTradeImgUrl(url){
+async function resolveTradeImgUrl(url,thumb){
   if(!url)return '';
   if(url.startsWith('blob:')||url.startsWith('data:'))return url; // previsualizaciones locales sin subir aún
-  const path=tradeImageStoragePath(url);
+  let path=tradeImageStoragePath(url);
   if(!path)return url; // no es del bucket trade-images: se usa tal cual
+  if(thumb){const tp=tradeImgThumbPath(path);if(tp)path=tp;}
+  _sigLSLoad();
   const cached=_signedUrlCache.get(path);
   if(cached&&cached.exp>Date.now())return cached.signedUrl;
   try{
     const{data,error}=await sb.storage.from('trade-images').createSignedUrl(path,SIGNED_URL_TTL);
     if(error||!data)return url;
-    _signedUrlCache.set(path,{signedUrl:data.signedUrl,exp:Date.now()+(SIGNED_URL_TTL-120)*1000});
+    _signedUrlCache.set(path,{signedUrl:data.signedUrl,exp:Date.now()+(SIGNED_URL_TTL-3600)*1000});
+    _sigLSSave();
     return data.signedUrl;
   }catch(e){
     console.error('[Signed URL error]',e);
@@ -6375,7 +6431,10 @@ function hydrateTradeImages(root){
   scope.querySelectorAll('img[data-tsrc]').forEach(async img=>{
     const raw=img.getAttribute('data-tsrc');
     img.removeAttribute('data-tsrc');
-    img.src=await resolveTradeImgUrl(raw);
+    // data-tthumb: en listas se usa la miniatura (si la imagen la tiene); si fallara, la grande
+    const th=img.hasAttribute('data-tthumb')&&!!tradeImgThumbPath(tradeImageStoragePath(raw)||'');
+    if(th)img.onerror=async()=>{img.onerror=null;img.src=await resolveTradeImgUrl(raw);};
+    img.src=await resolveTradeImgUrl(raw,th);
   });
 }
 
@@ -6458,7 +6517,7 @@ function renderTradeImagesComposer(k){
       ondragstart="timgDragStart(event,${idx})" ondragend="timgDragEnd(event)"
       ondragover="timgDragOver(event)" ondragleave="timgDragLeave(event)" ondrop="timgDrop(event,${idx}${K})">
       ${img.isCover?'<span class="timg-cover-badge">Portada</span>':''}
-      <img data-tsrc="${esc(img.previewUrl)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${k==='j'?'Imagen del diario':'Imagen del trade'}" onclick="openImageLightbox('${esc(img.previewUrl)}')">
+      <img data-tthumb data-tsrc="${esc(img.previewUrl)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${k==='j'?'Imagen del diario':'Imagen del trade'}" onclick="openImageLightbox('${esc(img.previewUrl)}')">
       <div class="timg-thumb-actions">
         <div class="timg-btn-row">
           <div class="timg-btn timg-cover-btn${img.isCover?' is-cover':''}" title="Marcar como portada" onclick="event.stopPropagation();setTradeImageCover(${idx}${K})"><i class="ti ti-star"></i></div>
@@ -6577,7 +6636,7 @@ async function saveJournal(){
   // Limpieza best-effort en Storage: fotos que el usuario quitó al editar
   const keptJ=new Set(images.map(i=>i.url));
   const removedJ=originalJournalImageUrls.filter(u=>u&&!keptJ.has(u)).map(tradeImageStoragePath).filter(Boolean);
-  if(removedJ.length)sb.storage.from('trade-images').remove(removedJ).catch(()=>{});
+  if(removedJ.length)sb.storage.from('trade-images').remove(withThumbPaths(removedJ)).catch(()=>{});
   journalImagesDraft.forEach(img=>{if(img.file&&img.previewUrl)URL.revokeObjectURL(img.previewUrl);});
   journalImagesDraft=[];originalJournalImageUrls=[];
   closeModal('modal-journal');
@@ -6597,12 +6656,12 @@ async function deleteTrade(id){if(!requirePremium('Eliminar operaciones'))return
   const t=allTrades.find(x=>x.id===id);
   await sb.from('trades').delete().eq('id',id);
   // Limpieza best-effort en Storage: borra las fotos del trade para no dejar archivos huérfanos.
-  try{const paths=tradeAllImageUrls(t).map(tradeImageStoragePath).filter(Boolean);if(paths.length)await sb.storage.from('trade-images').remove(paths);}catch(_){}
+  try{const paths=tradeAllImageUrls(t).map(tradeImageStoragePath).filter(Boolean);if(paths.length)await sb.storage.from('trade-images').remove(withThumbPaths(paths));}catch(_){}
   toast('Trade eliminado');await loadData();}
 async function deleteJournal(id){if(!requirePremium('Eliminar entradas del Journal'))return;if(!confirm('¿Eliminar?'))return;
   const j=allJournals.find(x=>x.id===id);
   await sb.from('journals').delete().eq('id',id);
-  try{const paths=tradeAllImageUrls(j).map(tradeImageStoragePath).filter(Boolean);if(paths.length)await sb.storage.from('trade-images').remove(paths);}catch(_){}
+  try{const paths=tradeAllImageUrls(j).map(tradeImageStoragePath).filter(Boolean);if(paths.length)await sb.storage.from('trade-images').remove(withThumbPaths(paths));}catch(_){}
   toast('Entrada eliminada');await loadData();}
 
 async function saveConfig(){
@@ -7261,7 +7320,7 @@ function renderBestTradesReel(){
     const meta=[fmtDate(t.date),t.direction,t.session].filter(Boolean).map(esc).join(' · ');
     return`<div class="btr-item" role="button" tabindex="0" onclick="openTradeGallery('${t.id}')" onkeydown="if(event.key==='Enter')openTradeGallery('${t.id}')" title="${esc(tdL('Ver capturas','View screenshots'))}">
       <span class="btr-rank">#${i+1}</span>
-      <img data-tsrc="${esc(getTradeCoverUrl(t))}" src="${TRADE_IMG_PLACEHOLDER}" alt="${esc(t.pair||'trade')}" loading="lazy">
+      <img data-tthumb data-tsrc="${esc(getTradeCoverUrl(t))}" src="${TRADE_IMG_PLACEHOLDER}" alt="${esc(t.pair||'trade')}" loading="lazy">
       <div class="btr-info"><div style="min-width:0"><div class="btr-pair">${esc(t.pair||'—')}</div><div class="btr-meta">${meta}</div></div>
       <div class="btr-amt">${fmtMoneySigned(mxAmt(t))}${R!==null?`<small>${R>=0?'+':''}${R.toFixed(1)}R</small>`:''}</div></div></div>`;
   };
@@ -8630,7 +8689,7 @@ function analysisBlockHTML(g,title){
 function journalImagesStripHTML(j){
   const imgs=Array.isArray(j&&j.images)?j.images.filter(i=>i&&i.url):[];
   if(!imgs.length)return '';
-  return `<div class="jimg-strip">${imgs.map((im,i)=>`<img data-tsrc="${esc(im.url)}" src="${TRADE_IMG_PLACEHOLDER}" class="jimg-strip-img" alt="${window.t('Captura del diario')}" loading="lazy" onclick="openJournalGalleryAt('${j.id}',${i})">`).join('')}</div>`;
+  return `<div class="jimg-strip">${imgs.map((im,i)=>`<img data-tthumb data-tsrc="${esc(im.url)}" src="${TRADE_IMG_PLACEHOLDER}" class="jimg-strip-img" alt="${window.t('Captura del diario')}" loading="lazy" onclick="openJournalGalleryAt('${j.id}',${i})">`).join('')}</div>`;
 }
 function openJournalGalleryAt(id,idx){
   const j=allJournals.find(x=>x.id===id);
@@ -8685,7 +8744,7 @@ function tradeJournalHTML(t){
       </div>
     </div>
     ${(()=>{const cv=getTradeCoverUrl(t);const n=Array.isArray(t.images)?t.images.filter(i=>i&&i.url).length:(t.image_url?1:0);
-      const thumb=cv?`<button class="jt-thumb" onclick="openTradeGallery('${t.id}')" title="Ver captura"><img data-tsrc="${esc(cv)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${esc(t.pair||'trade')}" loading="lazy">${n>1?`<span>${n}</span>`:''}</button>`:'';
+      const thumb=cv?`<button class="jt-thumb" onclick="openTradeGallery('${t.id}')" title="Ver captura"><img data-tthumb data-tsrc="${esc(cv)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${esc(t.pair||'trade')}" loading="lazy">${n>1?`<span>${n}</span>`:''}</button>`:'';
       const notes=t.notes?`<div data-no-i18n style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:4px;flex:1;min-width:0">${esc(t.notes)}</div>`:'<div style="flex:1"></div>';
       return (cv||t.notes)?`<div class="jt-row">${notes}${thumb}</div>`:'';})()}
     ${analysisBlockHTML(analysis)}
@@ -9477,7 +9536,7 @@ function jrDaysHTML(es){
       return`<details class="jd-trade">
         <summary>
           <span class="jd-bar" style="background:${c}"></span>
-          ${cv?`<img class="jd-thumb" data-tsrc="${esc(cv)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${esc(t.pair||'trade')}" loading="lazy" onclick="event.preventDefault();event.stopPropagation();openTradeGallery('${t.id}')">`:`<span class="jd-thumb jd-nothumb"><i class="ti ti-photo-off"></i></span>`}
+          ${cv?`<img data-tthumb class="jd-thumb" data-tsrc="${esc(cv)}" src="${TRADE_IMG_PLACEHOLDER}" alt="${esc(t.pair||'trade')}" loading="lazy" onclick="event.preventDefault();event.stopPropagation();openTradeGallery('${t.id}')">`:`<span class="jd-thumb jd-nothumb"><i class="ti ti-photo-off"></i></span>`}
           <span class="jd-main"><span class="jd-pair" data-no-i18n>${esc(t.pair||'Trade')}</span>
             <span class="badge ${t.result==='win'?'badge-win':t.result==='loss'?'badge-loss':'badge-be'}">${res}</span>${t.direction?`<span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${esc(t.direction)}</span>`:''}
             <span class="jd-meta">${esc(t.session||'')}${t.time?' · '+esc(t.time.slice(0,5)):''}</span>
@@ -9529,7 +9588,7 @@ function tradeCardHTML(t){
   const imgCount=Array.isArray(t.images)?t.images.length:(t.image_url?1:0);
   return `<div class="trade-card" onclick="editTradeEntry('${t.id}')">
     <div class="trade-card-imgwrap">
-      ${img?`<img data-tsrc="${esc(img)}" src="${TRADE_IMG_PLACEHOLDER}" class="trade-card-img" alt="Captura ${esc(t.pair||'')}" loading="lazy">`:`<div class="trade-card-noimg"><i class="ti ti-photo-off"></i></div>`}
+      ${img?`<img data-tthumb data-tsrc="${esc(img)}" src="${TRADE_IMG_PLACEHOLDER}" class="trade-card-img" alt="Captura ${esc(t.pair||'')}" loading="lazy">`:`<div class="trade-card-noimg"><i class="ti ti-photo-off"></i></div>`}
       ${imgCount>1?`<span class="trade-card-imgcount"><i class="ti ti-photo"></i> ${imgCount}</span>`:''}
       ${img?`<button class="trade-card-viewbtn" onclick="event.stopPropagation();openTradeGallery('${t.id}')" title="Ver foto${imgCount>1?'s':''} en grande"><i class="ti ti-zoom-in"></i></button>`:''}
       <button class="trade-card-del" onclick="event.stopPropagation();deleteTrade('${t.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>
@@ -9627,7 +9686,7 @@ function entryHTML(e){
   const delCall=isJ?`deleteJournal('${e.id}')`:`deleteTrade('${e.id}')`;
   const editCall=isJ?`editJournalEntry('${e.id}')`:`editTradeEntry('${e.id}')`;
   const coverUrl=getTradeCoverUrl(e);
-  const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="entry-thumb" alt="Portada de ${esc(isJ?'diario':(e.pair||'trade'))}" loading="lazy" onclick="event.stopPropagation();openTradeGallery('${e.id}')">`:'';
+  const thumb=coverUrl?`<img data-tthumb data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="entry-thumb" alt="Portada de ${esc(isJ?'diario':(e.pair||'trade'))}" loading="lazy" onclick="event.stopPropagation();openTradeGallery('${e.id}')">`:'';
   return`<div class="entry-row"><div class="entry-left-bar ${barCls}"></div>${thumb}<div class="entry-body"><div class="entry-top"><span class="entry-pair">${isJ?'Diario':esc(e.pair)}</span>${badges}</div>${preview?`<div class="entry-note-preview">${preview}${preview.length>=65?'…':''}</div>`:''}</div><div class="entry-right">${!isJ&&e.amount?`<span class="entry-amount" style="color:${amtColor}">${e.result==='be'?'BE':esc(e.amount)}</span>`:''}<span class="entry-date-lbl">${fmtDate(e.date)}</span><div class="entry-actions"><button class="icon-btn" onclick="${editCall}"><i class="ti ti-edit"></i></button><button class="icon-btn danger" onclick="${delCall}"><i class="ti ti-trash"></i></button></div></div></div>`;
 }
 
@@ -9974,7 +10033,7 @@ function openWeekTrades(year,month,startDay,endDay){
   </div>`;
   wt.forEach((t,idx)=>{
     const coverUrl=getTradeCoverUrl(t);
-    const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
+    const thumb=coverUrl?`<img data-tthumb data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
     const rescls=t.result==='win'?'pos':t.result==='loss'?'neg':'neutral';
     const dircls=t.direction==='Buy'?'badge-buy':'badge-sell';
     html+=`<div class="wk-trade-row" data-no-i18n onclick="closeModal('modal-week');editTradeEntry('${esc(t.id)}')" style="animation-delay:${Math.min(idx*40,320)}ms;display:flex;align-items:flex-start;gap:9px;padding:9px 2px;border-bottom:1px solid var(--border);cursor:pointer">${thumb}
@@ -10004,12 +10063,12 @@ function showDayDetail(key,day,month,year,panelId){
   let html=`<div style="font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:-.02em">${day} ${M[month]} ${year}</div>`;
   dt.forEach(t=>{
     const coverUrl=getTradeCoverUrl(t);
-    const thumb=coverUrl?`<img data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
+    const thumb=coverUrl?`<img data-tthumb data-tsrc="${esc(coverUrl)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada de ${esc(t.pair||'trade')}" loading="lazy" onclick="event.stopPropagation();openImageLightbox('${esc(coverUrl)}')">`:'';
     html+=`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">${thumb}<div style="flex:1;min-width:0;font-size:12px"><strong>${esc(t.pair)}</strong> <span class="badge ${t.direction==='Buy'?'badge-buy':'badge-sell'}">${t.direction}</span> · ${esc(t.session)} · <span class="${t.result==='win'?'pos':t.result==='loss'?'neg':'neutral'}">${t.amount||'BE'}</span>${t.notes?`<div data-no-i18n style="color:var(--text3);margin-top:3px;font-size:11px">${esc(t.notes.slice(0,100))}</div>`:''}</div></div>`;
   });
   dj.forEach(j=>{
     const jc=getTradeCoverUrl(j);
-    const jthumb=jc?`<img data-tsrc="${esc(jc)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada del diario" loading="lazy" onclick="event.stopPropagation();openTradeGallery('${j.id}')">`:'';
+    const jthumb=jc?`<img data-tthumb data-tsrc="${esc(jc)}" src="${TRADE_IMG_PLACEHOLDER}" class="dd-thumb" alt="Portada del diario" loading="lazy" onclick="event.stopPropagation();openTradeGallery('${j.id}')">`:'';
     html+=`<div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;padding:7px 0;color:var(--text2)">${jthumb}<div style="flex:1;min-width:0">${j.content?esc(j.content.slice(0,120))+'…':'Diario sin contenido'}</div></div>`;
   });
   panel.innerHTML=html;
