@@ -6675,8 +6675,8 @@ else document.addEventListener('DOMContentLoaded',initTrustpilotLanding);
    reseñas (Trustpilot prohíbe incentivos). La caducidad real la controla Stripe (el código
    deja de existir el 4-oct 23:59); esto solo muestra/oculta la UI. Para una nueva campaña,
    basta con cambiar OFFER (y crear el código en Stripe). */
-// landing:false → la barra de la landing pública no se muestra; solo banner en la cuenta + franja en planes.
-const OFFER={code:'FLASH19',start:Date.parse('2026-11-01T00:00:00+01:00'),end:Date.parse('2026-11-03T23:59:59+01:00'),landing:false};
+// landing:false ocultaría la barra de la landing pública (solo banner en la cuenta + franja en planes).
+const OFFER={code:'FLASH19',start:Date.parse('2026-11-01T00:00:00+01:00'),end:Date.parse('2026-11-03T23:59:59+01:00'),landing:true};
 let _offerTimer=null;
 function offerActive(){const n=Date.now();return n>=OFFER.start&&n<=OFFER.end;}
 function offerRemainingText(){
