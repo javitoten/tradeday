@@ -6122,6 +6122,7 @@ async function loadData(){
   const{data:trades}=await sb.from('trades').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   const{data:journals}=await sb.from('journals').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   allTrades=trades||[];allJournals=journals||[];
+  try{scheduleImageMigration();}catch(_){}
   _glTrades=null; // invalida la caché del Resumen global
   normalizeTradeAmounts();
   renderAll();
@@ -6314,6 +6315,83 @@ function tradeImgThumbPath(path){
   const m=/^(.*)_(m|mj)\.[a-z0-9]+$/i.exec(path||'');
   return m?`${m[1]}_t.${m[2]==='m'?'webp':'jpg'}`:null;
 }
+/* ── Migración silenciosa de capturas ANTIGUAS (JPG/PNG sin miniatura) → WebP + miniatura ──
+   La hace el navegador del propio dueño (sus permisos), poco a poco: unas pocas por sesión, en segundo
+   plano, sin datos móviles lentos y nunca con la ventana de trade/diario abierta. La URL se cambia en BD
+   con td_replace_image_url (atómico, solo filas del usuario) y el archivo viejo se borra en la SIGUIENTE
+   sesión (así nada que ya esté pintado en pantalla se rompe). Si algo falla, la imagen se queda como estaba. */
+const IMG_MIG_PER_SESSION=15;
+let _imgMigRunning=false,_imgMigCount=0,_imgMigTimer=null;
+function _imgMigModalOpen(){return ['modal-trade','modal-journal'].some(id=>{const e=document.getElementById(id);return e&&e.style.display==='flex';});}
+function scheduleImageMigration(){
+  if(!currentUser||_imgMigRunning||_imgMigCount>=IMG_MIG_PER_SESSION)return;
+  const c=navigator.connection;
+  if(c&&(c.saveData||/(^|-)(2g|3g)$/.test(c.effectiveType||'')))return;
+  clearTimeout(_imgMigTimer);
+  _imgMigTimer=setTimeout(()=>{(window.requestIdleCallback||(f=>setTimeout(f,0)))(()=>{migrateOldImages().catch(e=>console.warn('[img-mig]',e));});},25000);
+}
+async function migrateOldImages(){
+  if(_imgMigRunning||!currentUser)return;
+  _imgMigRunning=true;
+  const uid=currentUser.id, st=sb.storage.from('trade-images');
+  const skipKey='td_imgmig_skip_'+uid, delKey='td_imgmig_del_'+uid;
+  let skip={},del=[];
+  try{skip=JSON.parse(localStorage.getItem(skipKey)||'{}');}catch(_){}
+  try{del=JSON.parse(localStorage.getItem(delKey)||'[]');}catch(_){}
+  const save=()=>{try{localStorage.setItem(skipKey,JSON.stringify(skip));localStorage.setItem(delKey,JSON.stringify(del));}catch(_){}};
+  try{
+    // 1) Borrar los originales ya sustituidos en sesiones anteriores
+    if(del.length){const d=del.filter(p=>typeof p==='string'&&p.startsWith(uid+'/'));if(d.length){const{error}=await st.remove(d);if(!error)del=[];}else del=[];save();}
+    // 2) ¿Sabe este navegador codificar WebP?
+    const tc=document.createElement('canvas');tc.width=tc.height=2;
+    const tb=await new Promise(r=>tc.toBlob(r,'image/webp',0.8));
+    if(!tb||tb.type!=='image/webp')return;
+    const urls=new Set();
+    [...(allTrades||[]),...(allJournals||[])].forEach(e=>tradeAllImageUrls(e).forEach(u=>urls.add(u)));
+    const todo=[...urls].filter(u=>{const p=tradeImageStoragePath(u);return p&&p.startsWith(uid+'/')&&!tradeImgThumbPath(p)&&!/_t\.(webp|jpg)$/i.test(p)&&/\.(jpe?g|png|webp)$/i.test(p)&&!skip[p];});
+    for(const url of todo){
+      if(_imgMigCount>=IMG_MIG_PER_SESSION||currentUser.id!==uid||_imgMigModalOpen())break;
+      const path=tradeImageStoragePath(url);
+      let r='skip';
+      try{r=await migrateOneImage(url,path,uid,st);}catch(e){console.warn('[img-mig]',path,e);r='skip';}
+      if(r==='ok'){del.push(path);_imgMigCount++;}
+      else if(r==='skip')skip[path]=1;
+      else if(r==='later')break;
+      save();
+      await new Promise(z=>setTimeout(z,1200));
+    }
+  }finally{_imgMigRunning=false;save();}
+}
+async function migrateOneImage(url,path,uid,st){
+  const signed=await resolveTradeImgUrl(url);
+  if(!signed||signed===url)return 'later';
+  const res=await fetch(signed);
+  if(!res.ok)return res.status===400||res.status===404?'skip':'later';
+  const blob=await res.blob();
+  const type=/^image\/(jpeg|png|webp)$/.test(blob.type)?blob.type:(/\.png$/i.test(path)?'image/png':/\.webp$/i.test(path)?'image/webp':'image/jpeg');
+  const file=new File([blob],'img',{type});
+  const thumb=await makeImageThumb(file);
+  if(!thumb||thumb.type!=='image/webp')return 'skip';
+  const enc=await encodeImage(file,TIMG_MAX_DIM,TIMG_QUALITY);
+  const useNew=!!(enc&&enc.type==='image/webp'&&enc.size<blob.size*0.9);
+  const base=path.replace(/\.[^./]+$/,'');
+  const ext=useNew?'webp':(IMAGE_MIME_EXT[type]||'jpg');
+  const newPath=`${base}_m.${ext}`, thPath=`${base}_t.webp`;
+  let up=await st.upload(thPath,thumb,{upsert:true,contentType:'image/webp',cacheControl:TIMG_CACHE});
+  if(up.error)return 'later';
+  up=await st.upload(newPath,useNew?enc:file,{upsert:true,contentType:useNew?'image/webp':type,cacheControl:TIMG_CACHE});
+  if(up.error){st.remove([thPath]).catch(()=>{});return 'later';}
+  const newUrl=st.getPublicUrl(newPath).data.publicUrl;
+  if(_imgMigModalOpen()||!currentUser||currentUser.id!==uid){st.remove([newPath,thPath]).catch(()=>{});return 'later';}
+  const{data:n,error:re}=await sb.rpc('td_replace_image_url',{p_old:url,p_new:newUrl});
+  if(re||!n){st.remove([newPath,thPath]).catch(()=>{});return re?'later':'skip';}
+  // Mismo cambio en memoria: lo que se abra a partir de ahora ya usa la imagen nueva
+  [...(allTrades||[]),...(allJournals||[])].forEach(o=>{
+    if(o.image_url===url)o.image_url=newUrl;
+    if(Array.isArray(o.images))o.images.forEach(i=>{if(i&&i.url===url)i.url=newUrl;});
+  });
+  return 'ok';
+}
 // Rutas a borrar de Storage incluyendo la miniatura de cada imagen (si la tiene)
 function withThumbPaths(paths){
   const out=[];
@@ -6350,11 +6428,13 @@ async function encodeImage(file,maxDim,q){
   const w=Math.max(1,Math.round(bitmap.width*scale)), h=Math.max(1,Math.round(bitmap.height*scale));
   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
   const ctx=canvas.getContext('2d');
-  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);
   ctx.drawImage(bitmap,0,0,w,h);
   if(bitmap.close)bitmap.close();
   let blob=await new Promise(res=>canvas.toBlob(res,'image/webp',q));
-  if(!blob||blob.type!=='image/webp')blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',q));
+  if(!blob||blob.type!=='image/webp'){
+    ctx.globalCompositeOperation='destination-over';ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h); // JPG no tiene transparencia
+    blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',q));
+  }
   return blob||null;
 }
 async function compressImageFile(file){
