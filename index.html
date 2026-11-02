@@ -4436,6 +4436,14 @@ function initLandingFX(){
             <div><div style="font-size:13px;font-weight:600">Recordatorio diario por email</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Un aviso para registrar tu día si aún no lo has hecho. Puedes desactivarlo cuando quieras.</div></div>
             <span class="tgl"><input type="checkbox" id="cfg-reminder" onchange="toggleDailyReminder(this.checked)"><span class="tgl-track"></span></span>
           </label>
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div><div style="font-size:13px;font-weight:600">Resumen de mercado del fin de semana</div><div style="font-size:12px;color:var(--text3);margin-top:2px">El sábado, lo más importante de la semana; el domingo, las noticias clave de la siguiente.</div></div>
+            <span class="tgl"><input type="checkbox" id="cfg-market" onchange="toggleEmailPref('market_summary_enabled',this.checked,'cfg-market')"><span class="tgl-track"></span></span>
+          </label>
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div><div style="font-size:13px;font-weight:600">Novedades y ofertas</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Mejoras de TradeDay, promociones puntuales y alguna pregunta sobre tu experiencia.</div></div>
+            <span class="tgl"><input type="checkbox" id="cfg-promo" onchange="toggleEmailPref('promo_emails_enabled',this.checked,'cfg-promo')"><span class="tgl-track"></span></span>
+          </label>
         </div>
         <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:14px">Mis cuentas</div>
@@ -6754,6 +6762,42 @@ async function saveConfig(){
   const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${username} 👋`;
   toast('Guardado ✓');
 }
+
+async function toggleEmailPref(col,on,elId){
+  if(!currentUser)return;
+  const val=!!on;
+  const{error}=await sb.from('profiles').upsert({id:currentUser.id,[col]:val});
+  if(error){toast(window.t('No se pudo guardar'));const el=document.getElementById(elId);if(el)el.checked=!val;return;}
+  userProfile[col]=val;
+  toast(val?window.t('Activado ✓'):window.t('Desactivado'));
+}
+/* Baja de emails con un clic desde el enlace del correo (?unsub=<lista>&u=<id>&t=<firma>): funciona sin iniciar sesión.
+   La firma la comprueba la Edge Function email-unsubscribe. Listas: reminder · market · promo · all. */
+async function handleEmailUnsub(){
+  const q=new URLSearchParams(location.search),l=q.get('unsub'),u=q.get('u'),tk=q.get('t');
+  if(!l||!u||!tk)return;
+  history.replaceState(null,'',location.pathname);
+  const T={reminder:['Recordatorio diario desactivado','Ya no te enviaremos el recordatorio para registrar tu día.','daily_reminder_enabled'],
+    market:['Resumen de mercado desactivado','Ya no recibirás el resumen de mercado del fin de semana.','market_summary_enabled'],
+    promo:['Hecho: sin ofertas ni encuestas','Ya no te enviaremos novedades, promociones ni preguntas sobre tu experiencia.','promo_emails_enabled'],
+    all:['Te has dado de baja','Ya no recibirás emails de TradeDay salvo los imprescindibles de tu cuenta (contraseña, pagos).','']}[l];
+  let ok=false;
+  try{const r=await fetch(SUPABASE_URL+'/functions/v1/email-unsubscribe',{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON},body:JSON.stringify({u,l,t:tk})});ok=r.ok;}catch(_){}
+  if(ok&&T&&typeof userProfile==='object'&&userProfile){if(T[2])userProfile[T[2]]=false;else{userProfile.daily_reminder_enabled=false;userProfile.market_summary_enabled=false;userProfile.promo_emails_enabled=false;}}
+  const ov=document.createElement('div');
+  ov.setAttribute('data-no-i18n','');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px';
+  const title=ok&&T?T[0]:'No hemos podido darte de baja',desc=ok&&T?T[1]+' Puedes volver a activarlo cuando quieras en Configuración → Notificaciones.':'El enlace no es válido o ha caducado. Entra en TradeDay y desactívalo en Configuración → Notificaciones, o responde a cualquiera de nuestros correos.';
+  ov.innerHTML=`<div style="max-width:400px;width:100%;background:var(--bg2,#111318);border:1px solid var(--border,#23262D);border-radius:16px;padding:26px 24px;text-align:center;font-family:inherit">
+    <div style="width:46px;height:46px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;background:${ok?'rgba(34,197,94,.12)':'rgba(239,68,68,.12)'};color:${ok?'var(--green,#22C55E)':'var(--red,#EF4444)'};font-size:22px"><i class="ti ti-${ok?'mail-off':'alert-triangle'}"></i></div>
+    <div style="font-size:17px;font-weight:800;color:var(--text,#F0F2F5);margin-bottom:8px">${title}</div>
+    <div style="font-size:13.5px;color:var(--text2,#A3ABB8);line-height:1.6;margin-bottom:18px">${desc}</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center">Entendido</button></div>`;
+  ov.querySelector('button').onclick=()=>ov.remove();
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',handleEmailUnsub);else setTimeout(handleEmailUnsub,0);
 
 async function toggleDailyReminder(on){
   if(!currentUser)return;
@@ -10775,7 +10819,7 @@ function gotoView(v){
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
   if(v==='plan')loadPlan();
   if(v==='routine')loadRoutine();
-  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';const rm=document.getElementById('cfg-reminder');if(rm)rm.checked=(userProfile.daily_reminder_enabled!==false);renderAccountsSidebar();updateSubscriptionUI();}
+  if(v==='config'){const cu=document.getElementById('cfg-username');if(cu)cu.value=userProfile.username||'';const rm=document.getElementById('cfg-reminder');if(rm)rm.checked=(userProfile.daily_reminder_enabled!==false);const cmk=document.getElementById('cfg-market');if(cmk)cmk.checked=(userProfile.market_summary_enabled!==false);const cpr=document.getElementById('cfg-promo');if(cpr)cpr.checked=(userProfile.promo_emails_enabled!==false);renderAccountsSidebar();updateSubscriptionUI();}
 }
 
 /* Subapartados de Métricas en la barra lateral (plegable con la flecha; se recuerda el estado) */
@@ -14317,6 +14361,12 @@ var I18N_EN = {
   'No se pudo abrir el portal de facturación.':'Couldn\'t open the billing portal.',
   'No se pudo completar la operación. Comprueba tus datos e inténtalo de nuevo.':'Couldn\'t complete that. Check your details and try again.',
   'No se pudo guardar':'Couldn\'t save',
+  'Resumen de mercado del fin de semana':'Weekend market summary',
+  'El sábado, lo más importante de la semana; el domingo, las noticias clave de la siguiente.':'On Saturday, the key moves of the week; on Sunday, the news to watch next week.',
+  'Novedades y ofertas':'News and offers',
+  'Mejoras de TradeDay, promociones puntuales y alguna pregunta sobre tu experiencia.':'TradeDay updates, occasional promotions and the odd question about your experience.',
+  'Activado ✓':'Turned on ✓',
+  'Desactivado':'Turned off',
   'No se pudo guardar. Inténtalo de nuevo en unos segundos.':'Couldn\'t save. Try again in a few seconds.',
   'No se pudo iniciar el pago. Inténtalo de nuevo.':'Couldn\'t start the payment. Try again.',
   'No se pudo validar el código.':'Couldn\'t validate that code.',
