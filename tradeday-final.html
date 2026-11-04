@@ -5029,6 +5029,7 @@ sb.auth.onAuthStateChange(async(event,session)=>{
       updateSubscriptionUI();
       handleCheckoutRedirect();
       await loadAccounts();
+      try{await loadBalanceEvents();}catch(_){}
       if(allAccounts.length===0){
         // Primera vez: mostrar onboarding
         const un=document.getElementById('ob-username');
@@ -5365,18 +5366,41 @@ function currentAccount(){return allAccounts.find(a=>a.id===currentAccountId)||n
 // P&L acumulado de todos los demás trades ya guardados en esa cuenta.
 // Al editar un trade existente, se excluye ese mismo trade del cálculo para
 // no contarlo dos veces.
-function currentCapitalBeforeTrade(excludeTradeId){
+/* Dinero que entra/sale de la CUENTA (no del trading), registrado en Balance:
+   aportaciones (+), retiradas (−) y, en cuentas de fondeo/evaluación, payouts (−: el dinero sale de la cuenta).
+   Costes y reembolsos se pagan aparte (tarjeta) y no cambian el saldo de la cuenta.
+   untilKey (AAAA-MM-DD, opcional): solo movimientos con fecha <= untilKey; strict=true → fecha < untilKey. */
+function accountCashFlow(acc,untilKey,strict){
+  if(!acc)return 0;
+  const funded=['evaluation','funded'].includes(acc.type);
+  return (allBalanceEvents||[]).reduce((s,e)=>{
+    if(e.account_id!==acc.id)return s;
+    if(untilKey&&e.date&&(strict?e.date>=untilKey:e.date>untilKey))return s;
+    const n=parseFloat(e.amount)||0;
+    if(e.type==='deposit')return s+n;
+    if(e.type==='withdrawal'||(funded&&e.type==='payout'))return s-n;
+    return s;
+  },0);
+}
+/* Capital de la cuenta justo ANTES de un trade: capital inicial + P&L de los trades anteriores
+   (por fecha; el mismo día cuenta los que no tienen hora o son de una hora anterior) + aportaciones/retiradas
+   hasta ese día. Sin fecha (dateKey vacío) → todos los trades, como antes. */
+function currentCapitalBeforeTrade(excludeTradeId,dateKey,timeStr){
   const acc=currentAccount();
   if(!acc)return 0;
   let pnl=0;
   allTrades.forEach(t=>{
     if(excludeTradeId&&t.id===excludeTradeId)return;
+    if(dateKey&&t.date){
+      if(t.date>dateKey)return;
+      if(t.date===dateKey&&timeStr&&t.time&&t.time>timeStr)return;
+    }
     if(t.amount){
       const n=parseFloat(String(t.amount).replace(/[^0-9.\-]/g,''));
       if(!isNaN(n))pnl+=n;
     }
   });
-  return (acc.capital||0)+pnl;
+  return (acc.capital||0)+pnl+accountCashFlow(acc,dateKey||null);
 }
 
 /* ══════════════════ BALANCE ══════════════════
@@ -5429,7 +5453,7 @@ function openBalanceEventForm(accountId){
   accSel.innerHTML=allAccounts.map(a=>`<option data-no-i18n value="${a.id}">${esc(a.name)} (${esc(window.t(accountTypeLabel(a.type)))})</option>`).join('');
   accSel.value=accountId||currentAccountId||(allAccounts[0]&&allAccounts[0].id)||'';
   document.getElementById('bal-ev-type').innerHTML=balanceEventTypeOptionsHTML();
-  document.getElementById('bal-ev-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('bal-ev-date').value=dateToKey(new Date());
   document.getElementById('bal-ev-amount').value='';
   document.getElementById('bal-ev-notes').value='';
   openModal('modal-balance-event');
@@ -5473,7 +5497,8 @@ async function saveBalanceEvent(){
 }
 async function deleteBalanceEvent(id){
   if(!confirm('¿Eliminar este movimiento?'))return;
-  await sb.from('balance_events').delete().eq('id',id);
+  const{error}=await sb.from('balance_events').delete().eq('id',id);
+  if(error){toast(friendlyDbError(error));return;}
   toast('Movimiento eliminado');
   await renderBalancePage();
 }
@@ -5811,7 +5836,7 @@ function normalizeTradeAmounts(){
     const amountIsValidUSD=amountStr.includes('$');
     const pctIsValidPct=pctStr.includes('%');
     if(amountIsValidUSD&&pctIsValidPct)return; // ya está correcto, no tocar
-    const baseCapital=currentCapitalBeforeTrade(t.id);
+    const baseCapital=currentCapitalBeforeTrade(t.id,t.date,t.time);
     if(!baseCapital)return; // sin capital de referencia no podemos calcular con seguridad
     let changed=false;
     if(pctIsValidPct&&!amountIsValidUSD){
@@ -6199,7 +6224,7 @@ async function saveTrade(){
       const numVal=parseFloat(numStr);
       const sign=result==='loss'?-1:1;
       const isPercent=amount.includes('%');
-      const baseCapital=currentCapitalBeforeTrade(editingTradeId);
+      const baseCapital=currentCapitalBeforeTrade(editingTradeId,date,time);
       let usdVal,pctVal;
       if(isPercent){
         pctVal=sign*numVal;
@@ -7211,7 +7236,8 @@ function renderDaySummary(){
 function renderDashMetrics(){
   const acc=currentAccount();
   const now=new Date();
-  const mt=allTrades.filter(t=>{const d=new Date(t.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();});
+  const curYM=dateToKey(now).slice(0,7);
+  const mt=allTrades.filter(t=>String(t.date||'').startsWith(curYM));
   const wins=mt.filter(t=>t.result==='win').length;
   const losses=mt.filter(t=>t.result==='loss').length;
   const bes=mt.filter(t=>t.result==='be').length;
@@ -7219,8 +7245,11 @@ function renderDashMetrics(){
   let pnl=0;
   allTrades.forEach(t=>{if(t.amount){const n=parseFloat(t.amount.replace(/[^0-9.\-]/g,''));if(!isNaN(n))pnl+=n;}});
   const initialCapital=acc?(acc.capital||0):0;
-  const capital=initialCapital+pnl;
+  const flow=accountCashFlow(acc);
+  const capital=initialCapital+pnl+flow;
   setText('d-account',fmtMoney(capital));
+  const dAcc=document.getElementById('d-account');
+  if(dAcc){if(flow)dAcc.setAttribute('data-tip',(lang==='en'?'Includes deposits/withdrawals from Balance: ':'Incluye aportaciones/retiradas de Balance: ')+(flow>0?'+':'')+fmtMoney(flow));else dAcc.removeAttribute('data-tip');}
   const pEl=document.getElementById('d-pnl');
   if(pEl){
     // % acumulado respecto al capital INICIAL de la cuenta, para que el usuario
@@ -7233,7 +7262,7 @@ function renderDashMetrics(){
   if(wrEl){wrEl.textContent=mt.length?wr+'%':'—';wrEl.className='metric-value '+(wr>=50?'pos':'neg');}
   setText('d-trades',mt.length.toString());
   setText('d-breakdown',`${wins}W · ${losses}L · ${bes}BE`);
-  const mj=allJournals.filter(j=>{const d=new Date(j.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();});
+  const mj=allJournals.filter(j=>String(j.date||'').startsWith(curYM));
   const allDatesThisMonth = new Set([...mt.map(t=>t.date), ...mj.map(j=>j.date)]);
   setText('d-journals',allDatesThisMonth.size.toString());
 }
@@ -7322,8 +7351,8 @@ function renderPlanTodayInner(card){
   const wt=dated.filter(t=>t.date>=weekKey&&t.date<=todayKey);
   const pnl=sum(tt),wpnl=sum(wt);
   const base=Number(acc.capital)||0;
-  const capDay=base+sum(dated.filter(t=>t.date<todayKey));
-  const capWeek=base+sum(dated.filter(t=>t.date<weekKey));
+  const capDay=base+sum(dated.filter(t=>t.date<todayKey))+accountCashFlow(acc,todayKey,true);
+  const capWeek=base+sum(dated.filter(t=>t.date<weekKey))+accountCashFlow(acc,weekKey,true);
   const riskTxt=String(p.riskTrade||'');const riskM=riskTxt.match(/(\d+(?:[.,]\d+)?)\s*%/);
   const riskPct=riskM?ptNum(riskM[1],true):null;
   const dl=parsePlanLimit(p.lossDaily,capDay,riskPct);
@@ -7421,7 +7450,7 @@ function renderBestTradesReel(){
   card.style.display='';
   document.getElementById('btr-title').textContent=tdL('Tus mejores trades','Your best trades');
   document.querySelectorAll('#btr-seg button').forEach(b=>{b.classList.toggle('on',b.dataset.r===bestReelRange);b.textContent=b.dataset.r==='all'?tdL('Siempre','All time'):tdL('Este mes','This month');});
-  const ym=new Date().toISOString().slice(0,7);
+  const ym=dateToKey(new Date()).slice(0,7);
   document.querySelectorAll('#btr-seg button[data-r="exec"]').forEach(b=>b.textContent=tdL('Mejor ejecutados','Best executed'));
   const exec=bestReelRange==='exec';
   const withImg=wins.filter(t=>getTradeCoverUrl(t)&&(bestReelRange!=='month'||(t.date||'').startsWith(ym))&&(!exec||/100/.test(t.followed_plan||'')));
@@ -10809,7 +10838,7 @@ function gotoView(v){
   });
   closeMobileSidebar();
   const mc=document.getElementById('main-content');if(mc)mc.scrollTop=0;
-  if(v==='dashboard'){dWeekOff=0;renderMiniCal();}
+  if(v==='dashboard'){dWeekOff=0;renderMiniCal();renderDashMetrics();renderPlanToday();}
   if(v==='journal')renderJournalList();
   if(v==='ops'){renderOpsList();renderMetrics();}
   if(v==='metrics'){const ms=document.getElementById('metrics-account-sub');const accM=currentAccount();if(ms&&accM)ms.textContent=accM.name;renderMetricsPage();}
@@ -10858,7 +10887,7 @@ function openTradeForm(){
   closeModal('modal-choice');
   editingTradeId=null;
   document.getElementById('t-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar trade';
-  document.getElementById('t-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('t-date').value=dateToKey(new Date());
   document.getElementById('t-time').value=new Date().toTimeString().slice(0,5);
   tSessManuallySet=false;
   setTPair('');setTStrategy('');document.getElementById('t-amount').value='';document.getElementById('t-risk').value='';document.getElementById('t-duration').value='';document.getElementById('t-notes').value='';
@@ -10877,7 +10906,7 @@ function openJournalForm(){
   closeModal('modal-choice');
   editingJournalId=null;
   document.getElementById('j-save-btn').innerHTML='<i class="ti ti-device-floppy"></i>Guardar diario';
-  document.getElementById('j-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('j-date').value=dateToKey(new Date());
   document.getElementById('j-reason').value='';document.getElementById('j-content').value='';document.getElementById('j-tomorrow').value='';document.getElementById('j-tech-notes').value='';
   const jm=document.getElementById('j-mood');if(jm)jm.querySelectorAll('.chip').forEach(c=>c.className='chip');
   resetTechDropdowns('j-tech-dropdowns');
@@ -11540,7 +11569,7 @@ function mxSetEquityPeriod(p){
   if(mxLastMetrics)mxRenderEquityChart(mxLastMetrics);
 }
 function mxRenderEquityChart(m){
-  const capitalActual=m.meta.capitalInicial+m.rendimiento.netProfit;
+  const capitalActual=m.meta.capitalInicial+m.rendimiento.netProfit+(MXCTX.p==='mx'&&MX_STRAT==='all'?accountCashFlow(currentAccount()):0);
   const chipsEl=document.getElementById('mx-equity-chips');
   if(chipsEl)chipsEl.innerHTML=`
     <div class="mx-chip">Capital inicial <strong>${fmtMoney(m.meta.capitalInicial)}</strong></div>
@@ -12770,6 +12799,7 @@ function glRenderCurrent(){
     scopeLabel=(g?window.t(g.label):'')+' ('+accs.length+' '+(lang==='en'?(accs.length===1?'account':'accounts'):('cuenta'+(accs.length===1?'':'s')))+')';
   }
   const m=computeGlobalMetrics(trades, accs);
+  m.cashFlow=(accs||[]).reduce((s,a)=>s+accountCashFlow(a),0); // aportaciones/retiradas/payouts registrados en Balance
   const sub=document.getElementById('gl-scope-sub'); if(sub)sub.textContent=(m.total?m.total+' '+(lang==='en'?(m.total===1?'trade':'trades'):'operaciones'):window.t('Sin operaciones'))+' · '+scopeLabel;
   const note=document.getElementById('gl-scope-note'); if(note)note.textContent=glScope==='all'?window.t('Todas tus cuentas juntas. Cambia para ver por tipo (fondeadas, evaluación, propias…).'):((lang==='en'?'Only accounts of type: ':'Solo cuentas de tipo: ')+scopeLabel);
   glRenderEquity(m);
@@ -12788,7 +12818,7 @@ function glLock(lockedId,contentId,disp){
   if(content){content.style.display=disp||'block';content.classList.toggle('mx-blur-preview',!premium);}
 }
 function glRenderEquity(m){
-  const capActual=m.capitalBase+m.net;
+  const capActual=m.capitalBase+m.net+(m.cashFlow||0);
   const ch=document.getElementById('gl-equity-chips');
   if(ch)ch.innerHTML=`<div class="mx-chip">Capital inicial <strong>${fmtMoney(m.capitalBase)}</strong></div><div class="mx-chip ${capActual>=m.capitalBase?'pos':'neg'}">Capital actual <strong>${fmtMoney(capActual)}</strong></div><div class="mx-chip ${m.net>=0?'pos':'neg'}">Beneficio neto <strong>${mxFmtMoney(m.net)}</strong> (${mxFmtPct(m.netProfitPct)})</div>`;
   const pts=m.cum;
