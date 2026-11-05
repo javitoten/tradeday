@@ -4705,6 +4705,7 @@ function initLandingFX(){
         <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0">Se perderán <strong>permanentemente</strong> todos los datos de esta cuenta:</p>
         <p style="font-size:13px;color:var(--text2);line-height:1.7;margin:6px 0 0">operaciones · journal · <strong>métricas</strong> · balance e historial de movimientos.</p>
       </div>
+      <p id="deleteacc-last" style="display:none;font-size:13px;color:var(--text);line-height:1.6;margin:0 0 12px;background:var(--bg3,rgba(255,255,255,.04));border:1px solid var(--border);border-radius:10px;padding:10px 12px"><i class="ti ti-info-circle"></i> Es tu única cuenta y no tiene operaciones: al eliminarla podrás crear una nueva con el tipo, nombre y capital correctos.</p>
       <p style="font-size:12.5px;color:var(--text3);line-height:1.6;margin:0">Si solo quieres dejar de operar con ella pero conservar el historial, mejor <strong style="color:var(--text2)">suspéndela desde Balance</strong> en lugar de eliminarla. Puedes ir directamente con el botón de abajo.</p>
     </div>
     <div class="modal-footer" style="flex-wrap:wrap">
@@ -5326,15 +5327,22 @@ async function saveNewAccount(){
 // sin posibilidad de deshacer). Por eso se confirma con un modal claro, no con un confirm() genérico.
 // Si el usuario solo quiere dejar de usarla conservando el historial, debe usar "Suspender".
 let pendingDeleteAccountId=null;
-function deleteAccount(id){
-  if(allAccounts.length<=1){
-    toast('No puedes eliminar tu única cuenta. Crea otra antes de borrar esta.');
-    return;
-  }
+// Única cuenta: solo se puede borrar si NO tiene operaciones (el usuario se equivocó al crearla:
+// tipo, nombre, capital…). Tras borrarla vuelve al onboarding para crear la correcta (5-nov-2026).
+let pendingDeleteIsLast=false;
+async function deleteAccount(id){
   const acc=allAccounts.find(a=>a.id===id);
   if(!acc)return;
-  pendingDeleteAccountId=id;
-  const n=document.getElementById('deleteacc-name');if(n)n.textContent=acc.name;
+  const isLast=allAccounts.length<=1;
+  if(isLast){
+    let n=null;
+    try{const{count,error}=await sb.from('trades').select('id',{count:'exact',head:true}).eq('account_id',id);if(!error)n=count;}catch(_){}
+    if(n===null){toast(window.t('No se ha podido comprobar la cuenta. Inténtalo de nuevo.'));return;}
+    if(n>0){toast(window.t('No puedes eliminar tu única cuenta porque ya tiene operaciones. Si ya no la usas, suspéndela desde Balance.'));return;}
+  }
+  pendingDeleteAccountId=id;pendingDeleteIsLast=isLast;
+  const nm=document.getElementById('deleteacc-name');if(nm)nm.textContent=acc.name;
+  const note=document.getElementById('deleteacc-last');if(note)note.style.display=isLast?'':'none';
   openModal('modal-delete-account');
 }
 async function confirmDeleteAccount(){
@@ -5357,6 +5365,20 @@ async function confirmDeleteAccount(){
   try{if(imgPaths.length)await sb.storage.from('trade-images').remove(withThumbPaths(imgPaths));}catch(_){}
   allAccounts=allAccounts.filter(a=>a.id!==id);
   if(currentAccountId===id)currentAccountId=allAccounts[0]?.id||null;
+  if(!allAccounts.length){
+    // Era su única cuenta (sin operaciones): crear la nueva desde el onboarding (paso «tipo y nombre»).
+    pendingDeleteIsLast=false;
+    allTrades=[];allJournals=[];allBalanceEvents=[];
+    renderAccountsSidebar();
+    const nmI=document.getElementById('ob-account-name');if(nmI)nmI.value='';
+    const capI=document.getElementById('ob-capital');if(capI)capI.value='';
+    const fb=document.getElementById('ob-finish-btn');if(fb){fb.disabled=false;fb.innerHTML='Empezar a operar <i class="ti ti-check"></i>';}
+    const un=document.getElementById('ob-username');if(un)un.textContent=(userProfile&&userProfile.username)||'Trader';
+    obStep=1;updateObStep();
+    showScreen('onboarding');
+    toast(window.t('Cuenta eliminada. Crea tu nueva cuenta.'));
+    return;
+  }
   await loadData();
   renderAccountsSidebar();
   toast('Cuenta eliminada');
@@ -14112,6 +14134,10 @@ var I18N_EN = {
   'Cuenta creada ✓':'Account created ✓',
   'Cuenta creada. Revisa tu email para confirmar tu cuenta antes de iniciar sesión.':'Account created. Check your email to confirm it before logging in.',
   'Cuenta eliminada':'Account deleted',
+  'Cuenta eliminada. Crea tu nueva cuenta.':'Account deleted. Create your new account.',
+  'No se ha podido comprobar la cuenta. Inténtalo de nuevo.':'We couldn\'t check the account. Please try again.',
+  'No puedes eliminar tu única cuenta porque ya tiene operaciones. Si ya no la usas, suspéndela desde Balance.':'You can\'t delete your only account because it already has trades. If you no longer use it, suspend it from Balance.',
+  'Es tu única cuenta y no tiene operaciones: al eliminarla podrás crear una nueva con el tipo, nombre y capital correctos.':'This is your only account and it has no trades: after deleting it you can create a new one with the right type, name and capital.',
   'Cuenta pasada a fondeada ✓':'Account moved to funded ✓',
   'Cuenta propia':'Own account',
   'Cuenta reactivada ✓':'Account reactivated ✓',
