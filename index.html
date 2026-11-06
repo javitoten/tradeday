@@ -17,6 +17,20 @@
   gtag('js', new Date());
   gtag('config', 'G-CKNFE233EL');
 </script>
+<!-- Origen de captación (6-nov-2026): guarda utm_* / referrer de la visita para asociarlo al registro (profiles.acq). Automático, sin casillas. -->
+<script>
+(function(){try{
+  var q=new URLSearchParams(location.search),o={},k=['source','medium','campaign','content','term'];
+  k.forEach(function(x){var v=q.get('utm_'+x);if(v)o[x]=String(v).slice(0,100);});
+  if(q.get('fbclid'))o.fbclid=1;
+  if(q.get('gclid'))o.gclid=1;
+  var ref=document.referrer||'';
+  if(Object.keys(o).length){o.ts=new Date().toISOString();o.path=location.pathname;if(ref&&!/tradeday\.me/i.test(ref))o.ref=ref.slice(0,200);localStorage.setItem('td_acq',JSON.stringify(o));}
+  else if(!localStorage.getItem('td_acq')&&ref&&!/tradeday\.me|accounts\.google|supabase\.co/i.test(ref)){localStorage.setItem('td_acq',JSON.stringify({ref:ref.slice(0,200),ts:new Date().toISOString(),path:location.pathname}));}
+}catch(e){}
+window.tdGetAcq=function(){try{return JSON.parse(localStorage.getItem('td_acq')||'null');}catch(e){return null;}};
+})();
+</script>
 <title>Diario de Trading online y gratis | TradeDay Trading Journal</title>
 <meta name="description" content="Tu diario de trading online: registra cada operación, analiza tu win rate y mide tu disciplina. Sin conectar el bróker. Gratis y sin tarjeta.">
 <meta name="author" content="TradeDay">
@@ -4912,7 +4926,7 @@ async function signupEmail(){
   if(pass.length<8){showAuthError('signup-error','La contraseña debe tener al menos 8 caracteres.');return;}
   if(!/[a-z]/.test(pass)||!/[A-Z]/.test(pass)||!/[0-9]/.test(pass)){showAuthError('signup-error','La contraseña debe incluir mayúsculas, minúsculas y números.');return;}
   const captchaToken=await getCaptchaToken(hcapSignupId);
-  const{data,error}=await sb.auth.signUp({email,password:pass,options:{captchaToken}});
+  const{data,error}=await sb.auth.signUp({email,password:pass,options:{captchaToken,data:{acq:(window.tdGetAcq&&window.tdGetAcq())||null}}});
   resetCaptcha(hcapSignupId);
   if(error){showAuthError('signup-error',friendlyAuthError(error));return;}
   if(data.user){
@@ -5902,6 +5916,19 @@ function normalizeTradeAmounts(){
 }
 
 /* ── DATA ── */
+/* Origen de captación: se guarda una sola vez en profiles.acq para cuentas nuevas (<3 días).
+   Fuente: localStorage td_acq (enlace del anuncio con utm_*) o, si se registró por email y
+   confirmó desde otro navegador, los metadatos del registro. */
+async function saveAcquisition(){
+  try{
+    if(!currentUser||(userProfile&&userProfile.acq))return;
+    const created=new Date(currentUser.created_at||0).getTime();
+    if(!created||Date.now()-created>3*86400000)return;
+    const acq=(window.tdGetAcq&&window.tdGetAcq())||(currentUser.user_metadata&&currentUser.user_metadata.acq)||{none:1};
+    const{error}=await sb.from('profiles').update({acq}).eq('id',currentUser.id);
+    if(!error&&userProfile)userProfile.acq=acq;
+  }catch(_){}
+}
 async function loadProfile(){
   if(!currentUser)return;
   const{data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
@@ -5911,6 +5938,7 @@ async function loadProfile(){
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=(userProfile.username||'T')[0].toUpperCase();
   const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${userProfile.username||'Trader'} 👋`;
   try{rebuildTechDropdowns();}catch(_){}
+  saveAcquisition();
 }
 
 /* ── SUSCRIPCIÓN (Stripe): Free vs Premium ── */
