@@ -3841,8 +3841,14 @@ function initLandingFX(){
       <!-- ANÁLISIS DE RENDIMIENTO (subapartado de Métricas en la barra lateral) -->
       <div id="view-analysis" style="display:none;flex-direction:column;gap:18px">
         <div class="welcome-bar">
-          <div><div class="section-title" style="font-size:17px">Análisis de rendimiento</div><div class="section-sub">Lo que dicen tus datos, ordenado por importancia — <span id="analysis-account-sub">—</span></div></div>
-          <button class="btn btn-ghost btn-sm" onclick="gotoView('metrics')"><i class="ti ti-chart-bar"></i>Ver métricas</button>
+          <div><div class="section-title" style="font-size:17px">Análisis de rendimiento</div><div class="section-sub">Lo que dicen tus datos, ordenado por importancia — <span id="analysis-account-sub" data-no-i18n>—</span></div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="mx-toggle-group" id="pa-scope-toggle" style="display:none">
+              <button class="mx-toggle active" data-s="account" onclick="paSetScope('account')">Esta cuenta</button>
+              <button class="mx-toggle" data-s="all" onclick="paSetScope('all')">Todas las cuentas</button>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="gotoView('metrics')"><i class="ti ti-chart-bar"></i>Ver métricas</button>
+          </div>
         </div>
         <div class="card mx-section-block pa-section">
           <div class="mx-card-head">
@@ -4498,6 +4504,14 @@ function initLandingFX(){
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:14px">Mis cuentas</div>
           <div id="config-accounts-list" style="margin-bottom:12px"></div>
           <button class="btn btn-ghost btn-sm" onclick="handleAddAccountClick()"><i class="ti ti-plus"></i>Añadir cuenta</button>
+        </div>
+        <div class="card">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Tus datos</div>
+          <div style="font-size:12.5px;color:var(--text3);line-height:1.6;margin-bottom:12px">Descarga todos tus datos de todas tus cuentas para analizarlos a tu manera (Excel, Google Sheets, Python…).</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" id="exp-csv-btn" onclick="exportMyData('csv')"><i class="ti ti-table-export"></i>Operaciones (CSV)</button>
+            <button class="btn btn-ghost btn-sm" id="exp-json-btn" onclick="exportMyData('json')"><i class="ti ti-file-code"></i>Todo (JSON)</button>
+          </div>
         </div>
         <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:12px">Suscripción</div>
@@ -6241,7 +6255,7 @@ async function loadData(){
   const{data:journals}=await sb.from('journals').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   allTrades=trades||[];allJournals=journals||[];
   try{scheduleImageMigration();}catch(_){}
-  _glTrades=null; // invalida la caché del Resumen global
+  _glTrades=null;_glJournals=null; // invalida la caché del Resumen global / análisis global
   normalizeTradeAmounts();
   renderAll();
 }
@@ -10927,7 +10941,7 @@ function gotoView(v){
   if(v==='journal')renderJournalList();
   if(v==='ops'){renderOpsList();renderMetrics();}
   if(v==='metrics'){const ms=document.getElementById('metrics-account-sub');const accM=currentAccount();if(ms&&accM)ms.textContent=accM.name;renderMetricsPage();}
-  if(v==='analysis'){const as=document.getElementById('analysis-account-sub');const accA=currentAccount();if(as&&accA)as.textContent=accA.name;renderPerfAnalysis();openMetricsSub(true);}
+  if(v==='analysis'){renderPerfAnalysis();openMetricsSub(true);}
   if(v==='balance')renderBalancePage();
   if(v==='global')renderGlobalPage();
   if(v==='calendar'){fullYear=new Date().getFullYear();fullMonth=new Date().getMonth();renderFullCal();}
@@ -12568,9 +12582,82 @@ function computePerfAnalysis(periodKey, ctx){
 
 /* ── Wrapper de navegador + renderer DOM ── */
 let paPeriod='all';
+// Alcance del Análisis de rendimiento: 'account' (cuenta activa) o 'all' (todas las cuentas; reseña de Fernando, 8-nov-2026).
+let paScope='account', _glJournals=null;
+function paSetScope(s){
+  paScope=s==='all'?'all':'account';
+  document.querySelectorAll('#pa-scope-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.s===paScope));
+  renderPerfAnalysis();
+}
+// Lee todas las filas del usuario paginando (PostgREST corta en 1000).
+async function sbFetchAllUser(table,order){
+  const out=[];
+  for(let from=0;from<100000;from+=1000){
+    let q=sb.from(table).select('*').eq('user_id',currentUser.id);
+    if(order)q=q.order(order,{ascending:false});
+    const{data,error}=await q.range(from,from+999);
+    if(error)throw error;
+    out.push(...(data||[]));
+    if(!data||data.length<1000)break;
+  }
+  return out;
+}
+async function paEnsureGlobal(){
+  if(_glTrades===null){try{_glTrades=await sbFetchAllUser('trades','date');}catch(e){console.error('global fetch',e);_glTrades=[];}}
+  if(_glJournals===null){try{_glJournals=await sbFetchAllUser('journals','date');}catch(e){console.error('global journals',e);_glJournals=[];}}
+}
+/* Exportar mis datos (Configuración → Tus datos; reseña de Fernando, 8-nov-2026).
+   csv = operaciones de TODAS las cuentas (ES: «;» y coma decimal para Excel en español; EN: «,» y punto).
+   json = cuentas, operaciones, diarios, movimientos de Balance y plan, tal cual están en la base de datos. */
+function _expFlat(v){if(v==null)return'';if(Array.isArray(v))return v.map(_expFlat).filter(Boolean).join(' | ');if(typeof v==='object')return Object.values(v).map(_expFlat).filter(Boolean).join(' | ');return String(v);}
+function _expDownload(name,content,type){
+  const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1500);
+}
+async function exportMyData(kind){
+  if(!currentUser)return;
+  const btn=document.getElementById(kind==='csv'?'exp-csv-btn':'exp-json-btn');
+  const old=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i>'+window.t('Preparando…');}
+  try{
+    const[trades,journals,events,accounts]=await Promise.all([sbFetchAllUser('trades','date'),sbFetchAllUser('journals','date'),sbFetchAllUser('balance_events','date'),sbFetchAllUser('accounts')]);
+    const accName=id=>(accounts.find(a=>a.id===id)||{}).name||'';
+    const stamp=dateToKey(new Date());
+    const sorted=trades.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.time||'').localeCompare(String(b.time||'')));
+    if(kind==='csv'){
+      const es=lang!=='en', sep=es?';':',';
+      const num=v=>{if(v===null||v===undefined||v==='')return'';const n=Number(v);if(!isFinite(n))return String(v);return es?String(n).replace('.',','):String(n);};
+      const cols=[
+        [es?'fecha':'date',t=>t.date||''],[es?'hora':'time',t=>t.time?String(t.time).slice(0,5):''],
+        [es?'cuenta':'account',t=>accName(t.account_id)],[es?'activo':'asset',t=>t.pair||''],
+        [es?'direccion':'direction',t=>t.direction||''],[es?'sesion':'session',t=>t.session||''],
+        [es?'resultado':'result',t=>t.result||''],[es?'pyg':'pnl',t=>num(mxAmt(t))],[es?'pyg_pct':'pnl_pct',t=>num(mxAmtPct(t))],
+        [es?'riesgo_pct':'risk_pct',t=>num(t.risk_pct)],[es?'duracion_min':'duration_min',t=>num(t.duration_minutes)],
+        [es?'estrategia':'strategy',t=>t.strategy||''],[es?'siguio_plan':'followed_plan',t=>t.followed_plan||''],
+        ['be',t=>t.be_type||''],[es?'emociones':'emotions',t=>_expFlat(t.emotions)],
+        [es?'confluencias':'confluences',t=>_expFlat(t.technical_tags)],[es?'notas':'notes',t=>t.notes||''],
+        [es?'notas_tecnicas':'technical_notes',t=>t.technical_notes||''],['id',t=>t.id]
+      ];
+      const cell=v=>{const s=String(v??'');return (/["\n\r]/.test(s)||s.includes(sep))?'"'+s.replace(/"/g,'""')+'"':s;};
+      const lines=[cols.map(c=>c[0]).join(sep)].concat(sorted.map(t=>cols.map(c=>cell(c[1](t))).join(sep)));
+      _expDownload(`tradeday-${es?'operaciones':'trades'}-${stamp}.csv`,'﻿'+lines.join('\r\n'),'text/csv;charset=utf-8');
+    } else {
+      const data={app:'TradeDay',format:1,exported_at:new Date().toISOString(),
+        user:{email:currentUser.email||null,username:(userProfile&&userProfile.username)||null},
+        accounts,trades:sorted,journals:journals.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))),
+        balance_events:events,plan:currentPlan?(currentPlan.data||null):null};
+      _expDownload(`tradeday-${lang==='en'?'data':'datos'}-${stamp}.json`,JSON.stringify(data,null,2),'application/json');
+    }
+    toast(window.t('Descarga lista'));
+    try{if(window.posthog)posthog.capture('data_export',{kind,trades:trades.length});}catch(_){}
+  }catch(e){console.error('export',e);toast(window.t('No se han podido descargar tus datos. Inténtalo de nuevo.'));}
+  finally{if(btn){btn.disabled=false;btn.innerHTML=old;}}
+}
 function paBuildCtx(){
+  const g=paScope==='all';
   return {
-    trades:allTrades||[], journals:allJournals||[],
+    trades:g?(_glTrades||[]):(allTrades||[]), journals:g?(_glJournals||[]):(allJournals||[]),
     plan:currentPlan?(currentPlan.data||{}):{},
     now:new Date(),
     analyze:(txt)=>analyzeJournalText(txt,'pa:'+normText(txt).slice(0,50)),
@@ -12718,6 +12805,16 @@ function paActiveAreaHTML(a){
 function renderPerfAnalysis(){
   const body=document.getElementById('pa-body');
   if(!body)return;
+  const multi=(allAccounts||[]).length>1;
+  if(!multi)paScope='account';
+  const tg=document.getElementById('pa-scope-toggle');if(tg)tg.style.display=multi?'':'none';
+  const sub=document.getElementById('analysis-account-sub');
+  if(sub){const accA=currentAccount();sub.textContent=paScope==='all'?(window.t('Todas las cuentas')+' ('+allAccounts.length+')'):(accA?accA.name:'—');}
+  if(paScope==='all'&&(_glTrades===null||_glJournals===null)){
+    body.innerHTML='<div class="pa-empty">'+window.t('Cargando todas tus cuentas…')+'</div>';
+    paEnsureGlobal().then(()=>{if(paScope==='all')renderPerfAnalysis();});
+    return;
+  }
   let r;
   try{ r=computePerfAnalysis(paPeriod, paBuildCtx()); }
   catch(e){ console.error('perf analysis error',e); body.innerHTML='<div class="pa-empty">'+window.t('No se pudo calcular el análisis en este momento.')+'</div>'; return; }
@@ -12860,7 +12957,7 @@ function computeGlobalMetrics(trades, accounts){
 /*GL-END*/
 async function renderGlobalPage(){
   if(!currentUser)return;
-  if(_glTrades===null){ try{const{data}=await sb.from('trades').select('*').eq('user_id',currentUser.id);_glTrades=data||[];}catch(e){console.error('global fetch',e);_glTrades=[];} }
+  if(_glTrades===null){ try{_glTrades=await sbFetchAllUser('trades','date');}catch(e){console.error('global fetch',e);_glTrades=[];} }
   glRenderScopeToggle();
   glRenderCurrent();
 }
@@ -14449,6 +14546,15 @@ var I18N_EN = {
   'Miedo':'Fear',
   'Miedo a perder':'Fear of losing',
   'Mis cuentas':'My accounts',
+  'Tus datos':'Your data',
+  'Descarga todos tus datos de todas tus cuentas para analizarlos a tu manera (Excel, Google Sheets, Python…).':'Download all your data from all your accounts to analyse it your way (Excel, Google Sheets, Python…).',
+  'Operaciones (CSV)':'Trades (CSV)',
+  'Todo (JSON)':'Everything (JSON)',
+  'Preparando…':'Preparing…',
+  'Descarga lista':'Download ready',
+  'No se han podido descargar tus datos. Inténtalo de nuevo.':'We couldn\'t download your data. Please try again.',
+  'Esta cuenta':'This account',
+  'Cargando todas tus cuentas…':'Loading all your accounts…',
   'Mié':'Wed',
   'Miércoles':'Wednesday',
   'Motivación':'Motivation',
