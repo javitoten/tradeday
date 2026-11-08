@@ -10976,7 +10976,7 @@ async function renderRoutineInsights(){
     <div class="rt-imp-row"><span>${window.t('Días de trading')}</span><b>${s.days}</b></div>
     <div class="rt-imp-row"><span>${window.t('% de acierto')}</span><b>${wr(s.wr)}</b></div>
     <div class="rt-imp-row"><span>${window.t('Días en verde')}</span><b>${Math.round(s.greenPct)}%</b></div>
-    <div class="rt-imp-row"><span>${window.t('Resultado medio por día')}</span><b class="${s.avgPct>0?'pos':s.avgPct<0?'neg':''}">${(s.avgPct>=0?'+':'')+s.avgPct.toFixed(2)}%</b></div>
+    <div class="rt-imp-row"><span>${window.t('Resultado medio por día')}</span><b style="color:${s.avgPct>0?'var(--green)':s.avgPct<0?'var(--red)':'var(--text)'}">${(s.avgPct>=0?'+':'')+s.avgPct.toFixed(2)}%</b></div>
     <div class="rt-imp-row"><span>${window.t('Operaciones por día')}</span><b>${s.perDay.toFixed(1)}</b></div></div>`;
   let html=`<div class="rt-imp-grid">${col(r.good,'good',en?`Routine done (≥${RT_OK}%)`:`Rutina cumplida (≥${RT_OK}%)`)}${col(r.low,'low',en?`Routine not done (<${RT_OK}%)`:`Rutina sin cumplir (<${RT_OK}%)`)}</div>`;
   // Lectura
