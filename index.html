@@ -12992,7 +12992,8 @@ function paSetPeriod(p){
   document.querySelectorAll('#pa-period-toggle .mx-toggle').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
   renderPerfAnalysis();
 }
-function paPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';return(n>=0?'+':'')+Number(n).toFixed(dec===undefined?1:dec)+'%';}
+// 2 decimales por debajo de 1 % (las medias por operación suelen ser pequeñas) y sin «-0.0 %».
+function paPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';const d=dec===undefined?(Math.abs(n)<1?2:1):dec;let s=Number(n).toFixed(d);if(Number(s)===0)s=(0).toFixed(d);return(Number(s)>0?'+':'')+s+'%';}
 function paPlainPct(n){if(n===null||n===undefined||isNaN(n))return'—';return Math.round(n)+'%';}
 function paValClass(n){return n>0?'pos':n<0?'neg':'neutral';}
 /* Etiquetas de severidad. Se resuelven en el idioma activo cada vez que se pinta
