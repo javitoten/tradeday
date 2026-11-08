@@ -1268,7 +1268,25 @@ html.iab .btn-google,html.iab .auth-divider{display:none}
 .pa-card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .pa-badge{font-size:11px;font-weight:700;letter-spacing:.01em}
 .pa-badge-high{color:var(--red)}.pa-badge-watch{color:#F59E0B}.pa-badge-strength{color:var(--green)}
-.pa-card-title{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.01em;margin-bottom:6px}
+.pa-card-title{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.01em;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+/* 8-nov-2026: cuadrícula, iconos y cifras del periodo */
+.pa-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
+.pa-card{display:flex;flex-direction:column}
+.pa-card.pa-high{grid-column:1/-1;background:linear-gradient(135deg,color-mix(in srgb,var(--red) 7%,var(--bg3)),var(--bg3) 60%)}
+.pa-card .pa-observe{margin-top:auto;padding-top:11px}
+.pa-card .pa-card-text+.pa-observe,.pa-card .pa-compare+.pa-observe,.pa-card .pa-bars+.pa-observe,.pa-card .pa-prog+.pa-observe{margin-top:12px}
+.pa-ic{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;font-size:15px}
+.pa-ic-high{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
+.pa-ic-watch{background:rgba(245,158,11,.15);color:#F59E0B}
+.pa-ic-strength{background:color-mix(in srgb,var(--green) 15%,transparent);color:var(--green)}
+.pa-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
+.pa-k{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg,12px);padding:11px 13px}
+.pa-k-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.pa-k-v{font-size:19px;font-weight:800;color:var(--text);margin-top:3px;letter-spacing:-.02em}
+.pa-k-d{display:inline-block;font-size:11px;font-weight:700;margin-top:3px;color:var(--text3)}
+.pa-k-note{font-size:11px;color:var(--text3);margin-top:6px}
+.pa-k-v.pos,.pa-k-d.pos{color:var(--green)}.pa-k-v.neg,.pa-k-d.neg{color:var(--red)}
+@media(max-width:700px){.pa-kpis{grid-template-columns:repeat(2,1fr)}.pa-cards{grid-template-columns:1fr}}
 .pa-card-text{font-size:13px;color:var(--text2);line-height:1.6}
 .pa-observe{font-size:12.5px;color:var(--text2);line-height:1.6;margin-top:12px;padding-top:11px;border-top:1px solid var(--border)}
 .pa-observe-label{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-right:6px}
@@ -12768,6 +12786,86 @@ function paActiveAreas(trades, prevTrades, ctx, plan){
   }).filter(a=>a.cur>=PA_MIN.area||a.prev>=PA_MIN.area).sort((a,b)=>Math.max(b.cur,b.prev)-Math.max(a.cur,a.prev)).slice(0,3);
   return areas;
 }
+/* ── Detectores con datos estructurados (8-nov-2026): no dependen de que el usuario escriba notas.
+   Usan «¿Seguiste el plan?», chips de emoción, duración, día, dirección, estrategia y activo. ── */
+function paG(arr,ctx){const dec=arr.filter(t=>t.result==='win'||t.result==='loss');const v=dec.map(t=>ctx.amtPct(t));
+  return {n:arr.length,dec:dec.length,avg:paAvg(v),wr:paWR(dec),net:arr.reduce((s,t)=>s+ctx.amtPct(t),0)};}
+function paDetectPlanFollow(trades,ctx){
+  const yes=trades.filter(t=>t.followed_plan==='Sí, al 100%'), no=trades.filter(t=>t.followed_plan==='No'||t.followed_plan==='Parcialmente');
+  if(yes.length<5||no.length<5)return null;
+  const a=paG(yes,ctx),b=paG(no,ctx);if(a.avg===null||b.avg===null)return null;
+  const gap=a.avg-b.avg, share=Math.round(no.length/(yes.length+no.length)*100);
+  if(gap>=0.15){const severity=(gap>=0.4&&no.length>=8)?'high':'watch';
+    return {kind:'planFollow',severity,score:(severity==='high'?98:62)+Math.min(gap*30,30)+Math.min(no.length,20),yes:a,no:b,gap,share};}
+  if(share<=15&&yes.length>=10)return {kind:'planFollowStrength',severity:'strength',score:66+Math.min(yes.length/2,20),yes:a,share};
+  return null;
+}
+function paDetectEmotions(trades,ctx){
+  const NEG=['Impaciente','Frustrado','Con miedo','Eufórico'];
+  const calm=trades.filter(t=>(t.emotions||[]).includes('Tranquilo'));const c=paG(calm,ctx);
+  if(calm.length<5||c.avg===null)return null;
+  let worst=null;
+  NEG.forEach(e=>{const g=paG(trades.filter(t=>(t.emotions||[]).includes(e)),ctx);if(g.n<5||g.avg===null)return;const gap=c.avg-g.avg;if(gap>=0.2&&(!worst||gap>worst.gap))worst={emo:e,g,gap};});
+  if(!worst)return null;
+  const severity=(worst.gap>=0.5&&worst.g.n>=8)?'high':'watch';
+  return {kind:'emotion',severity,score:(severity==='high'?92:57)+Math.min(worst.gap*25,25)+Math.min(worst.g.n,15),emo:worst.emo,emoG:worst.g,calm:c,gap:worst.gap};
+}
+function paDetectOvertrade(trades,ctx){
+  const byDay={};trades.forEach(t=>{(byDay[t.date]=byDay[t.date]||[]).push(t);});
+  const early=[],late=[];
+  Object.values(byDay).forEach(d=>{d.sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))||String(a.id).localeCompare(String(b.id)));d.forEach((t,i)=>(i<2?early:late).push(t));});
+  if(late.length<6||early.length<6)return null;
+  const a=paG(early,ctx),b=paG(late,ctx);if(a.avg===null||b.avg===null)return null;
+  const gap=a.avg-b.avg;if(gap<0.15)return null;
+  const days=Object.values(byDay).filter(d=>d.length>=3).length;
+  const severity=(gap>=0.4&&late.length>=10)?'high':'watch';
+  return {kind:'overtrade',severity,score:(severity==='high'?94:58)+Math.min(gap*30,30)+Math.min(late.length,15),early:a,late:b,gap,days};
+}
+function paDetectHoldLosers(trades){
+  const d=(t)=>{const v=Number(t.duration_minutes);return isNaN(v)||v<=0?null:v;};
+  const w=trades.filter(t=>t.result==='win').map(d).filter(v=>v!==null), l=trades.filter(t=>t.result==='loss').map(d).filter(v=>v!==null);
+  if(w.length<5||l.length<5)return null;
+  const aw=paAvg(w),al=paAvg(l);if(!aw||!al)return null;
+  if(al>=aw*1.5)return {kind:'holdLosers',severity:'watch',score:52+Math.min((al/aw)*6,20),aw,al};
+  if(aw>=al*1.5&&w.length>=8)return {kind:'letWinnersRun',severity:'strength',score:58+Math.min((aw/al)*4,15),aw,al};
+  return null;
+}
+function paDetectPayoff(trades,ctx){
+  const wins=trades.filter(t=>t.result==='win').map(t=>ctx.amtPct(t)).filter(v=>v>0), losses=trades.filter(t=>t.result==='loss').map(t=>Math.abs(ctx.amtPct(t))).filter(v=>v>0);
+  if(wins.length<4||losses.length<4)return null;
+  const aw=paAvg(wins),al=paAvg(losses),wr=wins.length/(wins.length+losses.length)*100;
+  const exp=(wr/100)*aw-(1-wr/100)*al, ratio=aw/al, beWR=100/(1+ratio);
+  if(exp<0)return {kind:'payoff',severity:(exp<-0.15?'high':'watch'),score:(exp<-0.15?96:60)+Math.min(Math.abs(exp)*40,25),aw,al,wr,ratio,exp,beWR};
+  if(exp>0&&wins.length+losses.length>=12)return {kind:'edge',severity:'strength',score:64+Math.min(exp*40,25),aw,al,wr,ratio,exp,beWR};
+  return null;
+}
+function paBestWorst(groups,minN,minGap){
+  const g=groups.filter(x=>x.g.n>=minN&&x.g.avg!==null);if(g.length<2)return null;
+  const best=g.reduce((a,b)=>b.g.avg>a.g.avg?b:a),worst=g.reduce((a,b)=>b.g.avg<a.g.avg?b:a);
+  if(best===worst||best.g.avg-worst.g.avg<minGap)return null;return {rows:g,best,worst,gap:best.g.avg-worst.g.avg};
+}
+function paDetectWeekday(trades,ctx){
+  const groups=[1,2,3,4,5,6,0].map(d=>({key:d,g:paG(trades.filter(t=>new Date(t.date+'T12:00:00').getDay()===d),ctx)}));
+  const r=paBestWorst(groups,4,0.3);if(!r||r.worst.g.avg>=0)return null;
+  return Object.assign({kind:'weekday',severity:'watch',score:48+Math.min(r.gap*20,20)},r);
+}
+function paDetectDirection(trades,ctx){
+  const r=paBestWorst(['Buy','Sell'].map(k=>({key:k,g:paG(trades.filter(t=>t.direction===k),ctx)})),6,0.25);
+  if(!r)return null;return Object.assign({kind:'direction',severity:'watch',score:47+Math.min(r.gap*20,20)},r);
+}
+function paDetectStrategy(trades,ctx){
+  const names=[...new Set(trades.map(t=>(t.strategy||'').trim()).filter(Boolean))];
+  const r=paBestWorst(names.map(k=>({key:k,g:paG(trades.filter(t=>(t.strategy||'').trim()===k),ctx)})),5,0.3);
+  if(!r)return null;return Object.assign({kind:'strategy',severity:r.worst.g.avg<0?'watch':'strength',score:(r.worst.g.avg<0?59:56)+Math.min(r.gap*20,20)},r);
+}
+function paDetectAsset(trades,ctx){
+  const total=paG(trades,ctx);if(total.avg===null)return null;
+  const names=[...new Set(trades.map(t=>t.pair).filter(Boolean))];
+  const r=paBestWorst(names.map(k=>({key:k,g:paG(trades.filter(t=>t.pair===k),ctx)})),5,0.3);
+  if(!r||r.worst.g.avg>=0||r.worst.g.net>=0)return null;
+  return Object.assign({kind:'asset',severity:'watch',score:50+Math.min(r.gap*20,20)+Math.min(r.worst.g.n,10)},r);
+}
+function paKpis(arr,ctx){const g=paG(arr,ctx);return {n:g.n,wr:g.wr,avg:g.avg,net:g.net};}
 function computePerfAnalysis(periodKey, ctx){
   const range=paRange(periodKey, ctx.now);
   const allT=[...ctx.trades].filter(t=>t.date).sort(paByDateId);
@@ -12776,7 +12874,8 @@ function computePerfAnalysis(periodKey, ctx){
   const journals=(ctx.journals||[]).filter(j=>!range.days||paIn(j.date,range.start,range.end));
   const decided=trades.filter(t=>t.result==='win'||t.result==='loss');
   const journaledCount=journals.length+trades.filter(t=>(t.notes||'').trim()||(t.technical_tags||[]).length).length;
-  const base={period:periodKey, totalTrades:trades.length, decidedTrades:decided.length, journaledCount, hasJournalData:journaledCount>0};
+  const base={period:periodKey, totalTrades:trades.length, decidedTrades:decided.length, journaledCount, hasJournalData:journaledCount>0,
+    kpi:paKpis(trades,ctx), kpiPrev:(range.days&&prevTrades.length)?paKpis(prevTrades,ctx):null};
   if(trades.length<PA_MIN.trades){
     return Object.assign(base,{level:'building', need:PA_MIN.trades, remaining:Math.max(0,PA_MIN.trades-trades.length)});
   }
@@ -12787,16 +12886,20 @@ function computePerfAnalysis(periodKey, ctx){
   paDetectResultExec(trades,ctx).forEach(c=>cands.push(c));
   const stk=paDetectStreak(trades); if(stk)cands.push(stk);
   paDetectStrengths(trades,ctx).forEach(c=>cands.push(c));
+  [paDetectPlanFollow,paDetectEmotions,paDetectOvertrade,paDetectPayoff,paDetectWeekday,paDetectDirection,paDetectStrategy,paDetectAsset]
+    .forEach(fn=>{try{const c=fn(trades,ctx);if(c)cands.push(c);}catch(e){}});
+  try{const c=paDetectHoldLosers(trades);if(c)cands.push(c);}catch(e){}
   const sorted=[...cands].sort((a,b)=>b.score-a.score);
   const highs=sorted.filter(c=>c.severity==='high');
   const strengths=sorted.filter(c=>c.severity==='strength');
   const high=highs.length?highs[0]:null;
   const demoted=highs.slice(1).map(c=>Object.assign({},c,{severity:'watch'}));
-  const watches=[...sorted.filter(c=>c.severity==='watch'), ...demoted].sort((a,b)=>b.score-a.score).slice(0,2);
+  const watches=[...sorted.filter(c=>c.severity==='watch'), ...demoted].sort((a,b)=>b.score-a.score).slice(0,3);
   const strength=strengths.length?strengths[0]:null;
+  const strength2=strengths.length>1?strengths[1]:null;
   const activeAreas=paActiveAreas(trades,prevTrades,ctx,ctx.plan||{});
-  const findingsCount=(high?1:0)+watches.length+(strength?1:0);
-  return Object.assign(base,{level:'ok', high, watches, strength, activeAreas, findingsCount, range:{days:range.days}});
+  const findingsCount=(high?1:0)+watches.length+(strength?1:0)+(strength2?1:0);
+  return Object.assign(base,{level:'ok', high, watches, strength, strength2, activeAreas, findingsCount, range:{days:range.days}});
 }
 /*PA-END*/
 
@@ -12984,7 +13087,124 @@ function paFindingContent(f){
       obs:EN?'Keeping risk constant is one of the hardest things to sustain; this is worth holding on to.'
             :'Mantener el riesgo constante es de lo más difícil de sostener; conviene conservar este comportamiento.',viz:''};
   }
+  // ── Nuevos hallazgos (8-nov-2026) ──
+  const cmp=(l1,v1,l2,v2)=>`<div class="pa-compare"><div class="pa-compare-item"><div class="pa-compare-label">${l1}</div><div class="pa-compare-val ${paValClass(v1)}">${paPct(v1)}</div></div><div class="pa-compare-arrow">vs</div><div class="pa-compare-item"><div class="pa-compare-label">${l2}</div><div class="pa-compare-val ${paValClass(v2)}">${paPct(v2)}</div></div></div>`;
+  const bars=(rows,lbl)=>{const max=Math.max(...rows.map(r=>Math.abs(r.g.avg||0)),0.01);return `<div class="pa-bars">${rows.map(r=>`<div class="pa-bar-row"><span class="pa-bar-name">${esc(lbl(r.key))}</span><div class="pa-bar-track"><div class="pa-bar-fill ${paValClass(r.g.avg)}" style="width:${Math.round(Math.abs(r.g.avg)/max*100)}%"></div></div><span class="pa-bar-val ${paValClass(r.g.avg)}">${paPct(r.g.avg)}</span><span class="pa-bar-n">${r.g.n} ${EN?'tr.':'op.'}</span></div>`).join('')}</div>`;};
+  const wrTxt=v=>v===null?'—':v+'%';
+  const DAYN=EN?['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']:['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const mins=m=>m>=90?(m/60).toFixed(1).replace('.',EN?'.':',')+' h':Math.round(m)+' min';
+  if(f.kind==='planFollow'){
+    return {title:EN?'What skipping your plan costs you':'Lo que te cuesta saltarte el plan',
+      expl:EN?`When you follow your plan 100% your average trade is ${paPct(f.yes.avg)} (win rate ${wrTxt(f.yes.wr)}). When you follow it partially or not at all it drops to ${paPct(f.no.avg)} (win rate ${wrTxt(f.no.wr)}). That happens in ${f.share}% of your trades.`
+        :`Cuando sigues tu plan al 100 % tu operación media es ${paPct(f.yes.avg)} (acierto ${wrTxt(f.yes.wr)}). Cuando lo sigues a medias o no lo sigues baja a ${paPct(f.no.avg)} (acierto ${wrTxt(f.no.wr)}). Te pasa en el ${f.share} % de tus operaciones.`,
+      obs:EN?'The data is clear: your edge lives inside your plan. Before each entry, a quick «does this fit my plan?» could save you more than any new setup.'
+        :'Tus datos lo dicen claro: tu ventaja está dentro de tu plan. Antes de cada entrada, un «¿esto encaja en mi plan?» puede ahorrarte más que cualquier setup nuevo.',
+      viz:cmp(EN?'Plan 100%':'Plan al 100 %',f.yes.avg,EN?'Partial / no plan':'A medias / sin plan',f.no.avg)};
+  }
+  if(f.kind==='planFollowStrength'){
+    return {title:EN?'You stick to your plan':'Te mantienes fiel a tu plan',
+      expl:EN?`Only ${f.share}% of your trades in this period were taken outside your plan. Average result when you follow it: ${paPct(f.yes.avg)}.`
+        :`Solo el ${f.share} % de tus operaciones de este periodo se salieron de tu plan. Resultado medio cuando lo sigues: ${paPct(f.yes.avg)}.`,
+      obs:EN?'Discipline like this is what makes your statistics trustworthy. Keep it up.':'Esta disciplina es lo que hace que tus estadísticas sean fiables. Sigue así.',viz:''};
+  }
+  if(f.kind==='emotion'){
+    const em=esc(window.t(f.emo));
+    return {title:EN?`When you trade «${em}»`:`Cuando operas «${em}»`,
+      expl:EN?`On the ${f.emoG.n} trades you marked as «${em}» your average is ${paPct(f.emoG.avg)} (win rate ${wrTxt(f.emoG.wr)}), versus ${paPct(f.calm.avg)} when you trade calm (win rate ${wrTxt(f.calm.wr)}).`
+        :`En las ${f.emoG.n} operaciones que marcaste como «${em}» tu media es ${paPct(f.emoG.avg)} (acierto ${wrTxt(f.emoG.wr)}), frente a ${paPct(f.calm.avg)} cuando operas tranquilo (acierto ${wrTxt(f.calm.wr)}).`,
+      obs:EN?'Noticing that state before entering is already half the job. A pause or a smaller size on those days could protect your results.'
+        :'Darte cuenta de ese estado antes de entrar ya es la mitad del trabajo. Una pausa o un tamaño menor esos días podría proteger tus resultados.',
+      viz:cmp(EN?'Calm':'Tranquilo',f.calm.avg,em,f.emoG.avg)};
+  }
+  if(f.kind==='overtrade'){
+    return {title:EN?'Your later trades of the day':'Tus últimas operaciones del día',
+      expl:EN?`Your first two trades of each day average ${paPct(f.early.avg)}, but from the third one onwards it drops to ${paPct(f.late.avg)} (${f.late.n} trades over ${f.days} days).`
+        :`Tus dos primeras operaciones de cada día tienen una media de ${paPct(f.early.avg)}, pero a partir de la tercera baja a ${paPct(f.late.avg)} (${f.late.n} operaciones en ${f.days} días).`,
+      obs:EN?'Setting a maximum number of trades per day in your plan (for example, 2) could keep the good part of your day and cut off the part that drains it.'
+        :'Poner en tu plan un máximo de operaciones al día (por ejemplo, 2) podría quedarse con la parte buena de tu día y cortar la que lo desgasta.',
+      viz:cmp(EN?'Trades 1–2':'Operaciones 1–2',f.early.avg,EN?'Trade 3 onwards':'De la 3.ª en adelante',f.late.avg)};
+  }
+  if(f.kind==='holdLosers'){
+    return {title:EN?'You hold losers longer':'Aguantas más las perdedoras',
+      expl:EN?`Your losing trades last ${mins(f.al)} on average, versus ${mins(f.aw)} for your winners.`
+        :`Tus operaciones perdedoras duran de media ${mins(f.al)}, frente a ${mins(f.aw)} las ganadoras.`,
+      obs:EN?'It\'s common to give losers "a bit more room" and cut winners early. Checking whether your stop is where your plan says can change this.'
+        :'Es habitual dar «un poco más de margen» a las perdedoras y cortar pronto las ganadoras. Revisar si tu stop está donde dice tu plan puede cambiar esto.',
+      viz:`<div class="pa-compare"><div class="pa-compare-item"><div class="pa-compare-label">${EN?'Winners':'Ganadoras'}</div><div class="pa-compare-val pos">${mins(f.aw)}</div></div><div class="pa-compare-arrow">vs</div><div class="pa-compare-item"><div class="pa-compare-label">${EN?'Losers':'Perdedoras'}</div><div class="pa-compare-val neg">${mins(f.al)}</div></div></div>`};
+  }
+  if(f.kind==='letWinnersRun'){
+    return {title:EN?'You let your winners run':'Dejas correr las ganadoras',
+      expl:EN?`Your winners last ${mins(f.aw)} on average and your losers ${mins(f.al)}: you cut losses quickly and give room to what works.`
+        :`Tus ganadoras duran de media ${mins(f.aw)} y tus perdedoras ${mins(f.al)}: cortas rápido lo que sale mal y das espacio a lo que funciona.`,
+      obs:EN?'This is one of the hardest habits to build. Worth protecting.':'Es de los hábitos más difíciles de construir. Merece la pena protegerlo.',viz:''};
+  }
+  if(f.kind==='payoff'){
+    const lowWR=f.ratio>=1;
+    return {title:lowWR?(EN?'Your win rate is below what you need':'Tu acierto no llega al mínimo que necesitas'):(EN?'Your losses are bigger than your wins':'Tus pérdidas pesan más que tus ganancias'),
+      expl:EN?`When you win you make ${paPct(f.aw)} on average and when you lose you give back ${paPct(-f.al)} (ratio ${f.ratio.toFixed(2)}). With that ratio you'd need a win rate above ${Math.round(f.beWR)}% to break even, and yours is ${Math.round(f.wr)}%.`
+        :`Cuando ganas sacas de media ${paPct(f.aw)} y cuando pierdes devuelves ${paPct(-f.al)} (ratio ${f.ratio.toFixed(2).replace('.',',')}). Con ese ratio necesitarías acertar más del ${Math.round(f.beWR)} % para no perder, y tu acierto es del ${Math.round(f.wr)} %.`,
+      obs:lowWR?(EN?'Your ratio is fine; the problem is how many trades go wrong. Filtering entries (fewer, but only your clearest setups) is usually the fastest fix.'
+          :'Tu ratio está bien; el problema es cuántas operaciones salen mal. Filtrar las entradas (menos, pero solo tus setups más claros) suele ser lo que antes lo arregla.')
+        :(EN?'There are two levers: losing less when you\'re wrong (respecting the stop) or letting winners reach their target. Pulling either one changes the whole picture.'
+          :'Hay dos palancas: perder menos cuando te equivocas (respetar el stop) o dejar que las ganadoras lleguen al objetivo. Mover cualquiera de las dos cambia todo el resultado.'),
+      viz:paProgressBar(Math.round(f.wr),(EN?`Your win rate (you need ${Math.round(f.beWR)}%)`:`Tu acierto (necesitas ${Math.round(f.beWR)} %)`))};
+  }
+  if(f.kind==='edge'){
+    return {title:EN?'Your numbers have an edge':'Tus números tienen ventaja',
+      expl:EN?`With a ${Math.round(f.wr)}% win rate and a win/loss ratio of ${f.ratio.toFixed(2)}, each trade is worth ${paPct(f.exp)} on average. You only need ${Math.round(f.beWR)}% to break even.`
+        :`Con un ${Math.round(f.wr)} % de acierto y un ratio ganancia/pérdida de ${f.ratio.toFixed(2).replace('.',',')}, cada operación vale de media ${paPct(f.exp)}. Solo necesitas acertar un ${Math.round(f.beWR)} % para no perder.`,
+      obs:EN?'Your job now is to keep executing the same way and not change what works after a bad week.':'Tu trabajo ahora es seguir ejecutando igual y no cambiar lo que funciona después de una mala semana.',
+      viz:paProgressBar(Math.round(f.wr),(EN?`Your win rate (break-even ${Math.round(f.beWR)}%)`:`Tu acierto (mínimo ${Math.round(f.beWR)} %)`))};
+  }
+  if(f.kind==='weekday'){
+    return {title:EN?'Your hardest day of the week':'Tu día más difícil de la semana',
+      expl:EN?`${DAYN[f.worst.key]}s are your weakest day (${paPct(f.worst.g.avg)} per trade, ${f.worst.g.n} trades), while ${DAYN[f.best.key]}s are your best (${paPct(f.best.g.avg)}).`
+        :`Los ${DAYN[f.worst.key].toLowerCase()} son tu día más flojo (${paPct(f.worst.g.avg)} por operación, ${f.worst.g.n} op.), mientras que los ${DAYN[f.best.key].toLowerCase()} son el mejor (${paPct(f.best.g.avg)}).`,
+      obs:EN?'Could be the market on that day, or how you arrive to it. Reviewing those days\' trades in the Journal may tell you which one.'
+        :'Puede ser el mercado de ese día o cómo llegas tú a él. Revisar las operaciones de esos días en el Journal puede decirte cuál de las dos.',
+      viz:bars(f.rows,k=>DAYN[k])};
+  }
+  if(f.kind==='direction'){
+    const nm=k=>k==='Buy'?(EN?'Buys':'Compras'):(EN?'Sells':'Ventas');
+    return {title:EN?'Buys vs sells':'Compras frente a ventas',
+      expl:EN?`Your ${nm(f.best.key).toLowerCase()} average ${paPct(f.best.g.avg)} per trade, but your ${nm(f.worst.key).toLowerCase()} ${paPct(f.worst.g.avg)}.`
+        :`Tus ${nm(f.best.key).toLowerCase()} tienen una media de ${paPct(f.best.g.avg)} por operación, pero tus ${nm(f.worst.key).toLowerCase()} ${paPct(f.worst.g.avg)}.`,
+      obs:EN?'It may be a bias towards one direction, or that your setup works better with the trend. Worth checking against the context of those trades.'
+        :'Puede ser un sesgo hacia una dirección o que tu setup funcione mejor a favor de tendencia. Merece la pena revisarlo con el contexto de esas operaciones.',
+      viz:bars(f.rows,nm)};
+  }
+  if(f.kind==='strategy'){
+    return {title:EN?'Your strategies don\'t perform the same':'Tus estrategias no rinden igual',
+      expl:EN?`«${esc(f.best.key)}» is your best strategy (${paPct(f.best.g.avg)} per trade, ${f.best.g.n} trades) and «${esc(f.worst.key)}» the weakest (${paPct(f.worst.g.avg)}).`
+        :`«${esc(f.best.key)}» es tu mejor estrategia (${paPct(f.best.g.avg)} por operación, ${f.best.g.n} op.) y «${esc(f.worst.key)}» la más floja (${paPct(f.worst.g.avg)}).`,
+      obs:EN?'Focusing on what works and reviewing (or pausing) what doesn\'t is one of the fastest ways to improve.'
+        :'Centrarte en lo que funciona y revisar (o pausar) lo que no es de las formas más rápidas de mejorar.',
+      viz:bars(f.rows,k=>k)};
+  }
+  if(f.kind==='asset'){
+    return {title:EN?`${esc(f.worst.key)} is costing you`:`${esc(f.worst.key)} te está restando`,
+      expl:EN?`On ${esc(f.worst.key)} you have ${f.worst.g.n} trades with an average of ${paPct(f.worst.g.avg)} each (${paPct(f.worst.g.net)} in total). Your best asset is ${esc(f.best.key)} (${paPct(f.best.g.avg)}).`
+        :`En ${esc(f.worst.key)} llevas ${f.worst.g.n} operaciones con una media de ${paPct(f.worst.g.avg)} cada una (${paPct(f.worst.g.net)} en total). Tu mejor activo es ${esc(f.best.key)} (${paPct(f.best.g.avg)}).`,
+      obs:EN?'Not every asset suits your strategy. Trying fewer, better-known assets often improves results.'
+        :'No todos los activos encajan con tu estrategia. Operar menos activos y conocerlos mejor suele mejorar los resultados.',
+      viz:bars(f.rows.sort((a,b)=>b.g.avg-a.g.avg).slice(0,5),k=>k)};
+  }
   return {title:EN?'Pattern detected':'Patrón detectado',expl:'',obs:'',viz:''};
+}
+const PA_ICON={afterLoss:'ti-arrow-back-up',sessions:'ti-clock-hour-4',plan:'ti-checklist',planStrength:'ti-checklist',winBadExec:'ti-alert-triangle',lossGoodExec:'ti-shield-check',lossStreak:'ti-trending-down',riskStable:'ti-scale',
+  planFollow:'ti-route',planFollowStrength:'ti-route',emotion:'ti-mood-nervous',overtrade:'ti-stack-2',holdLosers:'ti-hourglass',letWinnersRun:'ti-hourglass-high',payoff:'ti-scale-outline',edge:'ti-target-arrow',weekday:'ti-calendar-week',direction:'ti-arrows-up-down',strategy:'ti-chess-knight',asset:'ti-coin'};
+// Cabecera con los números del periodo y la comparación con el periodo anterior
+function paKpiStripHTML(r){
+  const k=r.kpi,p=r.kpiPrev;if(!k)return'';const EN=lang==='en';
+  const d=(cur,prev,fmt,good)=>{if(prev===null||prev===undefined||cur===null||cur===undefined)return'';const diff=cur-prev;if(Math.abs(diff)<1e-9)return `<span class="pa-k-d">=</span>`;const up=diff>0;const ok=good==='up'?up:!up;return `<span class="pa-k-d ${ok?'pos':'neg'}">${up?'▲':'▼'} ${fmt(Math.abs(diff))}</span>`;};
+  const pp=v=>v.toFixed(2).replace('.',EN?'.':',')+'%';
+  const item=(lbl,val,cls,delta)=>`<div class="pa-k"><div class="pa-k-l">${lbl}</div><div class="pa-k-v ${cls||''}">${val}</div>${delta||''}</div>`;
+  return `<div class="pa-kpis">
+    ${item(EN?'Trades':'Operaciones',k.n,'',p?d(k.n,p.n,v=>Math.round(v),'up'):'')}
+    ${item(EN?'Win rate':'Acierto',k.wr===null?'—':k.wr+'%','',p?d(k.wr,p.wr,v=>Math.round(v)+' pts','up'):'')}
+    ${item(EN?'Avg per trade':'Media por op.',k.avg===null?'—':paPct(k.avg),paValClass(k.avg),p?d(k.avg,p.avg,pp,'up'):'')}
+    ${item(EN?'Total result':'Resultado total',paPct(k.net),paValClass(k.net),p?d(k.net,p.net,pp,'up'):'')}
+  </div>${p?`<div class="pa-k-note">${EN?'Arrows compare with the previous period of the same length.':'Las flechas comparan con el periodo anterior de la misma duración.'}</div>`:''}`;
 }
 function paProgressBar(pct,label){
   const cls=pct>=75?'pos':pct>=50?'neutral':'neg';
@@ -12995,7 +13215,7 @@ function paFindingCardHTML(f){
   const c=paFindingContent(f);
   return `<div class="pa-card pa-${sev.cls}">
     <div class="pa-card-head"><span class="pa-badge pa-badge-${sev.cls}">${sev.badge}</span></div>
-    <div class="pa-card-title">${c.title}</div>
+    <div class="pa-card-title"><span class="pa-ic pa-ic-${sev.cls}"><i class="ti ${PA_ICON[f.kind]||'ti-bulb'}"></i></span>${c.title}</div>
     <div class="pa-card-text">${c.expl}</div>
     ${c.viz||''}
     <div class="pa-observe"><span class="pa-observe-label">${sev.obs}</span> ${c.obs}</div>
@@ -13040,7 +13260,7 @@ function renderPerfAnalysis(){
   catch(e){ console.error('perf analysis error',e); body.innerHTML='<div class="pa-empty">'+window.t('No se pudo calcular el análisis en este momento.')+'</div>'; return; }
   // Estado inicial / datos insuficientes
   if(r.level==='building'){
-    body.innerHTML=`<div class="pa-building">
+    body.innerHTML=(r.totalTrades?paKpiStripHTML(r):'')+`<div class="pa-building">
       <div class="pa-building-icon">🌱</div>
       <div class="pa-building-title">${window.t('Aún estamos conociendo tu forma de operar')}</div>
       <div class="pa-building-text">${window.t('Registra más operaciones y completa tus journals para que TradeDay pueda empezar a detectar patrones, fortalezas y áreas de mejora fiables.')}</div>
@@ -13060,8 +13280,9 @@ function renderPerfAnalysis(){
   if(r.high)cards.push({sev:'high',html:paFindingCardHTML(r.high)});
   (r.watches||[]).forEach(w=>cards.push({sev:'watch',html:paFindingCardHTML(w)}));
   if(r.strength)cards.push({sev:'strength',html:paFindingCardHTML(r.strength)});
+  if(r.strength2)cards.push({sev:'strength',html:paFindingCardHTML(r.strength2)});
 
-  let html=summary;
+  let html=paKpiStripHTML(r)+summary;
   if(!cards.length&&!(r.activeAreas||[]).length){
     html+=`<div class="pa-empty">${window.t('Con los datos de este periodo no aparece ningún patrón lo bastante claro como para destacarlo sin arriesgar una conclusión falsa. Sigue registrando y volveremos a mirarlo.')}</div>`;
     body.innerHTML=html; return;
