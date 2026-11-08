@@ -2003,6 +2003,38 @@ html.td-scroll-lock,html.td-scroll-lock body,html.td-scroll-lock .main-content,h
 .rt-imp-insight{margin-top:12px;font-size:13px;line-height:1.6;color:var(--text2);background:var(--bg3);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}
 .rt-imp-note{margin-top:8px;font-size:11px;color:var(--text3);line-height:1.5}
 @media(max-width:600px){.rt-imp-grid{grid-template-columns:1fr}}
+/* Rutina ideal vs. real: navegación, anillo, mapa hábito × día (8-nov-2026) */
+.rtw-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.rtw-nav-lbl{display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.rtw-nav-lbl b{font-size:14px;color:var(--text)}.rtw-nav-lbl span{font-size:11.5px;color:var(--text3)}
+.rtw-hero{display:flex;align-items:center;gap:16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg,12px);padding:14px 16px;margin-bottom:14px}
+.rtw-ring{--p:0;--c:var(--accent);width:72px;height:72px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--bg4,#22262e) 0)}
+.rtw-ring span{width:56px;height:56px;border-radius:50%;background:var(--bg3);display:grid;place-items:center;font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.02em}
+.rtw-hero-t{font-size:14px;font-weight:700;color:var(--text)}
+.rtw-hero-s{font-size:12px;color:var(--text3);margin-top:3px}
+.rtw-delta{display:inline-block;margin-top:7px;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--bg4,#22262e);color:var(--text2)}
+.rtw-delta.up{color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.rtw-delta.down{color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.rtw-wrap{overflow-x:auto;margin-bottom:14px}
+.rtw-grid{display:grid;grid-template-columns:minmax(120px,1fr) repeat(7,34px) 46px;gap:6px;align-items:center;min-width:430px}
+.rtw-h{font-size:10.5px;font-weight:700;color:var(--text3);text-align:center;text-transform:uppercase}
+.rtw-h.is-today{color:var(--accent)}
+.rtw-name{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text2);min-width:0}
+.rtw-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtw-c{height:30px;border-radius:7px;display:grid;place-items:center;font-size:14px;transition:transform .12s}
+.rtw-c:hover{transform:scale(1.08)}
+.rtw-c.done{background:color-mix(in srgb,var(--green) 22%,transparent);border:1px solid color-mix(in srgb,var(--green) 45%,transparent);color:var(--green)}
+.rtw-c.miss{background:var(--bg3);border:1px dashed color-mix(in srgb,var(--red) 40%,var(--border))}
+.rtw-c.fut{background:transparent;border:1px dashed var(--border);opacity:.45}
+.rtw-c.is-today{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent)}
+.rtw-pct{font-size:12px;font-weight:800;text-align:right}
+.rtw-f{font-size:11px;font-weight:700;text-align:center;color:var(--text3);padding-top:4px;border-top:1px solid var(--border)}
+.rtw-f:first-child{text-align:left}
+.rtw-tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.rtw-tip{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg,12px);padding:12px 14px}
+.rtw-tip-h{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.rtw-tip-t{font-size:13px;color:var(--text2);line-height:1.5}.rtw-tip-t b{color:var(--text)}
+@media(max-width:600px){.rtw-grid{grid-template-columns:minmax(96px,1fr) repeat(7,28px) 40px;gap:4px;min-width:340px}.rtw-c{height:26px}.rtw-ring{width:62px;height:62px}.rtw-ring span{width:48px;height:48px;font-size:15px}}
 .rt-week-bars{display:flex;align-items:flex-end;gap:8px;height:80px;padding-top:10px}
 .rt-week-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
 .rt-week-bar{width:100%;max-width:28px;border-radius:4px 4px 2px 2px;background:var(--accent);transition:height .4s;min-height:3px}
@@ -10509,13 +10541,13 @@ const RT_ACTIVITY_PRESETS={
   'Preparación de mercado':'📊','Trading':'📈','Journal':'📝','Gimnasio':'🏋️',
   'Lectura':'📚','Estudio':'🎓','Trabajo':'💼','Descanso':'😌','Tiempo personal':'👨‍👩‍👧',
 };
-let routineWeeklyOpen=false;
+let routineWeeklyOpen=true; // abierta por defecto (8-nov-2026)
 
 async function loadRoutine(){
   if(!currentUser)return;
   const{data}=await sb.from('routines').select('*').eq('user_id',currentUser.id).maybeSingle();
   currentRoutine=data||null;
-  _rtTodayMap=null;_rtLogs90=null; // al entrar en Mi rutina se leen de nuevo (otro dispositivo pudo marcar)
+  _rtTodayMap=null;_rtLogs90=null;rtWeekOff=0; // al entrar en Mi rutina se leen de nuevo (otro dispositivo pudo marcar)
   if(currentRoutine&&currentRoutine.blocks&&currentRoutine.blocks.length){
     routineBlocks=currentRoutine.blocks;
     showRoutineScreen('active');
@@ -10880,6 +10912,9 @@ async function renderRoutineActive(){
   const completedMap=await loadRoutineLogToday();
   renderRoutineChecklist(completedMap);
   renderRoutineInsights();
+  const wb=document.getElementById('rt-weekly-body'),wc=document.getElementById('rt-weekly-chev');
+  if(wb)wb.style.display=routineWeeklyOpen?'flex':'none';
+  if(wc)wc.style.transform=routineWeeklyOpen?'rotate(180deg)':'none';
 
   // Vista de solo lectura de la rutina diseñada
   const readonlyEl=document.getElementById('routine-readonly-list');
@@ -11025,72 +11060,74 @@ function toggleRoutineWeekly(){
   if(routineWeeklyOpen)renderRoutineWeekly();
 }
 
+/* Rediseño (8-nov-2026): navegación por semanas, comparación con la semana anterior y mapa hábito × día. */
+let rtWeekOff=0;
+function rtWeekNav(d){rtWeekOff=Math.min(0,rtWeekOff+d);renderRoutineWeekly();}
 async function renderRoutineWeekly(){
   if(!currentUser||!routineBlocks.length)return;
-  const{monday}=getWeekRange(0);
-  const days=[];
-  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);days.push(dateToKey(d));}
-
-  const{data}=await sb.from('routine_logs').select('*').eq('user_id',currentUser.id).in('date',days);
-  const logsByDate={};
-  (data||[]).forEach(l=>{logsByDate[l.date]=l.completed||{};});
-
-  const DAY_LABELS=['L','M','X','J','V','S','D'];
-  // Solo cuentan los días ya transcurridos (antes el lunes la semana salía al ~14 % como mucho).
-  const tdk=todayKey();
-  let totalDone=0,totalPossible=0;
-  const dayPercents=days.map((dateKey,i)=>{
-    if(dateKey>tdk)return null;
-    const completedMap=logsByDate[dateKey]||{};
-    const done=rtDoneCount(completedMap);
-    const possible=routineBlocks.length;
-    totalDone+=done;totalPossible+=possible;
-    return possible?Math.round(done/possible*100):0;
-  });
-  const elapsed=dayPercents.filter(p=>p!==null).length;
-  const weekPct=totalPossible?Math.round(totalDone/totalPossible*100):0;
-
-  // Mejor / peor hábito de la semana (basado en cuántos días se marcó cada bloque)
-  const blockCompletionCount={};
-  routineBlocks.forEach(b=>blockCompletionCount[b.id]=0);
-  days.forEach(dateKey=>{
-    const completedMap=logsByDate[dateKey]||{};
-    routineBlocks.forEach(b=>{if(completedMap[b.id])blockCompletionCount[b.id]++;});
-  });
-  const sortedBlocks=[...routineBlocks].sort((a,b)=>blockCompletionCount[b.id]-blockCompletionCount[a.id]);
-  const bestBlock=sortedBlocks[0];
-  const worstBlock=sortedBlocks[sortedBlocks.length-1];
-
-  const el=document.getElementById('rt-weekly-content');
-  el.innerHTML=`
-    <div class="we-hero">
-      <div class="we-hero-label">Rutina ideal cumplida esta semana</div>
-      <div class="we-hero-emotion" style="color:${weekPct>=70?'var(--green)':weekPct>=40?'var(--amber)':'var(--red)'}">${weekPct}%</div>
-      <div class="we-hero-text">${lang==='en'
-        ?`Of the ${routineBlocks.length} habits you designed, you completed ${weekPct}% of the possible times in the ${elapsed} day${elapsed===1?'':'s'} so far this week.`
-        :`De los ${routineBlocks.length} hábitos que diseñaste, has completado un ${weekPct}% de las veces posibles en ${elapsed===1?'el día':`los ${elapsed} días`} que llevamos de semana.`}</div>
-    </div>
-    <div class="we-section">
-      <div class="we-section-title"><i class="ti ti-calendar-stats" style="color:var(--blue)"></i>Cumplimiento día a día</div>
-      <div class="rt-week-bars">
-        ${dayPercents.map((p,i)=>p===null
-          ?`<div class="rt-week-col" style="opacity:.35"><div class="rt-week-val">—</div><div class="rt-week-bar" style="height:3%;background:var(--bg3)"></div><div class="rt-week-lbl">${DAY_LABELS[i]}</div></div>`
-          :`<div class="rt-week-col"><div class="rt-week-val">${p}%</div><div class="rt-week-bar" style="height:${Math.max(p,3)}%;background:${p>=70?'var(--green)':p>=40?'var(--amber)':'var(--red)'}"></div><div class="rt-week-lbl">${DAY_LABELS[i]}</div></div>`).join('')}
+  const el=document.getElementById('rt-weekly-content');if(!el)return;
+  const en=lang==='en', M=gM();
+  const mkDays=off=>{const{monday}=getWeekRange(off);const a=[];for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);a.push(dateToKey(d));}return a;};
+  const days=mkDays(rtWeekOff), prev=mkDays(rtWeekOff-1);
+  const{data,error}=await sb.from('routine_logs').select('date,completed').eq('user_id',currentUser.id).gte('date',prev[0]).lte('date',days[6]);
+  if(error){el.innerHTML=`<div class="rt-imp-empty">${window.t('No se ha podido cargar tu semana.')}</div>`;return;}
+  const L={};(data||[]).forEach(l=>{L[l.date]=l.completed||{};});
+  const tdk=todayKey(), nB=routineBlocks.length;
+  const stats=ds=>{let done=0,poss=0,n=0;ds.forEach(k=>{if(k>tdk)return;n++;done+=rtDoneCount(L[k]);poss+=nB;});return{pct:poss?Math.round(done/poss*100):null,elapsed:n};};
+  const cur=stats(days), pw=stats(prev);
+  const hasPrev=prev.some(k=>L[k]&&rtDoneCount(L[k])>0);
+  const delta=(cur.pct!==null&&pw.pct!==null&&hasPrev)?cur.pct-pw.pct:null;
+  const col=p=>p>=70?'var(--green)':p>=40?'var(--amber)':'var(--red)';
+  const DL=en?['M','T','W','T','F','S','S']:['L','M','X','J','V','S','D'];
+  const DN=en?['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']:['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+  const d0=new Date(days[0]+'T12:00:00'),d6=new Date(days[6]+'T12:00:00');
+  const sm=m=>M[m].slice(0,3).toLowerCase();
+  const range=d0.getMonth()===d6.getMonth()?`${d0.getDate()}–${d6.getDate()} ${sm(d6.getMonth())}`:`${d0.getDate()} ${sm(d0.getMonth())} – ${d6.getDate()} ${sm(d6.getMonth())}`;
+  const wkLabel=rtWeekOff===0?window.t('Esta semana'):rtWeekOff===-1?window.t('Semana pasada'):range;
+  // Por hábito y por día
+  const rows=routineBlocks.map(b=>{let c=0;days.forEach(k=>{if(k<=tdk&&L[k]&&L[k][b.id])c++;});return{b,c,pct:cur.elapsed?Math.round(c/cur.elapsed*100):0};});
+  const dayPct=days.map(k=>k>tdk?null:Math.round(rtDoneCount(L[k])/nB*100));
+  const anyDone=rows.some(r=>r.c>0);
+  const sorted=[...rows].sort((a,b)=>b.c-a.c);
+  const best=anyDone?sorted[0]:null, worst=anyDone&&sorted.length>1&&sorted[sorted.length-1].c<sorted[0].c?sorted[sorted.length-1]:null;
+  let bestDay=-1;dayPct.forEach((p,i)=>{if(p!==null&&p>0&&(bestDay<0||p>dayPct[bestDay]))bestDay=i;});
+  // Cabecera
+  const nav=`<div class="rtw-nav">
+      <button class="icon-btn" onclick="rtWeekNav(-1)" title="${window.t('Semana anterior')}"><i class="ti ti-chevron-left"></i></button>
+      <div class="rtw-nav-lbl"><b>${wkLabel}</b><span>${range}</span></div>
+      <button class="icon-btn" onclick="rtWeekNav(1)" ${rtWeekOff>=0?'disabled style="opacity:.3;pointer-events:none"':''} title="${window.t('Semana siguiente')}"><i class="ti ti-chevron-right"></i></button>
+    </div>`;
+  if(cur.pct===null){el.innerHTML=nav+`<div class="rt-imp-empty">${window.t('Esta semana todavía no ha empezado.')}</div>`;return;}
+  const deltaHTML=delta===null?'':`<span class="rtw-delta ${delta>0?'up':delta<0?'down':''}">${delta>0?'▲ +':delta<0?'▼ ':'= '}${delta!==0?Math.abs(delta)+(en?' pts':' pts'):''} ${en?'vs previous week':'vs semana anterior'}</span>`;
+  const hero=`<div class="rtw-hero">
+      <div class="rtw-ring" style="--p:${cur.pct};--c:${col(cur.pct)}"><span>${cur.pct}%</span></div>
+      <div class="rtw-hero-txt">
+        <div class="rtw-hero-t">${window.t('Rutina ideal cumplida')}</div>
+        <div class="rtw-hero-s">${en
+          ?`${cur.elapsed} day${cur.elapsed===1?'':'s'} · ${nB} habits · ${rows.reduce((s,r)=>s+r.c,0)} of ${cur.elapsed*nB} done`
+          :`${cur.elapsed===1?'1 día':cur.elapsed+' días'} · ${nB} hábitos · ${rows.reduce((s,r)=>s+r.c,0)} de ${cur.elapsed*nB} hechos`}</div>
+        ${deltaHTML}
       </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div class="we-section">
-        <div class="we-section-title"><i class="ti ti-star" style="color:var(--green)"></i>Mejor hábito</div>
-        <div class="we-section-text">${bestBlock?(lang==='en'?`"${bestBlock.icon} ${esc(bestBlock.name)}" — done ${blockCompletionCount[bestBlock.id]} of ${elapsed} days.`:`"${bestBlock.icon} ${esc(bestBlock.name)}" — cumplido ${blockCompletionCount[bestBlock.id]} de ${elapsed} días.`):'Sin datos suficientes aún.'}</div>
-      </div>
-      <div class="we-section">
-        <div class="we-section-title"><i class="ti ti-bulb" style="color:var(--amber)"></i>Hábito a mejorar</div>
-        <div class="we-section-text">${worstBlock&&worstBlock.id!==bestBlock?.id?(lang==='en'?`"${worstBlock.icon} ${esc(worstBlock.name)}" — done only ${blockCompletionCount[worstBlock.id]} of ${elapsed} days.`:`"${worstBlock.icon} ${esc(worstBlock.name)}" — cumplido solo ${blockCompletionCount[worstBlock.id]} de ${elapsed} días.`):'Buen trabajo, sin puntos débiles claros esta semana.'}</div>
-      </div>
-    </div>
-  `;
+    </div>`;
+  // Mapa hábito × día
+  const head=`<div class="rtw-h"></div>${DL.map((d,i)=>`<div class="rtw-h ${days[i]===tdk?'is-today':''}">${d}</div>`).join('')}<div class="rtw-h">%</div>`;
+  const body=rows.map(r=>`<div class="rtw-name" title="${esc(r.b.name)}"><span>${r.b.icon}</span><span class="rtw-nm" data-no-i18n>${esc(r.b.name)}</span></div>`+
+    days.map((k,i)=>{const fut=k>tdk,done=!fut&&L[k]&&L[k][r.b.id];
+      const tip=`${DN[i]} · ${done?(en?'done':'hecho'):fut?(en?'upcoming':'pendiente'):(en?'not done':'no hecho')}`;
+      return `<div class="rtw-c ${fut?'fut':done?'done':'miss'} ${k===tdk?'is-today':''}" data-tip="${esc(tip)}">${done?'<i class="ti ti-check"></i>':''}</div>`;}).join('')+
+    `<div class="rtw-pct" style="color:${col(r.pct)}">${r.pct}%</div>`).join('');
+  const foot=`<div class="rtw-f">${window.t('Día')}</div>${dayPct.map(p=>`<div class="rtw-f" style="color:${p===null?'var(--text3)':col(p)}">${p===null?'·':p}</div>`).join('')}<div class="rtw-f"></div>`;
+  const grid=`<div class="rtw-wrap"><div class="rtw-grid">${head}${body}${foot}</div></div>`;
+  // Lecturas
+  const card=(icon,color,title,txt)=>`<div class="rtw-tip"><div class="rtw-tip-h"><i class="ti ${icon}" style="color:${color}"></i>${title}</div><div class="rtw-tip-t">${txt}</div></div>`;
+  const tips=anyDone?`<div class="rtw-tips">
+      ${best?card('ti-star','var(--green)',window.t('Mejor hábito'),`${best.b.icon} <b data-no-i18n>${esc(best.b.name)}</b> · ${best.c}/${cur.elapsed}`):''}
+      ${worst?card('ti-bulb','var(--amber)',window.t('Hábito a mejorar'),`${worst.b.icon} <b data-no-i18n>${esc(worst.b.name)}</b> · ${worst.c}/${cur.elapsed}`):card('ti-bulb','var(--amber)',window.t('Hábito a mejorar'),window.t('Ninguno destaca: vas parejo en todos.'))}
+      ${bestDay>=0?card('ti-calendar-star','var(--blue)',window.t('Mejor día'),`${en?DN[bestDay]:DN[bestDay].charAt(0).toUpperCase()+DN[bestDay].slice(1)} · ${dayPct[bestDay]}%`):''}
+    </div>`:`<div class="rt-imp-empty">${window.t('Aún no has marcado ningún hábito esta semana. Márcalos en «Hoy» a medida que los hagas.')}</div>`;
+  el.innerHTML=nav+hero+grid+tips;
+  if(typeof mxInitTips==='function')try{mxInitTips();}catch(_){}
 }
-
 // Usado por el Disciplina Score: cumplimiento medio de rutina en la semana (0-100, o null si no hay rutina)
 async function getRoutineComplianceForWeek(offset){
   if(!currentUser||!routineBlocks.length)return null;
@@ -14731,6 +14768,19 @@ var I18N_EN = {
   'Mis cuentas':'My accounts',
   'Tus datos':'Your data',
   'Ahora':'Now',
+  'No se ha podido cargar tu semana.':'We couldn\'t load your week.',
+  'Esta semana':'This week',
+  'Semana pasada':'Last week',
+  'Semana anterior':'Previous week',
+  'Semana siguiente':'Next week',
+  'Esta semana todavía no ha empezado.':'This week hasn\'t started yet.',
+  'Rutina ideal cumplida':'Ideal routine completed',
+  'Día':'Day',
+  'Mejor hábito':'Best habit',
+  'Hábito a mejorar':'Habit to improve',
+  'Mejor día':'Best day',
+  'Ninguno destaca: vas parejo en todos.':'None stands out: you\'re even across all of them.',
+  'Aún no has marcado ningún hábito esta semana. Márcalos en «Hoy» a medida que los hagas.':'You haven\'t marked any habit this week yet. Tick them in «Today» as you do them.',
   'Tu rutina y tus resultados — TradeDay Premium':'Your routine and your results — TradeDay Premium',
   'Descubre si cumplir tu rutina mejora tu trading: compara tu % de acierto, tus días en verde y tu resultado medio los días que la haces y los que no, y qué hábito es el que más se nota en tus resultados.':'Find out whether following your routine improves your trading: compare your win rate, green days and average result on days you do it and days you don\'t, and which habit makes the biggest difference.',
   'Tu rutina y tus resultados':'Your routine and your results',
