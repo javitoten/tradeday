@@ -10942,10 +10942,31 @@ function rtComputeInsights(logs,trades,blocks,tKey){
   });
   return {streak,good,low,block,daysBoth:both.length,logged:Object.keys(pctBy).length};
 }
+function rtRenderStreak(n){
+  const st=document.getElementById('rt-streak');if(!st)return;
+  const en=lang==='en';
+  if(n>=2){st.style.display='';st.textContent=en?`🔥 ${n}-day streak`:`🔥 Racha de ${n} días`;st.setAttribute('data-tip',en?`Days in a row with at least ${RT_OK}% of your routine done (weekends don't break it).`:`Días seguidos con al menos el ${RT_OK}% de tu rutina hecha (el fin de semana no la rompe).`);}
+  else st.style.display='none';
+}
 async function renderRoutineInsights(){
   const body=document.getElementById('rt-impact-body');
   if(!body||!currentUser||!routineBlocks.length)return;
   const tKey=todayKey();
+  // Premium (decisión de Javier, 8-nov-2026). La racha sigue siendo gratis: se calcula aparte solo con los logs.
+  const premium=(typeof isPremiumUser==='function')?isPremiumUser():true;
+  if(!premium){
+    body.innerHTML=`<div class="pa-locked">
+      <div class="pa-locked-icon">👑</div>
+      <div class="pa-locked-title">${window.t('Tu rutina y tus resultados — TradeDay Premium')}</div>
+      <div class="pa-locked-desc">${window.t('Descubre si cumplir tu rutina mejora tu trading: compara tu % de acierto, tus días en verde y tu resultado medio los días que la haces y los que no, y qué hábito es el que más se nota en tus resultados.')}</div>
+      <button class="btn btn-primary btn-sm" onclick="showUpgradePrompt('Tu rutina y tus resultados')"><i class="ti ti-crown"></i>${window.t('Mejorar a Premium')}</button>
+    </div>`;
+    try{
+      if(!_rtLogs90){const from=new Date();from.setDate(from.getDate()-90);const{data}=await sb.from('routine_logs').select('date,completed').eq('user_id',currentUser.id).gte('date',dateToKey(from));_rtLogs90=data||[];}
+      rtRenderStreak(rtComputeInsights(_rtLogs90,[],routineBlocks,tKey).streak);
+    }catch(_){}
+    return;
+  }
   try{
     if(!_rtLogs90){
       const from=new Date();from.setDate(from.getDate()-90);
@@ -10959,9 +10980,7 @@ async function renderRoutineInsights(){
   const trades=(_glTrades||[]).filter(t=>t.date&&t.date>=fromKey&&t.date<=tKey);
   const r=rtComputeInsights(_rtLogs90,trades,routineBlocks,tKey);
   const en=lang==='en';
-  // Racha
-  const st=document.getElementById('rt-streak');
-  if(st){if(r.streak>=2){st.style.display='';st.textContent=en?`🔥 ${r.streak}-day streak`:`🔥 Racha de ${r.streak} días`;st.setAttribute('data-tip',en?`Days in a row with at least ${RT_OK}% of your routine done (weekends don't break it).`:`Días seguidos con al menos el ${RT_OK}% de tu rutina hecha (el fin de semana no la rompe).`);}else st.style.display='none';}
+  rtRenderStreak(r.streak);
   // Comparativa
   const MIN=3;
   if(r.good.days<MIN||r.low.days<MIN){
@@ -14712,6 +14731,8 @@ var I18N_EN = {
   'Mis cuentas':'My accounts',
   'Tus datos':'Your data',
   'Ahora':'Now',
+  'Tu rutina y tus resultados — TradeDay Premium':'Your routine and your results — TradeDay Premium',
+  'Descubre si cumplir tu rutina mejora tu trading: compara tu % de acierto, tus días en verde y tu resultado medio los días que la haces y los que no, y qué hábito es el que más se nota en tus resultados.':'Find out whether following your routine improves your trading: compare your win rate, green days and average result on days you do it and days you don\'t, and which habit makes the biggest difference.',
   'Tu rutina y tus resultados':'Your routine and your results',
   'Últimos 90 días · todas tus cuentas':'Last 90 days · all your accounts',
   'No se ha podido cargar el análisis de tu rutina.':'We couldn\'t load your routine analysis.',
