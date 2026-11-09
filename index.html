@@ -4559,7 +4559,7 @@ function initLandingFX(){
 
       <!-- CONFIG -->
       <div id="view-config" style="display:none;flex-direction:column;gap:20px">
-        <div><div class="section-title" style="font-size:17px">Configuración</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Build 2026-07-15</div></div>
+        <div><div class="section-title" style="font-size:17px">Configuración</div></div>
         <div class="card">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:14px">Perfil</div>
           <div class="form-group"><label class="form-label">Nombre de usuario</label><input class="form-input" id="cfg-username" placeholder="Tu nombre" maxlength="40"></div>
@@ -10925,7 +10925,7 @@ function renderRoutineChecklist(completedMap){
 async function renderRoutineActive(){
   const M=gM();
   const today=new Date();
-  setText('rt-today-date',lang==='en'?`${M[today.getMonth()]} ${today.getDate()}`:`${today.getDate()} de ${M[today.getMonth()]}`);
+  setText('rt-today-date',lang==='en'?`${M[today.getMonth()]} ${today.getDate()}`:`${today.getDate()} de ${M[today.getMonth()].toLowerCase()}`);
 
   const completedMap=await loadRoutineLogToday();
   renderRoutineChecklist(completedMap);
@@ -10995,6 +10995,7 @@ function rtComputeInsights(logs,trades,blocks,tKey){
   });
   return {streak,good,low,block,daysBoth:both.length,logged:Object.keys(pctBy).length};
 }
+function rtNum(v,d){const x=Number(v).toFixed(d);return lang==='en'?x:x.replace('.',',');}
 function rtRenderStreak(n){
   const st=document.getElementById('rt-streak');if(!st)return;
   const en=lang==='en';
@@ -11048,8 +11049,8 @@ async function renderRoutineInsights(){
     <div class="rt-imp-row"><span>${window.t('Días de trading')}</span><b>${s.days}</b></div>
     <div class="rt-imp-row"><span>${window.t('% de acierto')}</span><b>${wr(s.wr)}</b></div>
     <div class="rt-imp-row"><span>${window.t('Días en verde')}</span><b>${Math.round(s.greenPct)}%</b></div>
-    <div class="rt-imp-row"><span>${window.t('Resultado medio por día')}</span><b style="color:${s.avgPct>0?'var(--green)':s.avgPct<0?'var(--red)':'var(--text)'}">${(s.avgPct>=0?'+':'')+s.avgPct.toFixed(2)}%</b></div>
-    <div class="rt-imp-row"><span>${window.t('Operaciones por día')}</span><b>${s.perDay.toFixed(1)}</b></div></div>`;
+    <div class="rt-imp-row"><span>${window.t('Resultado medio por día')}</span><b style="color:${s.avgPct>0?'var(--green)':s.avgPct<0?'var(--red)':'var(--text)'}">${(s.avgPct>=0?'+':'')+rtNum(s.avgPct,2)}%</b></div>
+    <div class="rt-imp-row"><span>${window.t('Operaciones por día')}</span><b>${rtNum(s.perDay,1)}</b></div></div>`;
   let html=`<div class="rt-imp-grid">${col(r.good,'good',en?`Routine done (≥${RT_OK}%)`:`Rutina cumplida (≥${RT_OK}%)`)}${col(r.low,'low',en?`Routine not done (<${RT_OK}%)`:`Rutina sin cumplir (<${RT_OK}%)`)}</div>`;
   // Lectura
   const dWr=(r.good.wr!==null&&r.low.wr!==null)?r.good.wr-r.low.wr:null, dPct=r.good.avgPct-r.low.avgPct;
@@ -11057,7 +11058,7 @@ async function renderRoutineInsights(){
   if(dWr!==null&&dWr>=5&&dPct>0)txt=en?`On days you follow your routine you hit <b>${Math.round(dWr)} points more</b> of your trades and finish the day better on average. Your routine seems to be working for you.`:`Los días que cumples tu rutina aciertas <b>${Math.round(dWr)} puntos más</b> y terminas el día mejor de media. Tu rutina parece estar funcionándote.`;
   else if(dWr!==null&&dWr<=-5&&dPct<0)txt=en?`For now, days you follow your routine don't show better results. It may be worth reviewing which habits really help you before the session.`:`De momento, los días que cumples la rutina no salen mejores resultados. Puede valer la pena revisar qué hábitos te ayudan de verdad antes de la sesión.`;
   else txt=en?`No clear difference yet between days with and without routine. Keep marking it: the more days, the more reliable the comparison.`:`Aún no hay una diferencia clara entre los días con y sin rutina. Sigue marcándola: cuantos más días, más fiable será la comparación.`;
-  if(r.good.perDay&&r.low.perDay&&r.low.perDay>=r.good.perDay*1.4)txt+=en?` On days without routine you also trade <b>more</b> (${r.low.perDay.toFixed(1)} vs ${r.good.perDay.toFixed(1)} per day).`:` Además, los días sin rutina operas <b>más</b> (${r.low.perDay.toFixed(1)} frente a ${r.good.perDay.toFixed(1)} al día).`;
+  if(r.good.perDay&&r.low.perDay&&r.low.perDay>=r.good.perDay*1.4)txt+=en?` On days without routine you also trade <b>more</b> (${rtNum(r.low.perDay,1)} vs ${rtNum(r.good.perDay,1)} per day).`:` Además, los días sin rutina operas <b>más</b> (${rtNum(r.low.perDay,1)} frente a ${rtNum(r.good.perDay,1)} al día).`;
   html+=`<div class="rt-imp-insight">${txt}</div>`;
   if(r.block){
     const b=r.block, nm=`${b.b.icon} ${esc(b.b.name)}`;
@@ -12993,7 +12994,7 @@ function paSetPeriod(p){
   renderPerfAnalysis();
 }
 // 2 decimales por debajo de 1 % (las medias por operación suelen ser pequeñas) y sin «-0.0 %».
-function paPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';const d=dec===undefined?(Math.abs(n)<1?2:1):dec;let s=Number(n).toFixed(d);if(Number(s)===0)s=(0).toFixed(d);return(Number(s)>0?'+':'')+s+'%';}
+function paPct(n,dec){if(n===null||n===undefined||isNaN(n))return'—';const d=dec===undefined?(Math.abs(n)<1?2:1):dec;let s=Number(n).toFixed(d);if(Number(s)===0)s=(0).toFixed(d);return(Number(s)>0?'+':'')+(lang==='en'?s:s.replace('.',','))+'%';}
 function paPlainPct(n){if(n===null||n===undefined||isNaN(n))return'—';return Math.round(n)+'%';}
 function paValClass(n){return n>0?'pos':n<0?'neg':'neutral';}
 /* Etiquetas de severidad. Se resuelven en el idioma activo cada vez que se pinta
@@ -14989,6 +14990,7 @@ var I18N_EN = {
   'Miedo a perder':'Fear of losing',
   'Mis cuentas':'My accounts',
   'Tus datos':'Your data',
+  'Trades':'Trades',
   'Ahora':'Now',
   'No se ha podido cargar tu semana.':'We couldn\'t load your week.',
   'Esta semana':'This week',
