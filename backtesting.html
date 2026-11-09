@@ -102,12 +102,18 @@
   function displayTime(bucket, tfMin) { return tfMin >= 1440 ? bucket + nyCloseOffset(bucket) : bucket; }
 
   /* ── Serie M1 columnar ── */
-  function makeSeries(n) {
-    return { t: new Float64Array(n), o: new Float64Array(n), h: new Float64Array(n), l: new Float64Array(n), c: new Float64Array(n), length: n };
+  /* v (opcional) = volumen de cada vela M1 (Dukascopy). NaN = sin dato de volumen; 0 = minuto sin operaciones. */
+  function makeSeries(n, withV) {
+    const s = { t: new Float64Array(n), o: new Float64Array(n), h: new Float64Array(n), l: new Float64Array(n), c: new Float64Array(n), length: n };
+    if (withV) { s.v = new Float64Array(n); s.v.fill(NaN); }
+    return s;
   }
+  const VOL_SCALE = 100; // el volumen se guarda como entero ×100
+  // Suma de volúmenes ignorando los minutos sin dato (NaN); si no hay ningún dato, queda NaN
+  const vAdd = (a, x) => x !== x ? a : (a !== a ? x : a + x);
   function sliceSeries(s, n) {
-    const r = makeSeries(n);
-    ['t', 'o', 'h', 'l', 'c'].forEach(k => r[k].set(s[k].subarray(0, n)));
+    const r = makeSeries(n, !!s.v);
+    ['t', 'o', 'h', 'l', 'c'].concat(s.v ? ['v'] : []).forEach(k => r[k].set(s[k].subarray(0, n)));
     return r;
   }
 
@@ -170,8 +176,9 @@
   /* Une dos series M1 (la segunda debe empezar después de la primera) */
   function concatSeries(a, b) {
     let start = 0; while (start < b.length && a.length && b.t[start] <= a.t[a.length - 1]) start++;
-    const n = a.length + b.length - start, r = makeSeries(n);
+    const n = a.length + b.length - start, r = makeSeries(n, !!(a.v || b.v));
     ['t', 'o', 'h', 'l', 'c'].forEach(k => { r[k].set(a[k], 0); r[k].set(b[k].subarray(start), a.length); });
+    if (r.v) { if (a.v) r.v.set(a.v, 0); if (b.v) r.v.set(b.v.subarray(start), a.length); } // sin volumen → NaN
     return r;
   }
   /* Codificación compacta para la red: enteros (precio × 10^digits) y minutos desde t0.
@@ -179,6 +186,13 @@
    *   t = minutos desde la vela anterior · o = apertura − cierre anterior (la 1.ª respecto a b)
    *   h = máximo − apertura · l = apertura − mínimo · c = cierre − apertura.
    * decodeSeries entiende v1 (absoluto, formato antiguo) y v2. */
+  /* Escala del volumen: potencia de 10 para que el volumen típico quede en ~100 unidades enteras (precisión ~1 %,
+   * de sobra para el VWAP y las barras) → ocupa mucho menos que guardar decimales. */
+  function volScale(v) {
+    const a = []; for (let i = 0; i < v.length; i += Math.max(1, v.length >> 9)) if (v[i] > 0) a.push(v[i]);
+    if (!a.length) return 1; a.sort((x, y) => x - y);
+    return Math.pow(10, Math.round(Math.log10(100 / a[a.length >> 1])));
+  }
   function encodeSeries(s, digits, v) {
     const f = Math.pow(10, digits), t0 = s.length ? s.t[0] : 0, R = x => Math.round(x * f);
     if (v === 1) {
@@ -193,6 +207,8 @@
       enc.t[i] = Math.round((s.t[i] - pt) / 60); pt = s.t[i];
       enc.o[i] = o - pc; enc.h[i] = R(s.h[i]) - o; enc.l[i] = o - R(s.l[i]); enc.c[i] = c - o; pc = c;
     }
+    // Volumen (opcional): enteros = volumen × ws; -1 = minuto sin dato de volumen (NaN)
+    if (s.v && n) { const ws = volScale(s.v); enc.ws = ws; enc.w = new Array(n); for (let i = 0; i < n; i++) { const x = s.v[i]; enc.w[i] = x === x ? Math.round(x * ws) : -1; } }
     return enc;
   }
   function decodeSeries(enc) {
@@ -203,6 +219,7 @@
         t += enc.t[i] * 60; const o = pc + enc.o[i], c = o + enc.c[i];
         s.t[i] = t; s.o[i] = o / f; s.h[i] = (o + enc.h[i]) / f; s.l[i] = (o - enc.l[i]) / f; s.c[i] = c / f; pc = c;
       }
+      if (enc.w && enc.w.length === n) { const ws = enc.ws || 1; s.v = new Float64Array(n); for (let i = 0; i < n; i++) s.v[i] = enc.w[i] < 0 ? NaN : enc.w[i] / ws; }
       return s;
     }
     for (let i = 0; i < n; i++) { s.t[i] = enc.t0 + enc.t[i] * 60; s.o[i] = enc.o[i] / f; s.h[i] = enc.h[i] / f; s.l[i] = enc.l[i] / f; s.c[i] = enc.c[i] / f; }
@@ -271,8 +288,8 @@
       const s = this.s, tf = this.tf, out = []; let cur = null;
       for (let i = 0; i <= this.cursor; i++) {
         const b = bucketStart(s.t[i], tf);
-        if (!cur || cur._b !== b) { cur = { _b: b, time: displayTime(b, tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; if (s.v) cur.v = s.v[i] || 0; out.push(cur); }
-        else { if (s.h[i] > cur.high) cur.high = s.h[i]; if (s.l[i] < cur.low) cur.low = s.l[i]; cur.close = s.c[i]; if (s.v) cur.v += s.v[i] || 0; }
+        if (!cur || cur._b !== b) { cur = { _b: b, time: displayTime(b, tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; if (s.v) cur.v = s.v[i]; out.push(cur); }
+        else { if (s.h[i] > cur.high) cur.high = s.h[i]; if (s.l[i] < cur.low) cur.low = s.l[i]; cur.close = s.c[i]; if (s.v) cur.v = vAdd(cur.v, s.v[i]); }
       }
       this.bars = out.length > this.maxBars ? out.slice(out.length - this.maxBars) : out;
     }
@@ -283,10 +300,10 @@
       const i = ++this.cursor, s = this.s, b = bucketStart(s.t[i], this.tf);
       let last = this.bars[this.bars.length - 1], isNew = false;
       if (!last || last._b !== b) {
-        last = { _b: b, time: displayTime(b, this.tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; if (s.v) last.v = s.v[i] || 0; this.bars.push(last); isNew = true;
+        last = { _b: b, time: displayTime(b, this.tf), open: s.o[i], high: s.h[i], low: s.l[i], close: s.c[i] }; if (s.v) last.v = s.v[i]; this.bars.push(last); isNew = true;
         if (this.bars.length > this.maxBars + this.trimStep) { this.bars.splice(0, this.trimStep); this.trimmed += this.trimStep; }
       }
-      else { if (s.h[i] > last.high) last.high = s.h[i]; if (s.l[i] < last.low) last.low = s.l[i]; last.close = s.c[i]; if (s.v) last.v += s.v[i] || 0; }
+      else { if (s.h[i] > last.high) last.high = s.h[i]; if (s.l[i] < last.low) last.low = s.l[i]; last.close = s.c[i]; if (s.v) last.v = vAdd(last.v, s.v[i]); }
       return { m1: this.m1(i), bar: last, isNew };
     }
     /* Avanza hasta completar la vela visible actual (la siguiente M1 abriría una vela nueva). */
@@ -299,7 +316,7 @@
     }
     /* ¿La vela visible actual está completa? (la siguiente M1 abre otra) */
     lastBarComplete() { return this.atEnd() || bucketStart(this.s.t[this.cursor + 1], this.tf) !== this.bars[this.bars.length - 1]._b; }
-    m1(i) { const s = this.s; return { t: s.t[i], o: s.o[i], h: s.h[i], l: s.l[i], c: s.c[i] }; }
+    m1(i) { const s = this.s, r = { t: s.t[i], o: s.o[i], h: s.h[i], l: s.l[i], c: s.c[i] }; if (s.v) r.v = s.v[i]; return r; }
     bid() { return this.s.c[this.cursor]; }
     ask() { return round(this.bid() + this.sym.spread, this.sym.digits + 1); }
     /* Hora de mercado "ahora": cierre de la vela M1 del cursor */
@@ -507,7 +524,7 @@
     };
   }
 
-  const BT = { SYMBOLS, TF, TF_LABEL, DAY_OFFSET, marketOpen, sessionOf, bucketStart, displayTime, round,
+  const BT = { SYMBOLS, TF, TF_LABEL, DAY_OFFSET, marketOpen, sessionOf, bucketStart, displayTime, round, makeSeries, sliceSeries, vAdd, VOL_SCALE,
     generateSynthetic, concatSeries, encodeSeries, decodeSeries, parseHistDataCSV, histdataDstShift, usDST, euDST, madridHour, Replay, Account, computeStats, toTradeDayTrade, BE_R };
   if (typeof module !== 'undefined' && module.exports) module.exports = BT; else root.BT = BT;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -603,6 +620,21 @@
     close: b => b.close, open: b => b.open, high: b => b.high, low: b => b.low,
   };
   const VWAP_LINES = ['v', 'u1', 'l1', 'u2', 'l2', 'u3', 'l3'];
+  // Peso de una vela: su volumen real (Dukascopy) o 1 si la vela no trae dato de volumen
+  const hasVol = b => b.v != null && b.v === b.v;
+  const volW = b => hasVol(b) ? Math.max(0, +b.v) : 1;
+  /* Volumen (como el «Volume» de TradingView): barras del volumen de cada vela, verdes si cierra por encima
+   * de la apertura y rojas si no, + media móvil del volumen (ma = 0 → sin media). */
+  function volume(bars, params) {
+    const p = Object.assign({ ma: 20 }, params || {}), n = bars.length, per = Math.max(0, Math.round(+p.ma || 0));
+    const hist = new Array(n), up = new Array(n), ma = new Array(n).fill(null);
+    let s = 0, cnt = 0;
+    for (let i = 0; i < n; i++) {
+      const b = bars[i], v = hasVol(b) ? +b.v : null; hist[i] = v; up[i] = b.close >= b.open;
+      if (per) { s += v || 0; cnt += v == null ? 0 : 1; if (i >= per) { const q = hist[i - per]; s -= q || 0; cnt -= q == null ? 0 : 1; } if (i >= per - 1 && cnt === per) ma[i] = s / per; }
+    }
+    return { hist, up, ma };
+  }
   // st = sumas acumuladas por vela (k, w, sp, sq) → reanudar sin recorrer el periodo entero
   function vwapFill(bars, params, out, from, st) {
     const p = vwapParams(params), key = vwapKeyFn(p.reset), src = VWAP_SRC[p.src] || VWAP_SRC.hlc3, n = bars.length;
@@ -612,9 +644,9 @@
     else from = 0;
     for (let i = from; i < n; i++) {
       const b = bars[i], k = key(b.time); if (k !== ck) { ck = k; sw = 0; sp = 0; sq = 0; }
-      const x = src(b), w = b.v > 0 ? +b.v : 1; sw += w; sp += x * w; sq += x * x * w;
+      const x = src(b), w = volW(b); sw += w; sp += x * w; sq += x * x * w;
       if (st) { st.k[i] = k; st.w[i] = sw; st.sp[i] = sp; st.sq[i] = sq; }
-      const m = sp / sw, sd = Math.sqrt(Math.max(0, sq / sw - m * m));
+      const m = sw > 0 ? sp / sw : x, sd = sw > 0 ? Math.sqrt(Math.max(0, sq / sw - m * m)) : 0;
       out.v[i] = m; out.pk[i] = k;
       for (let j = 0; j < 3; j++) { const d = bands[j] ? (pct ? m * bands[j] / 100 : sd * bands[j]) : null;
         out['u' + (j + 1)][i] = d == null ? null : m + d; out['l' + (j + 1)][i] = d == null ? null : m - d; }
@@ -636,6 +668,7 @@
     rsi: { name: 'RSI', short: 'RSI', overlay: false, params: { period: 14 }, color: '#E879F9' },
     macd: { name: 'MACD', short: 'MACD', overlay: false, params: { fast: 12, slow: 26, signal: 9 }, color: '#38BDF8' },
     atr: { name: 'ATR (rango medio)', short: 'ATR', overlay: false, params: { period: 14 }, color: '#FBBF24' },
+    volume: { name: 'Volumen', short: 'Vol', overlay: true, note: 'Volumen de cada vela (datos de Dukascopy) con su media móvil. Se dibuja abajo del gráfico de precio.', params: { ma: 20 }, color: '#F59E0B' },
     vwap: { name: 'VWAP', short: 'VWAP', overlay: true, note: 'Precio medio ponderado por volumen desde el inicio del periodo (sesión, semana, mes…), con hasta 3 bandas. Doble clic en su nombre del gráfico para editarlo.', params: Object.assign({}, VWAP_DEF), color: '#2962FF', colors: { b1: '#4CAF50', b2: '#808000', b3: '#00897B' } },
   };
 
@@ -649,6 +682,7 @@
       case 'rsi': return { lines: { v: rsi(c, +p.period) } };
       case 'macd': { const r = macd(c, +p.fast, +p.slow, +p.signal); return { lines: { line: r.line, signal: r.signal }, hist: r.hist }; }
       case 'atr': return { lines: { v: atr(bars, +p.period) } };
+      case 'volume': { const r = volume(bars, params); return { lines: { ma: r.ma }, hist: r.hist, up: r.up }; }
       case 'vwap': { const r = vwap(bars, params); const lines = {}; VWAP_LINES.forEach(k => { lines[k] = r[k]; }); return { lines, pk: r.pk, _vst: r._st }; }
       default: return { lines: {} };
     }
@@ -707,7 +741,7 @@
     prev._n = n; return prev;
   }
 
-  const API = { sma, ema, bollinger, rsi, macd, atr, vwap, vwapParams, VWAP_LINES, compute, update, CATALOG };
+  const API = { sma, ema, bollinger, rsi, macd, atr, vwap, volume, vwapParams, VWAP_LINES, compute, update, CATALOG };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.BTInd = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -3967,6 +4001,13 @@ function rebuildIndicators() {
       const C = vwapColors(ind); o.vw = true; o.keys = BTInd.VWAP_LINES;
       o.series = o.keys.map(k => { const x = line(k === 'v' ? C.v : C['b' + k[1]], 0, k === 'v' ? 2 : 1); x.applyOptions({ lastValueVisible: k === 'v' }); return x; });
     }
+    else if (ind.type === 'volume') { // abajo del panel de precio, con su propia escala (como TradingView)
+      o.vol = true; o.keys = ['ma'];
+      o.hist = chart.addSeries(LW.HistogramSeries, { priceScaleId: 'vol', priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false }, 0);
+      const ma = chart.addSeries(LW.LineSeries, { priceScaleId: 'vol', color: ind.color, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0);
+      try { o.hist.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 }, visible: false }); } catch (_) {}
+      o.series = [ma, o.hist];
+    }
     else if (ind.type === 'macd') { o.keys = ['line', 'signal']; o.series = [line(ind.color, pi), line('#F59E0B', pi)]; o.hist = chart.addSeries(LW.HistogramSeries, { priceLineVisible: false, lastValueVisible: false }, pi); o.series.push(o.hist); }
     else { o.keys = ['v']; o.series = [line(ind.color, pi, meta.overlay ? 1.5 : 1.5)]; }
     if (ind.type === 'rsi') { o.series[0].createPriceLine({ price: 70, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); o.series[0].createPriceLine({ price: 30, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); }
@@ -3996,7 +4037,7 @@ function updateIndicators(full) {
       else for (let i = i0; i < n; i++) o.series[j].update(arr[i] == null ? { time: bars[i].time } : { time: bars[i].time, value: arr[i] });
     });
     if (o.hist && r.hist) {
-      const hp = (v, i) => v == null ? { time: bars[i].time } : { time: bars[i].time, value: v, color: v >= 0 ? '#22C55E88' : '#EF444488' };
+      const hp = (v, i) => v == null ? { time: bars[i].time } : { time: bars[i].time, value: v, color: o.vol ? (r.up[i] ? '#26A69A80' : '#EF535080') : v >= 0 ? '#22C55E88' : '#EF444488' };
       if (full) o.hist.setData(r.hist.map(hp)); else for (let i = i0; i < n; i++) o.hist.update(hp(r.hist[i], i));
     }
     o.lastT = n ? bars[n - 1].time : null;
@@ -4042,7 +4083,10 @@ function renderIndCfg() {
       h += `<div class="ic-sec">Ajustes de las bandas</div>`;
       h += row('Modo de cálculo', sel('mode', { sd: 'Desviación típica', pct: 'Porcentaje' }));
       [1, 2, 3].forEach(n => { h += row('Multiplicador de banda #' + n, num('b' + n, 0.1), chk('e' + n)); });
-      h += `<div class="ic-note"><i class="ti ti-info-circle"></i>${S.hasVolume ? 'Ponderado por el volumen de las velas.' : 'Estos datos no traen volumen: cada vela pesa lo mismo, por eso puede diferir del VWAP de TradingView.'} Semana/mes/trimestre/año empiezan en el primer dato cargado si la sesión empezó después.</div>`;
+      h += `<div class="ic-note"><i class="ti ti-info-circle"></i>${hasVolData() ? 'Ponderado por el volumen de las velas.' : 'Estos datos no traen volumen: cada vela pesa lo mismo, por eso puede diferir del VWAP de TradingView.'} Semana/mes/trimestre/año empiezan en el primer dato cargado si la sesión empezó después.</div>`;
+    } else if (ind.type === 'volume') {
+      h += row('Media móvil del volumen (0 = sin media)', num('ma'));
+      h += `<div class="ic-note"><i class="ti ti-info-circle"></i>${hasVolData() ? 'Volumen por vela de Dukascopy (en divisas y oro, millones de unidades negociadas en su plataforma; en índices, contratos). Es una referencia de actividad, no el volumen de todo el mercado.' : 'Estos datos no traen volumen.'}</div>`;
     } else Object.keys(BTInd.CATALOG[ind.type].params).forEach(k => { h += row(k === 'period' ? 'Periodo' : k === 'mult' ? 'Desviaciones' : k === 'fast' ? 'Rápida' : k === 'slow' ? 'Lenta' : k === 'signal' ? 'Señal' : k, num(k, k === 'mult' ? 0.1 : 1)); });
   } else {
     const C = isV ? vwapColors(ind) : { v: ind.color };
@@ -4065,6 +4109,8 @@ function icClose(ok) {
   $('mIndCfg').classList.remove('show'); IC = null;
 }
 function icDefaults() { const ind = S.indicators.find(x => x.id === IC.id); if (!ind) return; const m = BTInd.CATALOG[ind.type]; ind.params = Object.assign({}, m.params); ind.color = m.color; ind.colors = m.colors ? Object.assign({}, m.colors) : undefined; renderIndCfg(); rebuildIndicators(); buildIndMenu(); }
+const hasVolData = () => !!(S.replay && S.replay.s && S.replay.s.v && S.replay.s.v.some(x => x === x));
+const fmtVol = v => v >= 1e6 ? (v / 1e6).toFixed(2) + ' M' : v >= 1e3 ? (v / 1e3).toFixed(2) + ' K' : v.toFixed(2);
 function renderIndLegend() {
   const el = $('indLegend'); if (!el) return;
   const fmt = (v, d) => v == null ? '—' : v.toFixed(d);
@@ -4073,7 +4119,7 @@ function renderIndLegend() {
     const last = k => { const a = r.lines[k] || []; return a[a.length - 1]; };
     const dg = meta.overlay ? sym().digits : 2;
     const pv = ind.type === 'vwap' ? (VWAP_ANCHOR[BTInd.vwapParams(ind.params).reset] || 'Sesión') + ' ' + (BTInd.vwapParams(ind.params).src) : Object.values(ind.params).join(',');
-    const vals = ind.type === 'vwap' ? fmt(last('v'), dg) + ['1', '2', '3'].map(n => last('u' + n) != null ? ` <span style="color:${vwapColors(ind)['b' + n]}">${fmt(last('u' + n), dg)} / ${fmt(last('l' + n), dg)}</span>` : '').join('') : ind.type === 'bb' ?  `${fmt(last('up'), dg)} / ${fmt(last('mid'), dg)} / ${fmt(last('lo'), dg)}` : ind.type === 'macd' ? `${fmt(last('line'), 2)} / ${fmt(last('signal'), 2)}` : fmt(last('v'), dg);
+    const vals = ind.type === 'volume' ? (r.hist && r.hist.length && r.hist[r.hist.length - 1] != null ? fmtVol(r.hist[r.hist.length - 1]) : 'sin datos de volumen') : ind.type === 'vwap' ? fmt(last('v'), dg) + ['1', '2', '3'].map(n => last('u' + n) != null ? ` <span style="color:${vwapColors(ind)['b' + n]}">${fmt(last('u' + n), dg)} / ${fmt(last('l' + n), dg)}</span>` : '').join('') : ind.type === 'bb' ?  `${fmt(last('up'), dg)} / ${fmt(last('mid'), dg)} / ${fmt(last('lo'), dg)}` : ind.type === 'macd' ? `${fmt(last('line'), 2)} / ${fmt(last('signal'), 2)}` : fmt(last('v'), dg);
     return `<span class="ind${ind.hidden ? ' off' : ''}" data-id="${ind.id}" title="Doble clic para editar"><span style="color:${ind.color}">●</span> ${meta.short} ${pv} <span class="iv" style="color:#F0F2F5">${ind.hidden ? '' : vals}</span><span class="ib"><button data-a="eye" title="${ind.hidden ? 'Mostrar' : 'Ocultar'}"><i class="ti ti-eye${ind.hidden ? '-off' : ''}"></i></button><button data-a="cfg" title="Ajustes"><i class="ti ti-settings"></i></button><button data-a="rm" title="Quitar"><i class="ti ti-x"></i></button></span></span>`;
   }).join('');
 }
@@ -4410,7 +4456,7 @@ const secSave = () => { try { lsSet('td_bt_lab_sec', JSON.stringify({ on: SEC.on
 // Otro activo en el segundo gráfico: se carga aparte y solo se muestra hasta la hora actual del replay principal
 const secOther = () => !!(SEC.sym && S.symbol && SEC.sym !== S.symbol && BT.SYMBOLS[SEC.sym]);
 const secDigits = () => secOther() ? BT.SYMBOLS[SEC.sym].digits : pricePrec();
-const secSliceSeries = (s, from, to) => { let a = 0, b = s.length; while (a < b && s.t[a] < from) a++; while (b > a && s.t[b - 1] > to) b--; const o = { length: b - a }; ['t', 'o', 'h', 'l', 'c'].forEach(k => o[k] = s[k].slice(a, b)); return o; };
+const secSliceSeries = (s, from, to) => { let a = 0, b = s.length; while (a < b && s.t[a] < from) a++; while (b > a && s.t[b - 1] > to) b--; const o = { length: b - a }; ['t', 'o', 'h', 'l', 'c'].concat(s.v ? ['v'] : []).forEach(k => o[k] = s[k].slice(a, b)); return o; };
 async function secPeerLoad(untilTs) {
   const P = SEC.peer, r = S.replay; if (!P || P.loading || P.done) return;
   P.loading = true;
