@@ -5104,6 +5104,7 @@ async function loginGoogle(){
 async function doLogout(){
   try{sessionStorage.removeItem('td_greeted');}catch(e){}
   await sb.auth.signOut();
+  _accPnl=null;
   currentUser=null;allTrades=[];allJournals=[];allAccounts=[];currentAccountId=null;currentSubscription=null;
   showScreen('home');clearTimeout(inactivityTimer);
 }
@@ -5352,6 +5353,33 @@ function sortedGroupAccounts(types){
     return String(a.created_at||'').localeCompare(String(b.created_at||''));
   });
 }
+/* Capital ACTUAL de cada cuenta en el selector lateral (9-nov-2026): inicial + PyG de sus operaciones + movimientos de Balance.
+   La cuenta abierta se calcula con allTrades; las demás con _accPnl (una consulta ligera: account_id + amount). */
+let _accPnl=null,_accPnlLoading=false;
+function tradeAmountNum(t){if(!t||!t.amount)return 0;const n=parseFloat(String(t.amount).replace(/[^0-9.\-]/g,''));return isNaN(n)?0:n;}
+function accountCurrentCapital(a){
+  let pnl;
+  if(a.id===currentAccountId)pnl=allTrades.reduce((s,t)=>s+tradeAmountNum(t),0);
+  else if(_accPnl)pnl=_accPnl[a.id]||0;
+  else return null;
+  return (a.capital||0)+pnl+accountCashFlow(a);
+}
+async function loadAccountsPnl(){
+  if(_accPnl&&currentAccountId)_accPnl[currentAccountId]=allTrades.reduce((s,t)=>s+tradeAmountNum(t),0);
+  if(_accPnl||_accPnlLoading||!currentUser||(allAccounts||[]).length<2)return;
+  _accPnlLoading=true;
+  try{
+    const map={},uid=currentUser.id;
+    for(let from=0;from<100000;from+=1000){
+      const{data,error}=await sb.from('trades').select('account_id,amount').eq('user_id',uid).order('id').range(from,from+999);
+      if(error)throw error;
+      (data||[]).forEach(t=>{map[t.account_id]=(map[t.account_id]||0)+tradeAmountNum(t);});
+      if(!data||data.length<1000)break;
+    }
+    if(currentUser&&currentUser.id===uid){_accPnl=map;renderAccountsSidebar();}
+  }catch(e){console.warn('accounts pnl',e);}
+  finally{_accPnlLoading=false;}
+}
 function renderAccountsSidebar(){
   const list=document.getElementById('accounts-list');
   if(list){
@@ -5367,14 +5395,14 @@ function renderAccountsSidebar(){
       </div>`;
       html+=`<div class="account-group-body" ${isCol?'style="display:none"':''}>`;
       html+=accs.map(a=>{
-        const m=accountStatusMeta(a.status);
+        const m=accountStatusMeta(a.status),cc=accountCurrentCapital(a);
         return `<div class="account-chip ${a.id===currentAccountId?'active-account':''} ${m.active?'':'is-inactive'}" data-acc-id="${a.id}" data-acc-type="${a.type}" onclick="switchAccount('${a.id}')" title="${esc(a.name)} — ${esc(window.t(m.label))}">
           <span class="acc-led acc-led-${m.cls}"></span>
           <div class="account-chip-main">
             <div class="account-chip-name" data-no-i18n>${esc(a.name)}</div>
             <div class="account-chip-status acc-status-${m.cls}">${esc(m.label)}</div>
           </div>
-          <div class="account-chip-capital">${fmtMoney(a.capital)}</div>
+          <div class="account-chip-capital" title="${lang==='en'?'Current capital':'Capital actual'}">${fmtMoney(cc==null?a.capital:cc)}</div>
           <i class="ti ti-grip-vertical acc-grip" onpointerdown="accGripDown(event,'${a.id}')" title="Arrastra para reordenar"></i>
         </div>`;
       }).join('');
@@ -5446,6 +5474,7 @@ async function accPointerUp(e){
   catch(err){console.error('reorder persist',err);}
 }
 async function switchAccount(id){
+  if(_accPnl&&currentAccountId)_accPnl[currentAccountId]=allTrades.reduce((s,t)=>s+tradeAmountNum(t),0); // la cuenta que se deja: su PyG al día
   currentAccountId=id;
   await loadData();
   renderAccountsSidebar();
@@ -5597,6 +5626,7 @@ async function loadBalanceEvents(){
   if(!currentUser)return;
   const{data}=await sb.from('balance_events').select('*').eq('user_id',currentUser.id).order('date',{ascending:false});
   allBalanceEvents=data||[];
+  try{renderAccountsSidebar();}catch(_){}
 }
 async function loadBalanceTrades(){
   if(!currentUser)return;
@@ -6337,6 +6367,7 @@ async function loadData(){
   _glTrades=null;_glJournals=null; // invalida la caché del Resumen global / análisis global
   normalizeTradeAmounts();
   renderAll();
+  try{renderAccountsSidebar();loadAccountsPnl();}catch(_){}
 }
 
 /* ── SAVE TRADE ── */
