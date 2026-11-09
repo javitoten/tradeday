@@ -1076,6 +1076,7 @@
         }
       } finally { g.restore(); }
     }
+    const fillOf = (d, col) => rgba(d.fill || col, (d.fillA == null ? 12 : +d.fillA) / 100); // fondo de rectángulos y elipses
     function drawDrawing0(d) {
       const sel = selected && selected.id === d.id, hov = hover && hover.id === d.id;
       const col = d.color || '#93C5FD', lw = d.width || 1;
@@ -1171,7 +1172,7 @@
         g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); g.moveTo(e2[0], e2[1]); g.lineTo(e2[2], e2[3]); g.stroke();
         targets.push({ kind: 'trend', ref: d, x1: e2[0], y1: e2[1], x2: e2[2], y2: e2[3] });
       } else if (d.type === 'ellipse') {
-        g.fillStyle = rgba(col, .12); g.strokeStyle = col; g.lineWidth = lw;
+        g.fillStyle = fillOf(d, col); g.strokeStyle = col; g.lineWidth = lw;
         g.beginPath(); g.ellipse((x1 + x2) / 2, (y1 + y2) / 2, Math.max(1, (maxX - minX) / 2), Math.max(1, (maxY - minY) / 2), 0, 0, Math.PI * 2); g.fill(); g.stroke();
         shape((x, y) => { const rx = (maxX - minX) / 2 || 1, ry = (maxY - minY) / 2 || 1, cx = (x1 + x2) / 2, cy = (y1 + y2) / 2; return ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.05; });
       } else if (d.type === 'channel') {
@@ -1186,7 +1187,7 @@
           shape((x, y) => distSeg(x, y, x1, y1, x2, y2) <= 5 || distSeg(x, y, x1, y1b, x2, y2b) <= 5);
         }
       } else if (d.type === 'rect') {
-        g.fillStyle = rgba(col, .12); g.fillRect(minX, minY, maxX - minX, maxY - minY);
+        g.fillStyle = fillOf(d, col); g.fillRect(minX, minY, maxX - minX, maxY - minY);
         g.strokeStyle = col; g.lineWidth = lw; g.strokeRect(minX + 0.5, minY + 0.5, maxX - minX, maxY - minY);
         shape(inBox);
       } else if (d.type === 'fib') {
@@ -1214,6 +1215,12 @@
       }
       if (sel || hov) { handle(x1, y1, col); handle(x2, y2, col); }
       targets.push({ kind: 'point', ref: d, idx: 1, x: x1, y: y1 }, { kind: 'point', ref: d, idx: 2, x: x2, y: y2 });
+      if (d.type === 'rect' || d.type === 'ellipse') { // como TradingView: las 4 esquinas + el centro de cada lado
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        const ex = [['c12', x1, y2], ['c21', x2, y1], ['sl', x1, my], ['sr', x2, my], ['st', mx, y1], ['sb', mx, y2]];
+        if (sel) ex.forEach(q => handle(q[1], q[2], col));
+        if (sel || hov) ex.forEach(q => targets.push({ kind: 'point', ref: d, idx: q[0], x: q[1], y: q[2] }));
+      }
     }
     /* Bandas de sesión (Asia / Londres / Nueva York) — solo en temporalidades intradía */
     const SESS_COL = { 'Asia': 'rgba(96,165,250,.06)', 'Londres': 'rgba(245,158,11,.06)', 'New York': 'rgba(34,197,94,.06)' };
@@ -1311,6 +1318,7 @@
       text: LINES.includes(t) || t === 'text',
       alert: ['hline', 'hray', 'crossline'].includes(t),
       coords: t !== 'brush' && t !== 'highlighter',
+      fill: t === 'rect' || t === 'ellipse',
     });
     const PAL = ['#FFFFFF', '#D1D4DC', '#B2B5BE', '#9598A1', '#787B86', '#5D606B', '#434651', '#2A2E39', '#131722', '#000000',
       '#F23645', '#FF9800', '#FFEB3B', '#4CAF50', '#089981', '#00BCD4', '#2962FF', '#673AB7', '#9C27B0', '#E91E63',
@@ -1363,6 +1371,12 @@
       box.querySelector('input').addEventListener('input', e => onPick(e.target.value, true));
       return box;
     }
+    let clip = null; // dibujo copiado (⌘C / Ctrl+C)
+    function dupDrawing(d) {
+      const n = JSON.parse(JSON.stringify(d, (k, v) => k[0] === '_' ? undefined : v)); n.id = nid('d'); delete n.alert; delete n.locked;
+      const off = (P(0) - P(24)) || 0; if (n.p1) n.p1.price += off; if (n.p2) n.p2.price += off; if (n.price != null) n.price += off; if (n.pts) n.pts.forEach(q => { q.price += off; });
+      drawings.push(n); selected = { kind: 'drawing', id: n.id }; return n;
+    }
     function listMenu(items, cur, onPick) {
       const box = document.createElement('div'); box.className = 'dtb-list';
       box.innerHTML = items.map(it => `<button data-v="${it.v}" class="${String(cur) === String(it.v) ? 'on' : ''}">${it.ico || ''}<span>${it.t}</span></button>`).join('');
@@ -1393,7 +1407,10 @@
       else if (a === 'tpl') body = listMenu(tplItems(), '', v => { doTpl(d, v); closeMenu(); changed(); syncToolbar(true); });
       else if (a === 'more') body = listMenu([{ v: 'dup', t: 'Duplicar', ico: '<i class="ti ti-copy"></i>' }, { v: 'front', t: 'Traer al frente', ico: '<i class="ti ti-stack-front"></i>' }, { v: 'back', t: 'Enviar al fondo', ico: '<i class="ti ti-stack-back"></i>' }, { v: 'text', t: d.text ? 'Editar texto' : 'Añadir texto', ico: '<i class="ti ti-typography"></i>' }].filter(x => x.v !== 'text' || CAP(d.type).text), '', v => {
         closeMenu();
-        if (v === 'dup') { const n = JSON.parse(JSON.stringify(d)); n.id = nid('d'); delete n.alert; delete n.locked; const off = (P(0) - P(24)); if (n.p1) n.p1.price += off; if (n.p2) n.p2.price += off; if (n.price != null) n.price += off; if (n.pts) n.pts.forEach(q => { q.price += off; }); drawings.push(n); selected = { kind: 'drawing', id: n.id }; }
+        if (v === 'dup') dupDrawing(d);
+        if (v === 'cfg') { openSettings(d, d.type === 'text' ? 'text' : 'style'); return; }
+        if (v === 'lock') { d.locked = !d.locked; }
+        if (v === 'del') { drawings = drawings.filter(x => x !== d); selected = null; }
         if (v === 'front') { drawings = drawings.filter(x => x !== d).concat([d]); }
         if (v === 'back') { drawings = [d].concat(drawings.filter(x => x !== d)); }
         if (v === 'text') { if (d.type === 'text') inlineEdit(d, false); else openSettings(d, 'text'); return; }
@@ -1461,6 +1478,7 @@
       if (!ok) { const i = drawings.indexOf(D.d); if (i >= 0) drawings[i] = D.snap; }
       D.bg.remove(); changed(); syncToolbar(true);
     }
+    let dlgPos = null; // posición de la ventana de ajustes (se recuerda mientras dure la sesión)
     function openSettings(d, tab) {
       closeSettings(true); closeMenu();
       const cp = CAP(d.type), snap = JSON.parse(JSON.stringify(d, (k, v) => k[0] === '_' ? undefined : v));
@@ -1477,7 +1495,8 @@
         if (tab === 'style') return `
           ${cp.line ? `<div class="dsm-row"><label>${LINES.includes(d.type) ? 'Línea' : 'Color'}</label><div class="dsm-ctl">${sw('color', '#93C5FD')}
             ${cp.width ? sel('width', [1, 2, 3, 4].map(w => [w, w + 'px']), d.width || (d.type === 'brush' ? 2 : 1)) : ''}
-            ${cp.dash ? sel('dash', [['solid', 'Línea'], ['dashed', 'Discontinua'], ['dotted', 'De puntos']], d.dash || 'solid') : ''}</div></div>` : ''}`;
+            ${cp.dash ? sel('dash', [['solid', 'Línea'], ['dashed', 'Discontinua'], ['dotted', 'De puntos']], d.dash || 'solid') : ''}</div></div>` : ''}
+          ${cp.fill ? `<div class="dsm-row"><label>Fondo</label><div class="dsm-ctl">${sw('fill', d.color || '#93C5FD')}${sel('fillA', [[0, 'Sin fondo'], [5, '5 %'], [12, '12 %'], [20, '20 %'], [35, '35 %'], [50, '50 %'], [75, '75 %']], d.fillA == null ? 12 : d.fillA)}</div></div>` : ''}`;
         if (tab === 'text') return `
           <div class="dsm-ctl">${sw('textColor', d.color || '#93C5FD')}${sel('fontSize', [10, 11, 12, 14, 16, 20, 24, 28, 32, 40].map(v => [v, v]), d.fontSize || 14)}
             <button class="dsm-tg ${d.bold ? 'on' : ''}" data-tg="bold" title="Negrita"><b>B</b></button><button class="dsm-tg ${d.italic ? 'on' : ''}" data-tg="italic" title="Cursiva"><i>I</i></button></div>
@@ -1497,11 +1516,18 @@
           <div class="dsm-tabs">${tabs.map(t => `<button data-tab="${t[0]}" class="${t[0] === tab ? 'on' : ''}">${t[1]}</button>`).join('')}</div>
           <div class="dsm-b">${body()}</div>
           <div class="dsm-f"><button class="dsm-btn" data-tplbtn="1">Plantilla <i class="ti ti-chevron-down"></i></button><span style="flex:1"></span><button class="dsm-btn" data-cancel="1">Cancelar</button><button class="dsm-btn ok" data-ok="1">Aceptar</button></div></div>`;
+        const bx = bg.querySelector('.dsm'); if (bx && dlgPos) bx.style.transform = `translate(${dlgPos.x}px,${dlgPos.y}px)`;
         const ta = bg.querySelector('.dsm-ta'); if (ta) setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 0);
       }
       render(); document.body.appendChild(bg);
       bg.addEventListener('mousedown', e => {
         if (e.target === bg) { closeSettings(true); return; }
+        if (e.target.closest('.dsm-h') && !e.target.closest('button')) { // arrastrar la ventana por su cabecera
+          e.preventDefault(); const o = dlgPos || { x: 0, y: 0 }, sx = e.clientX, sy = e.clientY;
+          const mv = ev => { dlgPos = { x: o.x + ev.clientX - sx, y: o.y + ev.clientY - sy }; const b = bg.querySelector('.dsm'); if (b) b.style.transform = `translate(${dlgPos.x}px,${dlgPos.y}px)`; };
+          const up = () => { window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up); };
+          window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up); return;
+        }
         const pp = bg.querySelector('.dsm-pop'); if (pp && !e.target.closest('.dsm-pop') && !e.target.closest('[data-sw],[data-tplbtn]')) pp.remove();
       });
       bg.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') closeSettings(false); if (e.key === 'Enter' && e.target.tagName === 'INPUT') closeSettings(true); });
@@ -1529,7 +1555,7 @@
       });
       bg.addEventListener('change', e => {
         const t = e.target;
-        if (t.dataset.k && t.tagName === 'SELECT') { const v = t.value; d[t.dataset.k] = ['width', 'fontSize'].includes(t.dataset.k) ? +v : v; upd(); }
+        if (t.dataset.k && t.tagName === 'SELECT') { const v = t.value; d[t.dataset.k] = ['width', 'fontSize', 'fillA'].includes(t.dataset.k) ? +v : v; upd(); }
         if (t.dataset.vis) { d.vis = Object.assign({ m: true, h: true, d: true }, d.vis || {}, { [t.dataset.vis]: t.checked }); if (d.vis.m && d.vis.h && d.vis.d) delete d.vis; upd(); }
       });
     }
@@ -1544,9 +1570,29 @@
       if (!h || h.mode || !h.ref || !drawings.includes(h.ref)) return;
       e.stopPropagation(); e.preventDefault();
       const d = h.ref; selected = { kind: 'drawing', id: d.id }; version++;
-      if (d.type === 'text') inlineEdit(d, false); else openSettings(d, CAP(d.type).text ? 'text' : 'style');
+      if (d.type === 'text') inlineEdit(d, false); else openSettings(d, 'style');
     }, true);
 
+    el.addEventListener('contextmenu', e => {
+      if (e.target.closest && e.target.closest('.rbar,.scalebox,.ov-bar,.ov-lx,.favbar,.qbar,.edge,.tzbox,.dtb,.dtb-menu,.ov-ted')) return;
+      const p = local(e); if (!inPane(p)) return; resize(); draw();
+      const h = hit(p.x, p.y); if (!h || h.mode || !h.ref || !drawings.includes(h.ref)) return;
+      e.preventDefault(); e.stopPropagation();
+      const d = h.ref; selected = { kind: 'drawing', id: d.id }; version++; syncToolbar(true); closeMenu();
+      const I = (v, t, ic) => ({ v, t, ico: `<i class="ti ti-${ic}"></i>` });
+      const body = listMenu([I('cfg', 'Configuración…', 'settings'), I('dup', 'Duplicar', 'copy'), I('lock', d.locked ? 'Desbloquear' : 'Bloquear', d.locked ? 'lock-open' : 'lock'), I('front', 'Traer al frente', 'stack-front'), I('back', 'Enviar al fondo', 'stack-back'), I('del', 'Eliminar', 'trash')], '', v => {
+        closeMenu();
+        if (v === 'cfg') { openSettings(d, d.type === 'text' ? 'text' : 'style'); return; }
+        if (v === 'dup') dupDrawing(d);
+        if (v === 'lock') d.locked = !d.locked;
+        if (v === 'front') drawings = drawings.filter(x => x !== d).concat([d]);
+        if (v === 'back') drawings = [d].concat(drawings.filter(x => x !== d));
+        if (v === 'del') { drawings = drawings.filter(x => x !== d); selected = null; }
+        changed(); syncToolbar(true);
+      });
+      const m = document.createElement('div'); m.className = 'dtb-menu'; m.appendChild(body); m.addEventListener('mousedown', ev => ev.stopPropagation()); el.appendChild(m); menu = { a: 'ctx' };
+      m.style.left = Math.max(4, Math.min(p.x, el.clientWidth - m.offsetWidth - 4)) + 'px'; m.style.top = Math.max(4, Math.min(p.y, el.clientHeight - m.offsetHeight - 4)) + 'px';
+    }, true);
     /* ── Interacción con el ratón ── */
     function local(e) { const r = el.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
     function distSeg(px, py, x1, y1, x2, y2) { const dx = x2 - x1, dy = y2 - y1, l = dx * dx + dy * dy; let t = l ? ((px - x1) * dx + (py - y1) * dy) / l : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)); }
@@ -1660,6 +1706,12 @@
       }
       let ts = T(p.x), price = P(p.y); if (ts == null || price == null) return;
       if (drag.kind === 'create' || drag.kind === 'point') ({ ts, price } = snap(ts, price, p.y));
+      if (e.shiftKey && (drag.kind === 'create' || (drag.kind === 'point' && (drag.idx === 1 || drag.idx === 2))) && ['trend', 'ray', 'xline', 'arrow', 'infoline'].includes(drag.ref.type)) {
+        // Mayús: la línea se queda horizontal, vertical o a 45º (como TradingView)
+        const oth = drag.kind === 'point' && drag.idx === 1 ? drag.ref.p2 : drag.ref.p1, ox = oth && X(oth.ts), oy = oth && Y(oth.price);
+        if (ox != null && oy != null) { const a = Math.round(Math.atan2(p.y - oy, p.x - ox) / (Math.PI / 4)) * (Math.PI / 4), L = Math.hypot(p.x - ox, p.y - oy);
+          const t2 = T(ox + L * Math.cos(a)), p2 = P(oy + L * Math.sin(a)); if (t2 != null && p2 != null) { ts = Math.abs(Math.cos(a)) < 1e-6 ? oth.ts : t2; price = Math.abs(Math.sin(a)) < 1e-6 ? oth.price : p2; } }
+      }
       const r = drag.ref, o = drag.orig, dp = price - drag.price0, Ln = LX(p.x), dL = Ln != null && drag.L0 != null ? Ln - drag.L0 : 0, sh = t => shiftTs(t, dL);
       if (drag.kind === 'create') { r.p2 = { ts, price }; }
       else if (drag.kind === 'brush') { if (Math.hypot(p.x - drag.lx, p.y - drag.ly) >= 3) { r.pts.push({ ts, price }); drag.lx = p.x; drag.ly = p.y; } }
@@ -1687,6 +1739,12 @@
       }
       else if (drag.kind === 'body') { r.entry = o.entry + dp; r.sl = o.sl + dp; r.tp = o.tp != null ? o.tp + dp : null; r.t1 = sh(o.t1); r.t2 = sh(o.t2); }
       else if (drag.kind === 'point' && drag.idx === 3) { r.off = price - (r.p1.price + r.p2.price) / 2; }
+      else if (drag.kind === 'point' && typeof drag.idx === 'string') { // esquinas y lados del rectángulo / elipse
+        const k = drag.idx, p1 = Object.assign({}, r.p1), p2 = Object.assign({}, r.p2);
+        if (k === 'c12') { p1.ts = ts; p2.price = price; } else if (k === 'c21') { p2.ts = ts; p1.price = price; }
+        else if (k === 'sl') p1.ts = ts; else if (k === 'sr') p2.ts = ts; else if (k === 'st') p1.price = price; else if (k === 'sb') p2.price = price;
+        r.p1 = p1; r.p2 = p2;
+      }
       else if (drag.kind === 'point') { r['p' + drag.idx] = { ts, price }; }
       else if (drag.kind === 'hline') { r.price = o.price + dp; }
       else if (drag.kind === 'trend' || drag.kind === 'rect' || drag.kind === 'shape') { if (o.p1) r.p1 = { ts: sh(o.p1.ts), price: o.p1.price + dp }; if (o.p2) r.p2 = { ts: sh(o.p2.ts), price: o.p2.price + dp }; if (o.price != null && !o.p1) r.price = o.price + dp; if (o.pts) r.pts = o.pts.map(q => ({ ts: sh(q.ts), price: q.price + dp })); }
@@ -1736,6 +1794,17 @@
         return out;
       },
       closeUi() { closeMenu(); closeSettings(false); },
+      copySelected() { const d = selDrawing(); if (!d) return false; clip = JSON.stringify(d, (k, v) => k[0] === '_' ? undefined : v); return true; },
+      paste() { if (!clip) return false; dupDrawing(JSON.parse(clip)); changed(); syncToolbar(true); return true; },
+      duplicateSelected() { const d = selDrawing(); if (!d) return false; dupDrawing(d); changed(); syncToolbar(true); return true; },
+      // Flechas del teclado: mueve el dibujo seleccionado una vela (izq./dcha.) o un paso de precio (arriba/abajo)
+      nudgeSelected(dx, dy) {
+        const d = selDrawing(); if (!d || d.locked) return false; const dp = dy ? (P(0) - P(1)) * dy : 0, sh = t => dx ? shiftTs(t, dx) : t;
+        if (d.p1) d.p1 = { ts: sh(d.p1.ts), price: d.p1.price + dp }; if (d.p2) d.p2 = { ts: sh(d.p2.ts), price: d.p2.price + dp };
+        if (d.price != null && !d.p1) d.price += dp; if (d.pts) d.pts = d.pts.map(q => ({ ts: sh(q.ts), price: q.price + dp }));
+        changed(); return true;
+      },
+      hasSelection() { return !!selDrawing(); },
       _debug() { resize(); draw(); return { targets, drafts, drawings, W, H, tool, drag }; },
       cancel() { if (placing) { drawings = drawings.filter(x => x !== placing); placing = null; } setTool('cursor'); },
     };
@@ -2038,6 +2107,11 @@ select.ctl{cursor:pointer}
 #chart.cur-dot canvas{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='6' cy='6' r='2.5' fill='%23F0F2F5' stroke='%230A0B0E'/%3E%3C/svg%3E") 6 6,crosshair!important}
 #chart.cur-cross canvas{cursor:crosshair!important}
 #chart.cur-arrow canvas{cursor:default!important}
+/* ejes: como TradingView (arrastrar para escalar) */
+#chart:not(.ov-cross):not(.ov-ns):not(.ov-move):not(.ov-ew):not(.ov-ptr) tr:not(:last-child) td:nth-child(3) canvas{cursor:ns-resize!important}
+#chart:not(.ov-cross):not(.ov-ns):not(.ov-move):not(.ov-ew):not(.ov-ptr) tr:last-child td canvas{cursor:ew-resize!important}
+#mIndCfg .om-h{cursor:move;user-select:none}
+#mIndCfg{background:#0002;-webkit-backdrop-filter:none;backdrop-filter:none}
 .vcross{position:absolute;top:0;width:1px;z-index:1;pointer-events:none;display:none}
 .favbar{position:absolute;z-index:6;display:none;align-items:center;gap:2px;padding:4px;background:rgba(17,19,24,.94);border:1px solid var(--border2);border-radius:11px;box-shadow:0 10px 30px #0009;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);user-select:none}
 .favbar.show{display:flex}
@@ -2096,9 +2170,9 @@ select.ctl{cursor:pointer}
 .dtb-custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .ov-ted{position:absolute;z-index:8;min-width:120px;padding:3px 4px;border:1px solid #5B9CF6;border-radius:4px;background:#030303e6;outline:none;resize:none;overflow:hidden;white-space:pre}
 /* ventana de configuración del dibujo */
-.dsm-bg{position:fixed;inset:0;z-index:70;background:#0006;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
+.dsm-bg{position:fixed;inset:0;z-index:70;background:#0002;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
 .dsm{position:relative;width:min(420px,94vw);background:#1E1F23;border:1px solid #ffffff14;border-radius:12px;box-shadow:0 24px 60px #000c;color:#F0F2F5;animation:pop .18s ease-out}
-.dsm-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 6px}
+.dsm-h{cursor:move;user-select:none;display:flex;align-items:center;justify-content:space-between;padding:16px 20px 6px}
 .dsm-h h3{margin:0;font-size:18px;font-weight:700}
 .dsm-x{width:30px;height:30px;border:0;border-radius:6px;background:none;color:#D1D4DC;font-size:18px;cursor:pointer}.dsm-x:hover{background:#2E3036}
 .dsm-tabs{display:flex;gap:18px;padding:6px 20px 0;border-bottom:2px solid #2E3036}
@@ -3883,7 +3957,8 @@ function buildChart() {
     crosshair: { mode: LW.CrosshairMode.Normal, vertLine: { color: '#ffffff30', labelBackgroundColor: '#1E2028' }, horzLine: { color: '#ffffff30', labelBackgroundColor: '#1E2028' } },
   });
   createMainSeries();
-  chart.subscribeCrosshairMove(p => { const B = S.replay && S.replay.bars; if (!B) return; const i = p && p.logical != null ? Math.round(p.logical) : -1; setLegend(i >= 0 && i < B.length ? B[i] : B[B.length - 1]); });
+  chart.subscribeCrosshairMove(p => { const B = S.replay && S.replay.bars; if (!B) return; const i = p && p.point && p.logical != null ? Math.round(p.logical) : -1, ok = i >= 0 && i < B.length; setLegend(ok ? B[i] : B[B.length - 1]);
+    const hv = ok ? i : null; if (hv !== IND_HOVER) { IND_HOVER = hv; const il = $('indLegend'); if (!il || !il.matches(':hover')) renderIndLegend(); } }); // los valores de los indicadores siguen a la retícula (como TradingView)
   chart.timeScale().subscribeVisibleLogicalRangeChange(r => { if (r && S.replay) S.follow = r.to >= S.replay.bars.length - 3; });
   // Clic en una marca de operación (B/S o el resultado en R) → menú para eliminarla
   chart.subscribeClick(prm => { const id = prm && prm.hoveredObjectId; if (typeof id === 'string' && id.startsWith('mk|') && prm.point) { const r = $('chart').getBoundingClientRect(); markMenu(id.slice(3), r.left + prm.point.x, r.top + prm.point.y); } });
@@ -4026,14 +4101,16 @@ function rebuildIndicators() {
   indSeries = {};
   try { for (let i = chart.panes().length - 1; i >= 1; i--) chart.removePane(i); } catch (_) {}
   let pane = 0;
-  const line = (color, pi, w, style) => chart.addSeries(LW.LineSeries, { color, lineWidth: w || 1.5, lineStyle: style || 0, priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false }, pi);
+  let lblOn = true;
+  const line = (color, pi, w, style) => chart.addSeries(LW.LineSeries, { color, lineWidth: w || 1.5, lineStyle: style || 0, priceLineVisible: false, lastValueVisible: lblOn, crosshairMarkerVisible: false }, pi);
   S.indicators.forEach(ind => {
+    const st = ind.style || {}, W = +st.w || 0, LS = +st.ls || 0, IC2 = ind.colors || {}; lblOn = st.lbl !== 0;
     const meta = BTInd.CATALOG[ind.type]; if (!meta || ind.type === 'sessions') return;
     const pi = meta.overlay ? 0 : ++pane, o = { series: [], keys: [], hist: null, pane: pi };
-    if (ind.type === 'bb') { o.keys = ['up', 'mid', 'lo']; o.series = [line(ind.color, 0, 1), line(ind.color + 'AA', 0, 1, 2), line(ind.color, 0, 1)]; }
+    if (ind.type === 'bb') { o.keys = ['up', 'mid', 'lo']; o.series = [line(ind.color, 0, W || 1, LS), line(IC2.mid || ind.color + 'AA', 0, W || 1, 2), line(ind.color, 0, W || 1, LS)]; }
     else if (ind.type === 'vwap') {
       const C = vwapColors(ind); o.vw = true; o.keys = BTInd.VWAP_LINES;
-      o.series = o.keys.map(k => { const x = line(k === 'v' ? C.v : C['b' + k[1]], 0, k === 'v' ? 2 : 1); x.applyOptions({ lastValueVisible: k === 'v' }); return x; });
+      o.series = o.keys.map(k => { const x = line(k === 'v' ? C.v : C['b' + k[1]], 0, k === 'v' ? (W || 2) : 1, k === 'v' ? LS : 0); x.applyOptions({ lastValueVisible: k === 'v' && lblOn }); return x; });
     }
     else if (ind.type === 'volume') { // abajo del panel de precio, con su propia escala (como TradingView)
       o.vol = true; o.keys = ['ma'];
@@ -4042,9 +4119,9 @@ function rebuildIndicators() {
       try { o.hist.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 }, visible: false }); } catch (_) {}
       o.series = [ma, o.hist];
     }
-    else if (ind.type === 'macd') { o.keys = ['line', 'signal']; o.series = [line(ind.color, pi), line('#F59E0B', pi)]; o.hist = chart.addSeries(LW.HistogramSeries, { priceLineVisible: false, lastValueVisible: false }, pi); o.series.push(o.hist); }
-    else { o.keys = ['v']; o.series = [line(ind.color, pi, meta.overlay ? 1.5 : 1.5)]; }
-    if (ind.type === 'rsi') { o.series[0].createPriceLine({ price: 70, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); o.series[0].createPriceLine({ price: 30, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); }
+    else if (ind.type === 'macd') { o.keys = ['line', 'signal']; o.series = [line(ind.color, pi, W, LS), line(IC2.signal || '#F59E0B', pi, W, LS)]; o.hist = chart.addSeries(LW.HistogramSeries, { priceLineVisible: false, lastValueVisible: false }, pi); o.series.push(o.hist); }
+    else { o.keys = ['v']; o.series = [line(ind.color, pi, W || 1.5, LS)]; }
+    if (ind.type === 'rsi') { o.series[0].createPriceLine({ price: st.ob == null ? 70 : +st.ob, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); o.series[0].createPriceLine({ price: st.os == null ? 30 : +st.os, color: '#ffffff30', lineStyle: 2, axisLabelVisible: false }); }
     if (ind.hidden) o.series.forEach(x => { try { x.applyOptions({ visible: false }); } catch (_) {} });
     indSeries[ind.id] = o;
   });
@@ -4094,7 +4171,7 @@ function vwapPaint(ind, o, r, bars, full) {
 let IC = null; // ajustes en edición
 function openIndCfg(id) {
   const ind = S.indicators.find(x => x.id === id); if (!ind) return;
-  const meta = BTInd.CATALOG[ind.type]; IC = { id, tab: 'in', orig: JSON.stringify({ params: ind.params, color: ind.color, colors: ind.colors }) };
+  const meta = BTInd.CATALOG[ind.type]; IC = { id, tab: 'in', orig: JSON.stringify({ params: ind.params, color: ind.color, colors: ind.colors, style: ind.style }) };
   if (ind.type === 'vwap') ind.params = BTInd.vwapParams(ind.params);
   $('icTitle').textContent = meta.name; renderIndCfg(); $('mIndCfg').classList.add('show');
 }
@@ -4124,34 +4201,47 @@ function renderIndCfg() {
     const C = isV ? vwapColors(ind) : { v: ind.color };
     h += row(isV ? 'VWAP' : 'Línea', `<input type="color" data-c="v" value="${C.v}">`);
     if (isV) [1, 2, 3].forEach(n => { h += row('Bandas #' + n + ' (superior e inferior)', `<input type="color" data-c="b${n}" value="${C['b' + n]}">`); });
+    const st = ind.style || {}, IC2 = ind.colors || {};
+    if (ind.type === 'bb') h += row('Media', `<input type="color" data-c="mid" value="${(IC2.mid || ind.color).slice(0, 7)}">`);
+    if (ind.type === 'macd') h += row('Señal', `<input type="color" data-c="signal" value="${IC2.signal || '#F59E0B'}">`);
+    if (ind.type !== 'volume') {
+      const ssel = (k, opts, cur) => `<select class="ctl" data-s="${k}">${opts.map(o => `<option value="${o[0]}"${String(cur) === String(o[0]) ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`;
+      h += row('Grosor de la línea', ssel('w', [[0, 'Por defecto'], [1, '1 px'], [2, '2 px'], [3, '3 px'], [4, '4 px']], st.w || 0));
+      h += row('Estilo de la línea', ssel('ls', [[0, 'Continua'], [2, 'Discontinua'], [1, 'De puntos']], st.ls || 0));
+      h += row('Etiqueta de valor en la escala', `<label class="ic-chk"><input type="checkbox" data-s="lbl"${st.lbl !== 0 ? ' checked' : ''}><span></span></label>`);
+    }
+    if (ind.type === 'rsi') { h += `<div class="ic-sec">Niveles</div>`; h += row('Sobrecompra', `<input class="ctl" type="number" min="50" max="100" data-s="ob" value="${st.ob == null ? 70 : st.ob}">`); h += row('Sobreventa', `<input class="ctl" type="number" min="0" max="50" data-s="os" value="${st.os == null ? 30 : st.os}">`); }
   }
   $('icBody').innerHTML = h;
 }
 function icApply(e) {
   const ind = S.indicators.find(x => x.id === IC.id); if (!ind) return; const t = e.target;
   if (t.dataset.c) { if (t.dataset.c === 'v') ind.color = t.value; else { ind.colors = Object.assign({}, ind.colors || {}); ind.colors[t.dataset.c] = t.value; } }
+  else if (t.dataset.s) { const k = t.dataset.s; ind.style = Object.assign({}, ind.style || {}); if (t.type === 'checkbox') ind.style[k] = t.checked ? 1 : 0; else { const v = parseFloat(t.value); if (!isFinite(v)) return; ind.style[k] = v; } }
   else if (t.dataset.k) { const k = t.dataset.k; if (t.type === 'checkbox') ind.params[k] = t.checked ? 1 : 0; else if (t.tagName === 'SELECT') ind.params[k] = t.value; else { const v = parseFloat(t.value); if (v >= 0) ind.params[k] = /^(period|fast|slow|signal)$/.test(k) ? Math.max(1, Math.round(v)) : v; } }
   else return;
   rebuildIndicators(); buildIndMenu();
 }
 function icClose(ok) {
   const ind = S.indicators.find(x => x.id === (IC && IC.id));
-  if (!ok && ind && IC) { const o = JSON.parse(IC.orig); ind.params = o.params; ind.color = o.color; ind.colors = o.colors; rebuildIndicators(); buildIndMenu(); }
+  if (!ok && ind && IC) { const o = JSON.parse(IC.orig); ind.params = o.params; ind.color = o.color; ind.colors = o.colors; ind.style = o.style; rebuildIndicators(); buildIndMenu(); }
   else sessionSaveSoon();
   $('mIndCfg').classList.remove('show'); IC = null;
 }
-function icDefaults() { const ind = S.indicators.find(x => x.id === IC.id); if (!ind) return; const m = BTInd.CATALOG[ind.type]; ind.params = Object.assign({}, m.params); ind.color = m.color; ind.colors = m.colors ? Object.assign({}, m.colors) : undefined; renderIndCfg(); rebuildIndicators(); buildIndMenu(); }
+function icDefaults() { const ind = S.indicators.find(x => x.id === IC.id); if (!ind) return; const m = BTInd.CATALOG[ind.type]; ind.params = Object.assign({}, m.params); ind.color = m.color; ind.colors = m.colors ? Object.assign({}, m.colors) : undefined; delete ind.style; renderIndCfg(); rebuildIndicators(); buildIndMenu(); }
 const hasVolData = () => !!(S.replay && S.replay.s && S.replay.s.v && S.replay.s.v.some(x => x === x));
 const fmtVol = v => v >= 1e6 ? (v / 1e6).toFixed(2) + ' M' : v >= 1e3 ? (v / 1e3).toFixed(2) + ' K' : v.toFixed(2);
+let IND_HOVER = null; // vela bajo la retícula (null = última)
 function renderIndLegend() {
   const el = $('indLegend'); if (!el) return;
   const fmt = (v, d) => v == null ? '—' : v.toFixed(d);
   el.innerHTML = S.indicators.filter(i => i.type !== 'sessions').map(ind => {
     const o = indSeries[ind.id], r = o && o.last, meta = BTInd.CATALOG[ind.type]; if (!r) return '';
-    const last = k => { const a = r.lines[k] || []; return a[a.length - 1]; };
+    const at = a => a[IND_HOVER != null && IND_HOVER < a.length ? IND_HOVER : a.length - 1];
+    const last = k => at(r.lines[k] || []);
     const dg = meta.overlay ? sym().digits : 2;
     const pv = ind.type === 'vwap' ? (VWAP_ANCHOR[BTInd.vwapParams(ind.params).reset] || 'Sesión') + ' ' + (BTInd.vwapParams(ind.params).src) : Object.values(ind.params).join(',');
-    const vals = ind.type === 'volume' ? (r.hist && r.hist.length && r.hist[r.hist.length - 1] != null ? fmtVol(r.hist[r.hist.length - 1]) : 'sin datos de volumen') : ind.type === 'vwap' ? fmt(last('v'), dg) + ['1', '2', '3'].map(n => last('u' + n) != null ? ` <span style="color:${vwapColors(ind)['b' + n]}">${fmt(last('u' + n), dg)} / ${fmt(last('l' + n), dg)}</span>` : '').join('') : ind.type === 'bb' ?  `${fmt(last('up'), dg)} / ${fmt(last('mid'), dg)} / ${fmt(last('lo'), dg)}` : ind.type === 'macd' ? `${fmt(last('line'), 2)} / ${fmt(last('signal'), 2)}` : fmt(last('v'), dg);
+    const vals = ind.type === 'volume' ? (r.hist && r.hist.length && at(r.hist) != null ? fmtVol(at(r.hist)) : 'sin datos de volumen') : ind.type === 'vwap' ? fmt(last('v'), dg) + ['1', '2', '3'].map(n => last('u' + n) != null ? ` <span style="color:${vwapColors(ind)['b' + n]}">${fmt(last('u' + n), dg)} / ${fmt(last('l' + n), dg)}</span>` : '').join('') : ind.type === 'bb' ?  `${fmt(last('up'), dg)} / ${fmt(last('mid'), dg)} / ${fmt(last('lo'), dg)}` : ind.type === 'macd' ? `${fmt(last('line'), 2)} / ${fmt(last('signal'), 2)}` : fmt(last('v'), dg);
     return `<span class="ind${ind.hidden ? ' off' : ''}" data-id="${ind.id}" title="Doble clic para editar"><span style="color:${ind.color}">●</span> ${meta.short} ${pv} <span class="iv" style="color:#F0F2F5">${ind.hidden ? '' : vals}</span><span class="ib"><button data-a="eye" title="${ind.hidden ? 'Mostrar' : 'Ocultar'}"><i class="ti ti-eye${ind.hidden ? '-off' : ''}"></i></button><button data-a="cfg" title="Ajustes"><i class="ti ti-settings"></i></button><button data-a="rm" title="Quitar"><i class="ti ti-x"></i></button></span></span>`;
   }).join('');
 }
@@ -5863,6 +5953,13 @@ function bindUI() {
     if (b.dataset.a === 'rm') { S.indicators = S.indicators.filter(x => x.id !== ind.id); indicatorsChanged(); }
     else if (b.dataset.a === 'eye') { ind.hidden = !ind.hidden; indicatorsChanged(); }
     else openIndCfg(ind.id); });
+  { // ventana de ajustes del indicador: se arrastra por la cabecera para ver el gráfico mientras se edita
+    const box = document.querySelector('#mIndCfg .om'), hd = document.querySelector('#mIndCfg .om-h'); let pos = { x: 0, y: 0 };
+    if (box && hd) hd.addEventListener('mousedown', e => { if (e.target.closest('button')) return; e.preventDefault(); const o = pos, sx = e.clientX, sy = e.clientY;
+      const mv = ev => { pos = { x: o.x + ev.clientX - sx, y: o.y + ev.clientY - sy }; box.style.transform = `translate(${pos.x}px,${pos.y}px)`; };
+      const up = () => { window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up); };
+      window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up); });
+  }
   $('icX').onclick = () => icClose(false); $('icCancel').onclick = () => icClose(false); $('icOk').onclick = () => icClose(true); $('icDef').onclick = icDefaults;
   $('mIndCfg').addEventListener('click', e => { if (e.target.id === 'mIndCfg') icClose(false); const tb = e.target.closest('#icTabs button'); if (tb) { IC.tab = tb.dataset.t; renderIndCfg(); } });
   $('icBody').addEventListener('change', icApply); $('icBody').addEventListener('input', e => { if (e.target.type === 'color' || e.target.type === 'number') icApply(e); });
@@ -5901,6 +5998,16 @@ function bindUI() {
     if (e.altKey && !e.metaKey && !e.ctrlKey) { // atajos de dibujo (⌥/Alt + letra)
       const t = Object.keys(TOOLS).find(k => TOOLS[k].k && e.code === 'Key' + TOOLS[k].k && !!TOOLS[k].shift === e.shiftKey);
       if (t) { e.preventDefault(); pickTool(t); return; }
+    }
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && ov.hasSelection && (e.code === 'KeyC' || e.code === 'KeyD')) { // copiar / duplicar el dibujo seleccionado
+      if (e.code === 'KeyC') { if (ov.copySelected()) { e.preventDefault(); toast('Dibujo copiado · ' + (/Mac/.test(navigator.platform) ? '⌘V' : 'Ctrl+V') + ' para pegarlo'); } }
+      else if (ov.duplicateSelected()) e.preventDefault();
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === 'KeyV') { if (ov.paste && ov.paste()) e.preventDefault(); return; }
+    if (/^Arrow/.test(e.code) && ov.hasSelection && ov.hasSelection()) { // con un dibujo seleccionado las flechas lo mueven (Mayús = ×10)
+      const k = e.shiftKey ? 10 : 1; e.preventDefault();
+      ov.nudgeSelected(e.code === 'ArrowLeft' ? -k : e.code === 'ArrowRight' ? k : 0, e.code === 'ArrowUp' ? k : e.code === 'ArrowDown' ? -k : 0); return;
     }
     if (e.code === 'Space') { e.preventDefault(); S.playing ? stop() : play(); }
     if (e.code === 'ArrowRight') { e.preventDefault(); stop(); advance(); }
