@@ -622,7 +622,16 @@
   const VWAP_LINES = ['v', 'u1', 'l1', 'u2', 'l2', 'u3', 'l3'];
   // Peso de una vela: su volumen real (Dukascopy) o 1 si la vela no trae dato de volumen
   const hasVol = b => b.v != null && b.v === b.v;
-  const volW = b => hasVol(b) ? Math.max(0, +b.v) : 1;
+  const volW = (b, floor) => hasVol(b) ? Math.max(0, +b.v) + (floor || 0) : 1;
+  /* Suelo de volumen (9-nov-2026): en los índices (CFD de Dukascopy) el volumen fuera del horario de EE. UU. es ~0
+   * (en futuros reales no lo es). Sin suelo, de 22:00 a 06:00 el VWAP «se pegaba» al precio (Σvol = 0 → VWAP = precio)
+   * y las bandas se cerraban. Cada vela suma un mínimo = 5 % del percentil 90 del volumen por vela de lo cargado
+   * (solo velas pasadas: sin mirar el futuro). En divisas apenas cambia nada; en índices la noche pesa poco pero cuenta. */
+  function volFloor(bars) {
+    const a = []; for (let i = 0; i < bars.length; i++) { const b = bars[i]; if (hasVol(b) && b.v > 0) a.push(+b.v); }
+    if (a.length < 20) return 0; a.sort((x, y) => x - y);
+    return 0.05 * a[Math.floor(a.length * 0.9)];
+  }
   /* Volumen (como el «Volume» de TradingView): barras del volumen de cada vela, verdes si cierra por encima
    * de la apertura y rojas si no, + media móvil del volumen (ma = 0 → sin media). */
   function volume(bars, params) {
@@ -644,7 +653,7 @@
     else from = 0;
     for (let i = from; i < n; i++) {
       const b = bars[i], k = key(b.time); if (k !== ck) { ck = k; sw = 0; sp = 0; sq = 0; }
-      const x = src(b), w = volW(b); sw += w; sp += x * w; sq += x * x * w;
+      const x = src(b), w = volW(b, st && st.floor); sw += w; sp += x * w; sq += x * x * w;
       if (st) { st.k[i] = k; st.w[i] = sw; st.sp[i] = sp; st.sq[i] = sq; }
       const m = sw > 0 ? sp / sw : x, sd = sw > 0 ? Math.sqrt(Math.max(0, sq / sw - m * m)) : 0;
       out.v[i] = m; out.pk[i] = k;
@@ -656,7 +665,7 @@
   function vwap(bars, params) {
     const n = bars.length, out = { pk: new Array(n).fill(null) };
     VWAP_LINES.forEach(k => { out[k] = new Array(n).fill(null); });
-    out._st = { k: [], w: [], sp: [], sq: [] }; if (n) vwapFill(bars, params, out, 0, out._st); return out;
+    out._st = { k: [], w: [], sp: [], sq: [], floor: volFloor(bars) }; if (n) vwapFill(bars, params, out, 0, out._st); return out;
   }
 
   /* Catálogo: cómo se llama, parámetros por defecto y si va sobre el precio o en panel propio */
