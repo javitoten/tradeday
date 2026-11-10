@@ -1924,6 +1924,9 @@ select.ctl{cursor:pointer}
 .sess small{color:var(--text3);font-size:11.5px}
 .sess .nums{display:flex;gap:16px;font-variant-numeric:tabular-nums;font-size:12px;text-align:right}
 .sess .nums span{display:block;font-size:9.5px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+.hid-chip{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:7;display:flex;align-items:center;gap:8px;padding:5px 6px 5px 12px;border-radius:999px;background:rgba(17,19,24,.94);border:1px solid #F59E0B66;color:#F5C26B;font-size:12px;font-weight:600;box-shadow:0 6px 20px #0008}
+.hid-chip[hidden]{display:none}
+.hid-chip button{height:24px;padding:0 10px;border-radius:999px;border:0;background:#F59E0B;color:#111;font-weight:700;font-size:11.5px;cursor:pointer}
 .time-totals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .time-totals .tt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:11px;background:var(--bg3)}
 .time-totals .tt i{font-size:18px;color:var(--green)}
@@ -3845,6 +3848,7 @@ const keyLabel = t => !TOOLS[t] || !TOOLS[t].k ? '' : (IS_MAC ? '⌥' + (TOOLS[t
 // Estado de la barra: estilo del cursor, imán, bloquear y ocultar dibujos (se guarda en este navegador)
 const TB_KEY = 'td_bt_lab_tb';
 const TB = Object.assign({ cursor: 'cur_cross', magnet: false, locked: false, hidden: false }, (() => { try { return JSON.parse(localStorage.getItem(TB_KEY) || '{}'); } catch (_) { return {}; } })());
+TB.hidden = false; // «Ocultar dibujos» no se arrastra entre visitas (10-nov-2026: parecía que los dibujos se habían perdido)
 const saveTB = () => { try { lsSet(TB_KEY, JSON.stringify(TB)); } catch (_) {} };
 function applyCursorStyle() { const ch = $('chart'); if (!ch) return; ch.classList.toggle('cur-cross', TB.cursor !== 'cur_dot' && TB.cursor !== 'cur_arrow'); ch.classList.toggle('cur-dot', TB.cursor === 'cur_dot'); ch.classList.toggle('cur-arrow', TB.cursor === 'cur_arrow'); }
 const toolIsOn = t => { const cur = ov ? ov.tool : 'cursor'; return t.startsWith('cur_') ? cur === 'cursor' && TB.cursor === t : cur === t; };
@@ -3852,7 +3856,14 @@ const FAV_KEY = 'td_bt_lab_favtools', GRP_KEY = 'td_bt_lab_grptool', FAVPOS_KEY 
 let favTools = (() => { try { return JSON.parse(localStorage.getItem(FAV_KEY) || 'null') || ['trend', 'hline', 'fib', 'long', 'short']; } catch (_) { return ['trend', 'hline', 'fib', 'long', 'short']; } })();
 let grpTool = (() => { try { return JSON.parse(localStorage.getItem(GRP_KEY) || '{}'); } catch (_) { return {}; } })();
 let favShow = localStorage.getItem('td_bt_lab_favshow') !== '0';
+function syncHidChip() { // aviso visible mientras los dibujos están ocultos
+  const ch = $('chart'); if (!ch) return; let el = $('hidChip');
+  if (!el) { el = document.createElement('div'); el.id = 'hidChip'; el.className = 'hid-chip'; el.innerHTML = '<i class="ti ti-eye-off"></i>Dibujos ocultos<button type="button">Mostrar</button>';
+    el.querySelector('button').onclick = () => { TB.hidden = false; saveTB(); buildTools(); ov.invalidate(); }; ch.appendChild(el); }
+  el.hidden = !TB.hidden;
+}
 function buildTools() {
+  setTimeout(syncHidChip, 0);
   let html = '';
   TOOL_GROUPS.forEach((gp, k) => {
     const t = gp.id === 'cursors' ? (ov && ov.tool === 'eraser' ? 'eraser' : TB.cursor) : (grpTool[gp.id] && gp.tools.includes(grpTool[gp.id]) ? grpTool[gp.id] : gp.tools[0]);
@@ -3895,6 +3906,7 @@ function pickTool(t) {
   if (t === 'cursor') t = TB.cursor;
   if (t.startsWith('cur_')) { TB.cursor = t; saveTB(); applyCursorStyle(); closeFlyout(); ov.setTool('cursor'); return; }
   const gp = TOOL_GROUPS.find(x => x.tools.includes(t)); if (gp && gp.id !== 'cursors') { grpTool[gp.id] = t; lsSet(GRP_KEY, JSON.stringify(grpTool)); }
+  if (TB.hidden && t !== 'eraser') { TB.hidden = false; saveTB(); buildTools(); ov.invalidate(); toast('Dibujos visibles de nuevo'); }
   ov.setTool(t); closeFlyout();
 }
 function restoreFavBar() {
