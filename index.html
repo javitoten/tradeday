@@ -2705,7 +2705,7 @@ function initLandingFX(){
   <!-- OFERTA POR TIEMPO LIMITADO (landing): visible solo mientras dure OFFER, con cuenta atrás -->
   <div class="ld-offer-bar" id="ld-offer-bar" style="display:none" role="region" aria-label="Oferta por tiempo limitado">
     <span class="ld-offer-text"><i class="ti ti-flame"></i><strong>Black Friday:</strong> <span>−30% en Premium mensual con</span> <span class="offer-code" data-no-i18n>BLACK30</span> <span>· anual a 75€</span></span>
-    <span class="ld-offer-timer"><span>Termina en</span> <strong id="ld-offer-countdown" data-no-i18n>—</strong></span>
+    <span class="ld-offer-timer"><span>Por tiempo limitado</span></span>
     <button class="ld-offer-cta" onclick="startOfferSignup()"><span>Aprovechar</span><i class="ti ti-arrow-right"></i></button>
   </div>
   <div class="ld-nav-wrap">
@@ -3442,12 +3442,12 @@ function initLandingFX(){
         <!-- OFERTA POR TIEMPO LIMITADO (solo usuarios sin Premium, se oculta sola al caducar) -->
         <div class="offer-banner" id="offer-banner" style="display:none">
           <div class="offer-banner-main">
-            <div class="offer-badge"><i class="ti ti-bolt"></i><span>Black Friday · hasta el 30 de noviembre</span></div>
+            <div class="offer-badge"><i class="ti ti-bolt"></i><span>Black Friday · por tiempo limitado</span></div>
             <div class="offer-title"><span class="offer-pct">−30%</span> <span>en Premium mensual</span></div>
             <div class="offer-sub"><span class="offer-strike">9,99€</span> <strong>6,99€/mes</strong> <span>con el código</span> <span class="offer-code" data-no-i18n>BLACK30</span> <span>· anual a 75€ (antes 80€)</span></div>
           </div>
           <div class="offer-side">
-            <div class="offer-countdown" aria-live="polite"><span>Termina en</span> <strong id="offer-countdown" data-no-i18n>—</strong></div>
+            <div class="offer-countdown"><strong><span>Por tiempo limitado</span></strong></div>
             <button class="btn btn-primary offer-cta" onclick="claimOffer()"><i class="ti ti-crown"></i>Aprovechar oferta</button>
           </div>
           <button class="offer-close" onclick="dismissOfferBanner()" title="Cerrar" aria-label="Cerrar"><i class="ti ti-x"></i></button>
@@ -4931,7 +4931,7 @@ function initLandingFX(){
       <!-- PANTALLA 2: PRECIO + OFERTA + CTA -->
       <div id="pp-screen-plans" style="display:none">
         <div class="pp-back" onclick="showPricingScreen(1)"><i class="ti ti-arrow-left"></i>Volver</div>
-        <div id="pp-offer-strip" class="pp-offer-strip" style="display:none"><i class="ti ti-flame"></i><div><strong><span>Black Friday: −30%</span></strong> <span>en el plan Mensual con</span> <strong data-no-i18n>BLACK30</strong> <span>· anual a 75€</span> <span>· termina en</span> <strong id="pp-offer-countdown" data-no-i18n>—</strong></div></div>
+        <div id="pp-offer-strip" class="pp-offer-strip" style="display:none"><i class="ti ti-flame"></i><div><strong><span>Black Friday: −30%</span></strong> <span>en el plan Mensual con</span> <strong data-no-i18n>BLACK30</strong> <span>· anual a 75€</span> <span>· por tiempo limitado</span></div></div>
         <div id="pp-trial-banner" style="display:none;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin-bottom:14px"><i class="ti ti-gift" style="color:var(--green);font-size:18px"></i><div style="font-size:12.5px;color:var(--text2);line-height:1.45"><strong style="color:var(--text)">7 días gratis.</strong> No se te cobra hasta el día 7. Cancela antes y no pagas nada.</div></div>
         <div class="pp-annual-rise" id="pp-annual-rise" data-no-i18n hidden></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -15296,6 +15296,9 @@ var I18N_EN = {
   '−30% en Premium mensual con':'−30% on monthly Premium with',
   '· anual a 75€':'· yearly at €75',
   'Black Friday · hasta el 30 de noviembre':'Black Friday · until November 30',
+  'Black Friday · por tiempo limitado':'Black Friday · limited time',
+  'Por tiempo limitado':'Limited time',
+  '· por tiempo limitado':'· limited time',
   'en Premium mensual':'on monthly Premium',
   'con el código':'with the code',
   '· anual a 75€ (antes 80€)':'· yearly at €75 (was €80)',
