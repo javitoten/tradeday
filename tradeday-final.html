@@ -1759,7 +1759,31 @@ html.iab .btn-google,html.iab .auth-divider{display:none}
 .pp-offer-strip{display:flex;align-items:center;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;color:var(--text2);line-height:1.45}
 .pp-offer-strip i{color:var(--green);font-size:18px}
 .pp-offer-strip strong{color:var(--text)}
-.ld-offer-bar{position:relative;z-index:201;display:flex;align-items:center;justify-content:center;gap:10px 16px;flex-wrap:wrap;padding:10px 16px;font-size:13px;color:var(--text2);background:linear-gradient(90deg,#052C14,#0b3b1c 50%,#052C14);border-bottom:1px solid var(--green-border);animation:tpWeekOverlayIn .35s ease}
+.ld-offer-bar{position:sticky;top:0;z-index:201;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px 16px;flex-wrap:wrap;padding:10px 16px;font-size:13px;color:var(--text2);background:#000;border-bottom:1px solid rgba(34,197,94,.45);box-shadow:0 8px 30px -12px rgba(34,197,94,.45);animation:tpWeekOverlayIn .35s ease}
+.ld-offer-bar::after{content:'';position:absolute;top:0;bottom:0;left:-30%;width:22%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);transform:skewX(-18deg);animation:ldOfferShine 5.5s ease-in-out infinite;pointer-events:none}
+@keyframes ldOfferShine{0%,62%{left:-30%}100%{left:130%}}
+.ld-offer-bar>*{position:relative;z-index:1}
+.ld-offer-tag{background:#fff;color:#000;font-weight:900;font-size:11px;letter-spacing:.09em;padding:3px 8px;border-radius:5px}
+.ld-offer-pct{color:var(--green);font-weight:900;font-size:19px;letter-spacing:-.02em;line-height:1;text-shadow:0 0 18px rgba(34,197,94,.55)}
+html.bf-live #screen-home .ld-nav-wrap{top:var(--ld-offer-h,44px)}
+@media (max-width:760px){.ld-offer-timer,.ld-offer-extra{display:none}.ld-offer-pct{font-size:17px}}
+@media (prefers-reduced-motion:reduce){.ld-offer-bar::after,.ld-price-card.pro::after{animation:none!important}}
+.ld-hero-offer{display:none;position:relative;z-index:1;align-items:center;gap:9px;margin:-6px 0 20px;padding:7px 8px 7px 14px;border-radius:999px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.08);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .15s,background .2s,border-color .2s}
+.ld-hero-offer:hover{transform:translateY(-1px);background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.7)}
+.ld-hero-offer b{color:var(--text);font-weight:800}.ld-hero-offer s{color:var(--text3);font-weight:500}
+.ld-hero-offer .go{display:inline-flex;align-items:center;gap:4px;background:var(--green);color:#000;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800}
+html.bf-live .ld-hero-offer{display:inline-flex}
+html.bf-live .ld-hero{padding-top:34px}html.bf-live .ld-hero .ld-badge{margin-bottom:20px}html.bf-live .ld-hero .ld-h1{margin-bottom:16px}html.bf-live .ld-hero .ld-sub{margin-bottom:24px}html.bf-live .ld-hero .ld-trust{margin-bottom:34px}
+html.bf-live .ld-price-card.pro{box-shadow:0 0 0 1px rgba(34,197,94,.5),0 24px 70px -30px rgba(34,197,94,.5);animation:ldBfGlow 3.2s ease-in-out infinite}
+@keyframes ldBfGlow{0%,100%{box-shadow:0 0 0 1px rgba(34,197,94,.45),0 24px 70px -34px rgba(34,197,94,.4)}50%{box-shadow:0 0 0 1px rgba(34,197,94,.9),0 28px 80px -24px rgba(34,197,94,.7)}}
+html.bf-live .ld-price-card.pro .ld-price-badge{background:#fff;color:#000}
+.ld-btx{position:relative;display:block;width:100%;aspect-ratio:1600/900;background:#0A0B0E}
+.ld-btx canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ld-btx-top{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:11.5px;font-weight:700;color:#C9CED6;background:linear-gradient(#0A0B0E,#0A0B0E00)}
+.ld-btx-top .sym{color:#F0F2F5}.ld-btx-top .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;border:1px solid #ffffff1c;background:#111318;font-size:10.5px;color:#9BA3AF}
+.ld-btx-top .chip.play{color:#22C55E;border-color:#22C55E55}.ld-btx-top .sp{flex:1}
+@media (max-width:560px){.ld-btx-top .hide-s{display:none}}
+
 .ld-offer-text{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
 .ld-offer-text i{color:var(--green);font-size:16px}
 .ld-offer-text strong{color:var(--text)}
@@ -2704,7 +2728,7 @@ function initLandingFX(){
 <div class="screen active" id="screen-home">
   <!-- OFERTA POR TIEMPO LIMITADO (landing): visible solo mientras dure OFFER, con cuenta atrás -->
   <div class="ld-offer-bar" id="ld-offer-bar" style="display:none" role="region" aria-label="Oferta por tiempo limitado">
-    <span class="ld-offer-text"><i class="ti ti-flame"></i><strong>Black Friday:</strong> <span>−30% en Premium mensual con</span> <span class="offer-code" data-no-i18n>BLACK30</span> <span>· anual a 75€</span></span>
+    <span class="ld-offer-text"><span class="ld-offer-tag" data-no-i18n>BLACK FRIDAY</span><span class="ld-offer-pct" data-no-i18n>−30%</span><span>en Premium mensual con</span> <span class="offer-code" data-no-i18n>BLACK30</span> <span class="ld-offer-extra">· anual a 75€</span></span>
     <span class="ld-offer-timer"><span>Por tiempo limitado</span></span>
     <button class="ld-offer-cta" onclick="startOfferSignup()"><span>Aprovechar</span><i class="ti ti-arrow-right"></i></button>
   </div>
@@ -2730,6 +2754,7 @@ function initLandingFX(){
       <button class="ld-btn ld-btn-primary" onclick="showScreen('signup')"><i class="ti ti-arrow-right"></i>Empezar gratis</button>
       <button class="ld-btn ld-btn-ghost" onclick="showScreen('login')">Ya tengo cuenta</button>
     </div>
+    <button class="ld-hero-offer" type="button" onclick="(document.querySelector('.ld-price-card.pro')||document.body).scrollIntoView({behavior:'smooth',block:'center'})"><span data-no-i18n>Black Friday</span> <span>· Premium</span> <s data-no-i18n>9,99€</s> <b data-no-i18n>6,99€</b><span>/mes</span><span class="go"><span>Ver oferta</span><i class="ti ti-arrow-down"></i></span></button>
     <div class="ld-trust ld-reveal ld-reveal-4">Gratis para siempre en el plan Free · Sin tarjeta de crédito · Listo en 2 minutos</div>
 
     <!-- product mockup -->
@@ -2889,8 +2914,10 @@ function initLandingFX(){
         <div class="ld-bt-note">Una semana de mercado en el gráfico gratis. Ilimitado con Premium.</div>
       </div>
       <div class="ld-shot-frame ld-spot" data-tilt="2.2">
-        <img src="/tradeday-backtesting.webp?v=2" width="1600" height="857" loading="lazy" decoding="async"
-             alt="Backtesting de TradeDay: gráfico de velas reales con una operación abierta, su stop loss y su take profit">
+        <div class="ld-btx" id="ld-btx" role="img" aria-label="Backtesting de TradeDay: el gráfico avanza vela a vela y una operación en largo llega a su take profit">
+          <div class="ld-btx-top" data-no-i18n><span class="sym">NAS100 · 5m</span><span class="chip hide-s" id="ld-btx-date">—</span><span class="sp"></span><span class="chip play"><i class="ti ti-player-play-filled"></i>Replay ×4</span><span class="chip hide-s" id="ld-btx-bal">50.000 $</span></div>
+          <canvas></canvas>
+        </div>
       </div>
     </div>
   </div>
@@ -6208,6 +6235,7 @@ function applyAnnualPrice(){
   const skl=bf?'<s style="opacity:.6">'+(en?'€'+base:base+'€')+'</s> ':'';
   set('ld-annual-alt',en?('Yearly: '+skl+'<b>€'+p+'/year</b> · only '+annualPerMonthTxt()+'/month'):('Anual: '+skl+'<b>'+p+'€/año</b> · solo '+annualPerMonthTxt()+'/mes'));
   const lm=document.querySelector('.ld-price-card.pro .ld-price-amount'); // landing: mensual tachado durante la oferta
+  const lbg=document.querySelector('.ld-price-card.pro .ld-price-badge');if(lbg&&annualBF()){lbg.setAttribute('data-no-i18n','');lbg.textContent='Black Friday · −30%';}
   if(lm){lm.setAttribute('data-no-i18n','');lm.innerHTML=annualBF()?('<s style="opacity:.5;font-size:.55em;margin-right:6px">'+(en?'€9.99':'9,99€')+'</s>'+(en?'€6.99':'6,99€')+'<span>'+(en?'/month':'/mes')+'</span>'):((en?'€9.99':'9,99€')+'<span>'+(en?'/month':'/mes')+'</span>');}
   const d=new Date(ANNUAL_NEW_FROM).toLocaleDateString(en?'en-GB':'es-ES',{day:'numeric',month:'long',timeZone:'Europe/Madrid'});
   const msg=en?('<i class="ti ti-clock-exclamation"></i><span>The yearly plan goes up to <b>€'+ANNUAL_NEW+'</b> on '+d+'. Subscribe before then and keep <b>€'+ANNUAL_OLD+'/year</b> for as long as you stay subscribed.</span>')
@@ -7121,6 +7149,8 @@ function tickOffer(){
   // Landing pública: visible para cualquiera mientras dure la oferta
   const lb=document.getElementById('ld-offer-bar');
   if(lb)lb.style.display=(live&&OFFER.landing!==false)?'flex':'none';
+  const bfOn=live&&OFFER.landing!==false;document.documentElement.classList.toggle('bf-live',bfOn);
+  if(bfOn&&lb&&lb.offsetHeight)document.documentElement.style.setProperty('--ld-offer-h',lb.offsetHeight+'px');
   const b=document.getElementById('offer-banner');
   if(b)b.style.display=(on&&!offerDismissed())?'flex':'none';
   const strip=document.getElementById('pp-offer-strip');
@@ -7135,6 +7165,79 @@ function startOfferSignup(){
   showScreen('signup');
 }
 function initLandingOffer(){tickOffer();if(offerActive()&&!_offerTimer)_offerTimer=setInterval(tickOffer,1000);}
+/* ── Landing: gráfico ANIMADO del backtesting (16-nov-2026) ──
+   Sustituye a la captura estática: el replay avanza vela a vela, se abre una operación en largo y llega al TP; en bucle.
+   Todo en un <canvas> (sin vídeo ni imágenes). Solo corre cuando se ve; con «reducir movimiento» pinta el final fijo. */
+(function ldBtx(){
+  function start(){
+    const box=document.getElementById('ld-btx');if(!box||box._on)return;box._on=1;
+    const cv=box.querySelector('canvas'),g=cv.getContext('2d');
+    // velas deterministas: lateral-bajista → suelo → impulso alcista
+    let sd=20261116;const rnd=()=>{sd=(sd*1664525+1013904223)%4294967296;return sd/4294967296;};
+    const C=[];let px=26180;
+    const drift=i=>i<14?-1.5:i<30?-6.5:i<40?1.5:i<44?6:5.2;
+    for(let i=0;i<66;i++){const o=px,c=o+drift(i)+(rnd()-.5)*26,h=Math.max(o,c)+rnd()*11,l=Math.min(o,c)-rnd()*11;C.push({o,h,l,c});px=c;}
+    const EI=43,entry=C[EI].c;let swing=1e9;for(let i=30;i<=EI;i++)swing=Math.min(swing,C[i].l);
+    const risk=entry-swing+10,SL=entry-risk,TP=entry+risk*2;
+    let HIT=-1;for(let i=EI+1;i<C.length;i++){if(C[i].l<SL+4){C[i].l=SL+6+rnd()*5;C[i].o=Math.max(C[i].o,C[i].l);C[i].c=Math.max(C[i].c,C[i].l);}if(HIT<0&&C[i].h>=TP){HIT=i;C[i].h=Math.max(C[i].h,TP+4);C[i].c=Math.max(C[i].c,TP-6);}}
+    if(HIT<0){HIT=C.length-1;C[HIT].h=TP+6;C[HIT].c=TP-4;}
+    const N=HIT+3,T0=Date.UTC(2025,9,28,13,30)/1000,en=()=>typeof lang!=='undefined'&&lang==='en';
+    let lo=1e9,hi=-1e9;C.slice(0,N).forEach(k=>{lo=Math.min(lo,k.l);hi=Math.max(hi,k.h);});lo=Math.min(lo,SL)-18;hi=Math.max(hi,TP)+22;
+    let W=0,H=0,dpr=1;
+    function size(){dpr=Math.min(2,window.devicePixelRatio||1);W=box.clientWidth;H=box.clientHeight;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);g.setTransform(dpr,0,0,dpr,0,0);}
+    const rr=(x,y,w,h,r)=>{g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h);};
+    function draw(n,f,flash){ // n velas cerradas + fracción f de la siguiente; flash = 0..1 aviso de TP
+      const axW=W>520?58:46,top=40,bot=24,pw=W-axW,ph=H-top-bot,cw=pw/(N+1.5);
+      const Y=p=>top+(hi-p)/(hi-lo)*ph,X=i=>cw*(i+1);
+      g.clearRect(0,0,W,H);g.fillStyle='#0A0B0E';g.fillRect(0,0,W,H);
+      g.strokeStyle='#ffffff0a';g.lineWidth=1;g.fillStyle='#6B7280';g.font='600 '+(W>520?10.5:9)+'px Inter,system-ui,sans-serif';g.textBaseline='middle';g.textAlign='left';
+      const stp=(hi-lo)/5;for(let k=0;k<=5;k++){const p=lo+stp*k,y=Math.round(Y(p))+.5;g.beginPath();g.moveTo(0,y);g.lineTo(pw,y);g.stroke();g.fillText(p.toFixed(1),pw+7,y);}
+      for(let i=6;i<N;i+=12){const x=Math.round(X(i))+.5;g.beginPath();g.moveTo(x,top);g.lineTo(x,top+ph);g.stroke();const d=new Date((T0+i*300)*1000);g.textAlign='center';g.fillText(String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'),x,H-11);g.textAlign='left';}
+      const cur=n+(f>0?1:0),inPos=cur>EI;
+      if(inPos){ // caja de la posición (como en la app)
+        const x0=X(EI)+cw*.5,x1=pw-2,a=Math.min(1,(cur-EI)/2);
+        g.globalAlpha=a;g.fillStyle='rgba(34,197,94,.14)';g.fillRect(x0,Y(TP),x1-x0,Y(entry)-Y(TP));g.fillStyle='rgba(239,68,68,.14)';g.fillRect(x0,Y(entry),x1-x0,Y(SL)-Y(entry));
+        [[TP,'#22C55E','TP · +2R'],[entry,'#9BA3AF',en()?'Entry':'Entrada'],[SL,'#EF4444','SL · −1R']].forEach(L=>{const y=Math.round(Y(L[0]))+.5;g.strokeStyle=L[1];g.setLineDash(L[0]===entry?[]:[5,4]);g.beginPath();g.moveTo(x0,y);g.lineTo(pw,y);g.stroke();g.setLineDash([]);
+          g.font='700 '+(W>520?10.5:9)+'px Inter,system-ui,sans-serif';const tw=g.measureText(L[2]).width+12;g.fillStyle=L[1];rr(x1-tw-4,y-9,tw,18,4);g.fill();g.fillStyle='#0A0B0E';g.textAlign='center';g.fillText(L[2],x1-tw/2-4,y+.5);g.textAlign='left';});
+        g.globalAlpha=1;
+      }
+      let lastC=C[0].o;
+      for(let i=0;i<cur&&i<N;i++){const k=C[i];let o=k.o,c=k.c,h=k.h,l=k.l;
+        if(i===n&&f>0){ // vela en formación: abre, marca un extremo y va hacia el cierre
+          const up=k.c>=k.o,m=f<.5?f*2:1,q=f<.5?0:(f-.5)*2,ext=up?k.l:k.h;c=f<.5?o+(ext-o)*m*.8:ext+(k.c-ext)*q;h=Math.max(o,c,f>.75?k.h:Math.max(o,c));l=Math.min(o,c,f>.4?k.l:Math.min(o,c));}
+        const up=c>=o,col=up?'#22C55E':'#EF4444',x=X(i);g.strokeStyle=col;g.fillStyle=col;g.lineWidth=1;
+        g.beginPath();g.moveTo(Math.round(x)+.5,Y(h));g.lineTo(Math.round(x)+.5,Y(l));g.stroke();
+        const bw=Math.max(2,cw*.64),y0=Y(Math.max(o,c)),bh=Math.max(1,Math.abs(Y(o)-Y(c)));g.fillRect(x-bw/2,y0,bw,bh);lastC=c;}
+      // precio actual
+      const yl=Math.round(Y(lastC))+.5;g.strokeStyle='#ffffff40';g.setLineDash([2,3]);g.beginPath();g.moveTo(0,yl);g.lineTo(pw,yl);g.stroke();g.setLineDash([]);
+      g.fillStyle='#F0F2F5';rr(pw+2,yl-9,axW-4,18,4);g.fill();g.fillStyle='#0A0B0E';g.font='800 '+(W>520?10.5:9)+'px Inter,system-ui,sans-serif';g.textAlign='center';g.fillText(lastC.toFixed(1),pw+axW/2,yl+.5);g.textAlign='left';
+      if(cur>EI){const x=X(EI),y=Y(C[EI].l)+13;g.fillStyle='#22C55E';g.beginPath();g.moveTo(x,y-7);g.lineTo(x-5,y+2);g.lineTo(x+5,y+2);g.closePath();g.fill();g.font='800 9.5px Inter,system-ui,sans-serif';g.textAlign='center';g.fillText('B',x,y+10);g.textAlign='left';}
+      if(flash>0){const t=en()?'Take profit · +2R · +1,000.00 $':'Take profit · +2R · +1.000,00 $';g.font='800 '+(W>520?13:11)+'px Inter,system-ui,sans-serif';const tw=g.measureText(t).width+34,bx=(pw-tw)/2,by=top+10+(1-flash)*-10;
+        g.globalAlpha=flash;g.fillStyle='#0E1A12';g.strokeStyle='#22C55E';g.lineWidth=1.2;rr(bx,by,tw,32,10);g.fill();g.stroke();g.fillStyle='#22C55E';g.beginPath();g.arc(bx+15,by+16,4,0,6.3);g.fill();g.fillStyle='#F0F2F5';g.textAlign='left';g.fillText(t,bx+26,by+16.5);g.globalAlpha=1;}
+      const dEl=document.getElementById('ld-btx-date'),bEl=document.getElementById('ld-btx-bal');
+      if(dEl){const d=new Date((T0+Math.min(cur,N-1)*300)*1000),tx='28 oct 2025 · '+String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');if(dEl._t!==tx){dEl._t=tx;dEl.textContent=tx;}}
+      if(bEl){const won=flash>0||cur>HIT+1,tx=won?(en()?'51,000 $':'51.000 $'):(en()?'50,000 $':'50.000 $');if(bEl._t!==tx){bEl._t=tx;bEl.textContent=tx;bEl.style.color=won?'#22C55E':'';bEl.style.borderColor=won?'#22C55E55':'';}}
+    }
+    const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let vis=false,raf=0,t0=0;const STEP=150,HOLD=2600,START=20;
+    function frame(ts){
+      if(!vis){raf=0;return;}
+      if(!t0)t0=ts;const el=ts-t0,run=(N-START)*STEP;
+      if(el<run){const p=el/STEP,n=START+Math.floor(p);draw(n,p-Math.floor(p),0);}
+      else if(el<run+HOLD){const q=(el-run)/HOLD;draw(N,0,q<.12?q/.12:q>.85?(1-q)/.15:1);}
+      else t0=ts;
+      raf=requestAnimationFrame(frame);
+    }
+    size();draw(reduce?N:START,0,reduce?1:0);
+    if(reduce){window.addEventListener('resize',()=>{size();draw(N,0,1);});return;}
+    window.addEventListener('resize',()=>{size();if(!vis)draw(START,0,0);});
+    const go=v=>{vis=v&&document.visibilityState==='visible';if(vis&&!raf){if(W!==box.clientWidth)size();raf=requestAnimationFrame(frame);}};
+    let seen=false;
+    if('IntersectionObserver' in window)new IntersectionObserver(es=>{seen=es[0].isIntersecting;go(seen);},{threshold:.2}).observe(box);else{seen=true;go(true);}
+    document.addEventListener('visibilitychange',()=>go(seen));
+  }
+  if(document.readyState!=='loading')start();else document.addEventListener('DOMContentLoaded',start);
+})();
 if(document.readyState!=='loading')initLandingOffer();
 else document.addEventListener('DOMContentLoaded',initLandingOffer);
 function renderOffer(){
@@ -15293,6 +15396,9 @@ var I18N_EN = {
   'Oferta flash · solo 3 días':'Flash offer · 3 days only',
   'Oferta flash:':'Flash offer:',
   'Black Friday:':'Black Friday:',
+  'en Premium mensual con':'on monthly Premium with',
+  '· Premium':'· Premium',
+  'Ver oferta':'See offer',
   '−30% en Premium mensual con':'−30% on monthly Premium with',
   '· anual a 75€':'· yearly at €75',
   'Black Friday · hasta el 30 de noviembre':'Black Friday · until November 30',
