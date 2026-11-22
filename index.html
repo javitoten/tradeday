@@ -9846,11 +9846,11 @@ async function computeDisciplineForWeek(offset){
 
 function disciplineExplanation(result){
   const{overall,components}=result;
-  if(result.weekTrades.length===0&&result.weekJournals.length===0)return `Aún no hay actividad registrada esta semana. El Disciplina Score se calculará en cuanto registres trades o journal.`;
-  if(overall>=85)return `Semana sobresaliente. Has respetado tu plan, mantenido el journal al día y controlado tus emociones casi en todo momento.`;
-  if(overall>=70)return `Semana positiva. Has respetado tu plan y mantenido una buena rutina, aunque hay pequeños puntos a vigilar.`;
-  if(overall>=50)return `Semana irregular. Hubo aspectos correctos, pero también desviaciones notables respecto a tu plan o tu rutina.`;
-  return `Semana de bajo cumplimiento. Conviene revisar qué reglas de tu plan se están dejando de lado y por qué.`;
+  if(result.weekTrades.length===0&&result.weekJournals.length===0)return window.t(`Aún no hay actividad registrada esta semana. El Disciplina Score se calculará en cuanto registres trades o journal.`);
+  if(overall>=85)return window.t(`Semana sobresaliente. Has respetado tu plan, mantenido el journal al día y controlado tus emociones casi en todo momento.`);
+  if(overall>=70)return window.t(`Semana positiva. Has respetado tu plan y mantenido una buena rutina, aunque hay pequeños puntos a vigilar.`);
+  if(overall>=50)return window.t(`Semana irregular. Hubo aspectos correctos, pero también desviaciones notables respecto a tu plan o tu rutina.`);
+  return window.t(`Semana de bajo cumplimiento. Conviene revisar qué reglas de tu plan se están dejando de lado y por qué.`);
 }
 
 function disciplineFeedback(result, previousOverall){
@@ -9860,7 +9860,7 @@ function disciplineFeedback(result, previousOverall){
     const diff=overall-previousOverall;
     if(diff>0)lines.push(`<div class="ds-feedback-line"><i class="ti ti-trending-up" style="color:var(--green)"></i>${lang==='en'?`Your discipline improved by ${diff} points on last week.`:`Tu disciplina mejoró ${diff} puntos respecto a la semana anterior.`}</div>`);
     else if(diff<0)lines.push(`<div class="ds-feedback-line"><i class="ti ti-trending-down" style="color:var(--red)"></i>${lang==='en'?`Your discipline dropped ${Math.abs(diff)} points on last week.`:`Tu disciplina bajó ${Math.abs(diff)} puntos respecto a la semana anterior.`}</div>`);
-    else lines.push(`<div class="ds-feedback-line"><i class="ti ti-minus" style="color:var(--text3)"></i>Tu disciplina se mantuvo igual que la semana anterior.</div>`);
+    else lines.push(`<div class="ds-feedback-line"><i class="ti ti-minus" style="color:var(--text3)"></i>${window.t('Tu disciplina se mantuvo igual que la semana anterior.')}</div>`);
   }
   const validEntries=Object.entries(components).filter(([,v])=>v!==null);
   if(validEntries.length){
@@ -14132,19 +14132,22 @@ function renderPlanView(){
 function renderPlanSavedContent(){
   const p=currentPlan.data||{};
   const el=document.getElementById('plan-saved-content');
+  /* Idioma (22-nov-2026): las listas y opciones elegidas en el asistente se muestran traducidas; el texto libre del usuario no se toca */
+  const TL=a=>(a||[]).map(x=>window.t(x)).join(', '), TO=v=>v?window.t(v):v;
+  const P={...p,markets:TL(p.markets),timeframes:TL(p.timeframes),strategies:TL(p.strategies),emotionsControl:TL(p.emotionsControl),routineBefore:TL(p.routineBefore),routineAfter:TL(p.routineAfter),riskTrade:TO(p.riskTrade),stopTrading:TO(p.stopTrading),exitBe:TO(p.exitBe)};
   const sections=[
     {icon:'🎯',title:'Objetivos del trader',rows:[['Objetivo principal',p.goalMain],['Corto/largo plazo',p.goalTerm],['Por qué el trading',p.goalWhy]]},
-    {icon:'⚖️',title:'Gestión del riesgo',rows:[['Riesgo por operación',p.riskTrade],['Cuándo dejar de operar',p.stopTrading],['Pérdida máx. diaria',p.lossDaily],['Pérdida máx. semanal',p.lossWeekly]]},
-    {icon:'📊',title:'Estrategia',rows:[['Mercados',(p.markets||[]).join(', ')],['Temporalidades',(p.timeframes||[]).join(', ')],['Metodología',(p.strategies||[]).join(', ')],['Setups que busca',p.setups]]},
+    {icon:'⚖️',title:'Gestión del riesgo',rows:[['Riesgo por operación',P.riskTrade],['Cuándo dejar de operar',P.stopTrading],['Pérdida máx. diaria',p.lossDaily],['Pérdida máx. semanal',p.lossWeekly]]},
+    {icon:'📊',title:'Estrategia',rows:[['Mercados',P.markets],['Temporalidades',P.timeframes],['Metodología',P.strategies],['Setups que busca',p.setups]]},
     {icon:'🚪',title:'Reglas de entrada',rows:[['Confirmaciones',p.entryConfirm],['Patrones',p.entryPatterns],['Condiciones de invalidación',p.entryInvalid]]},
-    {icon:'🚶',title:'Reglas de salida',rows:[['Objetivo de beneficio',p.exitTarget],['Gestión del stop',p.exitSl],['Mover a breakeven',p.exitBe],['Cierre manual',p.exitManual]]},
-    {icon:'🧠',title:'Psicología y disciplina',rows:[['Errores frecuentes',p.psyErrors],['Emociones a controlar',(p.emotionsControl||[]).join(', ')],['Recordatorio antes de operar',p.psyRemember]]},
-    {icon:'📋',title:'Rutina del trader',rows:[['Antes de operar',(p.routineBefore||[]).join(', ')],['Después de operar',(p.routineAfter||[]).join(', ')]]},
+    {icon:'🚶',title:'Reglas de salida',rows:[['Objetivo de beneficio',p.exitTarget],['Gestión del stop',p.exitSl],['Mover a breakeven',P.exitBe],['Cierre manual',p.exitManual]]},
+    {icon:'🧠',title:'Psicología y disciplina',rows:[['Errores frecuentes',p.psyErrors],['Emociones a controlar',P.emotionsControl],['Recordatorio antes de operar',p.psyRemember]]},
+    {icon:'📋',title:'Rutina del trader',rows:[['Antes de operar',P.routineBefore],['Después de operar',P.routineAfter]]},
   ];
   el.innerHTML=sections.map(s=>`
     <div class="card" style="margin-bottom:14px">
       <div class="form-section" style="margin-bottom:14px;border-bottom:none;padding-bottom:0">${s.icon} ${s.title}</div>
-      ${s.rows.filter(r=>r[1]&&r[1].length).map(r=>`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">${esc(r[0])}</div><div style="font-size:13px;color:var(--text);line-height:1.6">${esc(r[1])}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text3)">Sin completar</div>'}
+      ${s.rows.filter(r=>r[1]&&r[1].length).map(r=>`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:3px">${esc(window.t(r[0]))}</div><div data-no-i18n style="font-size:13px;color:var(--text);line-height:1.6">${esc(r[1])}</div></div>`).join('')||'<div style="font-size:12px;color:var(--text3)">Sin completar</div>'}
     </div>`).join('');
 }
 
@@ -14468,6 +14471,32 @@ document.addEventListener('visibilitychange',()=>{
 
 var I18N_EN = {
   /* 22-nov-2026: revisión de idioma */
+  'Aún no hay actividad registrada esta semana. El Disciplina Score se calculará en cuanto registres trades o journal.':'No activity logged this week yet. Your Discipline Score will be calculated as soon as you log trades or journal entries.',
+  'Semana irregular. Hubo aspectos correctos, pero también desviaciones notables respecto a tu plan o tu rutina.':'Uneven week. Some things went well, but there were also notable deviations from your plan or routine.',
+  'Objetivo principal':'Main goal',
+  'Corto/largo plazo':'Short/long term',
+  'Por qué el trading':'Why trading',
+  'Riesgo por operación':'Risk per trade',
+  'Cuándo dejar de operar':'When to stop trading',
+  'Pérdida máx. diaria':'Max daily loss',
+  'Pérdida máx. semanal':'Max weekly loss',
+  'Mercados':'Markets',
+  'Temporalidades':'Timeframes',
+  'Metodología':'Methodology',
+  'Setups que busca':'Setups you look for',
+  'Confirmaciones':'Confirmations',
+  'Patrones':'Patterns',
+  'Condiciones de invalidación':'Invalidation conditions',
+  'Objetivo de beneficio':'Profit target',
+  'Gestión del stop':'Stop management',
+  'Mover a breakeven':'Move to breakeven',
+  'Cierre manual':'Manual close',
+  'Errores frecuentes':'Common mistakes',
+  'Emociones a controlar':'Emotions to control',
+  'Recordatorio antes de operar':'Reminder before trading',
+  'Antes de operar':'Before trading',
+  'Después de operar':'After trading',
+  'Al alcanzar ratio 1:1':'On reaching 1:1',
   'Si has comenzado a operar con una nueva cuenta, selecciona una cuenta activa o crea una nueva.':'If you have started trading with a new account, select an active account or create a new one.',
   '¿Qué estrategia usaste?':'Which strategy did you use?',
   'Así podrás comparar en Métricas qué estrategia te funciona mejor.':'That way you can compare in Metrics which strategy works best for you.',
