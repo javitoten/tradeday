@@ -3460,7 +3460,7 @@ function initLandingFX(){
         <div class="welcome-bar">
           <div>
             <h2 id="welcome-msg">Bienvenido de vuelta 👋</h2>
-            <p id="welcome-account">—</p>
+            <p id="welcome-account" data-no-i18n>—</p>
             <div id="account-type-badge"></div>
           </div>
           <button class="btn btn-primary" onclick="openChoice()"><i class="ti ti-plus"></i>Nueva entrada</button>
@@ -3599,7 +3599,7 @@ function initLandingFX(){
       <!-- JOURNAL -->
       <div id="view-journal" style="display:none;flex-direction:column;gap:20px">
         <div class="welcome-bar">
-          <div><div class="section-title" style="font-size:17px">Journal</div><div class="section-sub">Reflexión, psicología y mejora personal — <span id="journal-account-sub">—</span></div></div>
+          <div><div class="section-title" style="font-size:17px">Journal</div><div class="section-sub">Reflexión, psicología y mejora personal — <span id="journal-account-sub" data-no-i18n>—</span></div></div>
           <button class="btn btn-primary" onclick="openChoice()"><i class="ti ti-plus"></i>Nueva entrada</button>
         </div>
 
@@ -3671,7 +3671,7 @@ function initLandingFX(){
       <!-- OPS -->
       <div id="view-ops" style="display:none;flex-direction:column;gap:20px">
         <div class="welcome-bar">
-          <div><div class="section-title" style="font-size:17px">Mis operaciones</div><div class="section-sub">Datos y estadísticas del trading — <span id="ops-account-sub">—</span></div></div>
+          <div><div class="section-title" style="font-size:17px">Mis operaciones</div><div class="section-sub">Datos y estadísticas del trading — <span id="ops-account-sub" data-no-i18n>—</span></div></div>
           <button class="btn btn-primary" onclick="openChoice()"><i class="ti ti-plus"></i>Nueva entrada</button>
         </div>
         <div id="ops-toolbar" data-no-i18n></div>
@@ -3681,7 +3681,7 @@ function initLandingFX(){
       <!-- MÉTRICAS -->
       <div id="view-metrics" style="display:none;flex-direction:column;gap:18px">
         <div class="welcome-bar">
-          <div><div class="section-title" style="font-size:17px">Métricas</div><div class="section-sub">Estadísticas completas de tu trading — <span id="metrics-account-sub">—</span></div></div>
+          <div><div class="section-title" style="font-size:17px">Métricas</div><div class="section-sub">Estadísticas completas de tu trading — <span id="metrics-account-sub" data-no-i18n>—</span></div></div>
         </div>
 
         <div class="card mx-section-block" id="mx-strat-card" data-no-i18n></div>
@@ -5110,7 +5110,7 @@ let _gisResolved=false;
 async function handleGoogleCredential(response){
   _gisResolved=true;
   const{error}=await sb.auth.signInWithIdToken({provider:'google',token:response.credential,nonce:_gisNonceRaw});
-  if(error){toast('Error al iniciar sesión con Google: '+friendlyAuthError(error));}
+  if(error){toast(window.t('Error al iniciar sesión con Google:')+' '+friendlyAuthError(error));}
 }
 async function loginGoogleClassic(){
   if(_gisResolved)return;
@@ -5262,7 +5262,10 @@ const ACCOUNT_TYPES=[
   {key:'custom',icon:'📁',title:'Otra',sub:'Personalizada'},
 ];
 function accountTypeInfo(type){return ACCOUNT_TYPES.find(t=>t.key===type)||ACCOUNT_TYPES[0];}
-function accountTypeLabel(type){return accountTypeInfo(type).title;}
+function accountTypeLabel(type){return window.t(accountTypeInfo(type).title);}
+/* Saludo del dashboard: el texto va en español (lo traduce la capa de idioma) y el
+   nombre del usuario va aparte con data-no-i18n. Se repinta también al cambiar de idioma. */
+function renderWelcome(){const wm=document.getElementById('welcome-msg');if(!wm)return;const n=(userProfile&&userProfile.username)||'Trader';wm.innerHTML=`Bienvenido de vuelta, <span data-no-i18n>${esc(n)}</span> 👋`;if(lang==='en')try{_i18nApplyTo(wm,true);}catch(_){}}
 function accountTypeIcon(type){return accountTypeInfo(type).icon;}
 function accountTypeGridHTML(prefix,selected){
   return ACCOUNT_TYPES.map(t=>`<div class="account-type-card${t.key===selected?' selected':''}" id="${prefix}-at-${t.key}" onclick="selectAccountType('${prefix}','${t.key}')"><div class="account-type-icon">${t.icon}</div><div class="account-type-title">${esc(t.title)}</div><div class="account-type-sub">${esc(t.sub)}</div></div>`).join('');
@@ -5787,7 +5790,7 @@ function showAccountSuspendedWarning(acc){
   if(t)t.textContent=lang==='en'
     ?`${m.emoji} This account is ${String(window.t(m.label)||m.label).toLowerCase()}`
     :`${m.emoji} Esta cuenta está ${m.label.toLowerCase()}`;
-  if(d)d.textContent='Esta cuenta ya no está activa para registrar nuevas operaciones. Tu historial (operaciones, journal, métricas y balance) se conserva intacto y puedes seguir consultándolo. Si has comenzado a operar con una nueva cuenta, selecciona una cuenta activa o crea una nueva.';
+  if(d)d.textContent=window.t('Esta cuenta ya no está activa para registrar nuevas operaciones. Tu historial (operaciones, journal, métricas y balance) se conserva intacto y puedes seguir consultándolo.')+' '+window.t('Si has comenzado a operar con una nueva cuenta, selecciona una cuenta activa o crea una nueva.');
   openModal('modal-account-suspended');
 }
 function suspwarnPickAccount(){
@@ -6121,7 +6124,7 @@ async function loadProfile(){
   else{await sb.from('profiles').insert({id:currentUser.id,username:'Trader'});}
   const sb_name=document.getElementById('sb-name');if(sb_name)sb_name.textContent=userProfile.username||'Trader';
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=(userProfile.username||'T')[0].toUpperCase();
-  const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${userProfile.username||'Trader'} 👋`;
+  renderWelcome();
   try{rebuildTechDropdowns();}catch(_){}
   saveAcquisition();
 }
@@ -6395,7 +6398,7 @@ async function loadData(){
   if(!currentUser||!currentAccountId)return;
   const{data:trades}=await sb.from('trades').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
   const{data:journals}=await sb.from('journals').select('*').eq('user_id',currentUser.id).eq('account_id',currentAccountId).order('date',{ascending:false});
-  allTrades=trades||[];allJournals=journals||[];
+  allTrades=fixLegacyLangRows(trades||[],'trades');allJournals=fixLegacyLangRows(journals||[],'journals');
   try{scheduleImageMigration();}catch(_){}
   _glTrades=null;_glJournals=null; // invalida la caché del Resumen global / análisis global
   normalizeTradeAmounts();
@@ -6423,7 +6426,7 @@ async function saveTrade(){
   const planEl=document.querySelector('#t-plan .chip[class*="sel-"]');
   const beTypeEl=document.querySelector('#t-be-type .chip[class*="sel-"]');
   const isBEResult=!!(resEl&&resEl.classList.contains('sel-be'));
-  const emotions=Array.from(document.querySelectorAll('#t-emo .chip.sel-emotion')).map(e=>e.textContent.replace(/[^\w\sáéíóú]/g,'').trim());
+  const emotions=Array.from(document.querySelectorAll('#t-emo .chip.sel-emotion')).map(e=>srcText(e).replace(/[^\w\sáéíóú]/g,'').trim());
 
   const missing=[];
   if(!date)missing.push('la fecha');
@@ -6432,7 +6435,7 @@ async function saveTrade(){
   if(!resEl)missing.push('el resultado (Win/Loss/BE)');
   if(isBEResult&&!beTypeEl)missing.push('cómo terminó el Breakeven (BE Win/BE Loss)');
   if(missing.length){
-    toast('Completa: '+missing.join(', '));
+    toast(window.t('Completa:')+' '+missing.map(x=>window.t(x)).join(', '));
     if(!pair)document.getElementById('t-pair').classList.add('field-invalid');
     if(!dirEl)document.getElementById('t-dir').classList.add('chip-group-invalid');
     if(!resEl)document.getElementById('t-res').classList.add('chip-group-invalid');
@@ -6515,7 +6518,7 @@ async function saveTrade(){
   }
 
   const payload={date,time,pair,direction,session,result,be_type:beType,amount:amountUSD,amount_pct:amountPct,risk_pct:riskPct,duration_minutes:durationMinutes,
-    followed_plan:planEl?planEl.textContent.replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
+    followed_plan:planEl?srcText(planEl).replace(/[^\w\sáéíóú%.,]/g,'').trim():'',
     emotions,notes,technical_tags:techTags,technical_notes:techNotes,image_url:coverUrl,images:finalImages,strategy:tStrategyValue()};
 
   const{error}=editingTradeId
@@ -6963,7 +6966,7 @@ async function saveJournal(){
   const content=document.getElementById('j-content').value.trim().slice(0,4000);
   const tomorrow=document.getElementById('j-tomorrow').value.trim().slice(0,300);
   const moodEl=document.querySelector('#j-mood .chip[class*="sel-"]');
-  const mood=moodEl?moodEl.textContent.replace(/[^\w\sáéíóú]/g,'').trim():'';
+  const mood=moodEl?srcText(moodEl).replace(/[^\w\sáéíóú]/g,'').trim():'';
   const techTags=getSelectedTechTags('j-tech-dropdowns');
   const techNotes=document.getElementById('j-tech-notes').value.trim().slice(0,1000);
   if(!date){toast('Selecciona una fecha');return;}
@@ -7026,7 +7029,7 @@ async function saveConfig(){
   userProfile.username=username;
   const sb_name=document.getElementById('sb-name');if(sb_name)sb_name.textContent=username;
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=username[0].toUpperCase();
-  const wm=document.getElementById('welcome-msg');if(wm)wm.textContent=`Bienvenido de vuelta, ${username} 👋`;
+  renderWelcome();
   toast('Guardado ✓');
 }
 
@@ -10195,12 +10198,12 @@ function editTradeEntry(id){
   if(t.be_type==='be_loss')selectChip('t-be-type',document.querySelector('#t-be-type .chip:nth-child(2)'),'sel-loss');
   if(t.emotions&&t.emotions.length){
     document.querySelectorAll('#t-emo .chip').forEach(c=>{
-      if(t.emotions.some(em=>c.textContent.includes(em)))c.classList.add('sel-emotion');
+      if(t.emotions.some(em=>srcText(c).includes(em)))c.classList.add('sel-emotion');
     });
   }
   if(t.followed_plan){
     document.querySelectorAll('#t-plan .chip').forEach(c=>{
-      if(c.textContent.includes(t.followed_plan))selectChip('t-plan',c,c.textContent.includes('100%')?'sel-win':c.textContent.includes('Parcialmente')?'sel-be':'sel-loss');
+      if(srcText(c).includes(t.followed_plan))selectChip('t-plan',c,srcText(c).includes('100%')?'sel-win':srcText(c).includes('Parcialmente')?'sel-be':'sel-loss');
     });
   }
   const imgInput=document.getElementById('t-image-input');
@@ -10233,7 +10236,7 @@ function editJournalEntry(id){
   const jm=document.getElementById('j-mood');if(jm)jm.querySelectorAll('.chip').forEach(c=>c.className='chip');
   if(j.mood){
     document.querySelectorAll('#j-mood .chip').forEach(c=>{
-      if(c.textContent.includes(j.mood))c.classList.add(c.textContent.includes('Positivo')?'sel-win':c.textContent.includes('Neutral')?'sel-be':'sel-loss');
+      if(srcText(c).includes(j.mood))c.classList.add(srcText(c).includes('Positivo')?'sel-win':srcText(c).includes('Neutral')?'sel-be':'sel-loss');
     });
   }
   setSelectedTechTags('j-tech-dropdowns',Array.isArray(j.technical_tags)?j.technical_tags:[]);
@@ -10847,7 +10850,7 @@ function routineWizardNext(){
 function renderRoutineSuggestions(){
   const sessionTime=getTimeValue('rt-session-time','rt-session-custom');
   const sessionName=document.getElementById('rt-session-name').value;
-  const selectedActivities=Array.from(document.querySelectorAll('#rt-activities-chips .chip.sel-emotion')).map(c=>c.textContent.trim());
+  const selectedActivities=Array.from(document.querySelectorAll('#rt-activities-chips .chip.sel-emotion')).map(c=>srcText(c).trim());
   const suggestions=[];
 
   if(selectedActivities.includes('Trading')){
@@ -10896,7 +10899,7 @@ function applyRoutineSuggestion(i){
 }
 function quickAddSuggestion(name,icon,time){
   if(!window._rtPendingExtra)window._rtPendingExtra=[];
-  window._rtPendingExtra.push({name,icon,time});
+  window._rtPendingExtra.push({name:window.t(name),icon,time});
   toast(lang==='en'?`"${name}" added to your routine`:`"${name}" añadido a tu rutina`);
 }
 function shiftTime(hhmm,minutes){
@@ -10913,11 +10916,11 @@ function buildInitialRoutineFromWizard(){
   const sessionTime=getTimeValue('rt-session-time','rt-session-custom');
   const sessionEnd=getTimeValue('rt-session-end','rt-session-end-custom');
   const sessionName=document.getElementById('rt-session-name').value;
-  const selectedActivities=Array.from(document.querySelectorAll('#rt-activities-chips .chip.sel-emotion')).map(c=>c.textContent.trim());
+  const selectedActivities=Array.from(document.querySelectorAll('#rt-activities-chips .chip.sel-emotion')).map(c=>srcText(c).trim());
   const customActivities=rtCustomActivities.filter(a=>a&&a.name.trim());
 
   const blocks=[];
-  blocks.push({id:genId(),time:wake,name:'Despertar',icon:'☕'});
+  blocks.push({id:genId(),time:wake,name:window.t('Despertar'),icon:'☕'});
   selectedActivities.forEach(act=>{
     let time=sessionTime;
     if(act==='Trading'){time=sessionTime;}
@@ -10925,12 +10928,12 @@ function buildInitialRoutineFromWizard(){
     else if(act==='Journal')time=sessionEnd||shiftTime(sessionTime,90);
     else if(act==='Gimnasio')time=shiftTime(sessionEnd||shiftTime(sessionTime,90),60);
     else if(act==='Descanso')time=shiftTime(sleep,-60);
-    blocks.push({id:genId(),time,name:act==='Trading'?`${window.t('Sesión')} ${sessionName} (${sessionTime}–${sessionEnd})`:act,icon:RT_ACTIVITY_PRESETS[act]||'⭐'});
+    blocks.push({id:genId(),time,name:act==='Trading'?`${window.t('Sesión')} ${sessionName} (${sessionTime}–${sessionEnd})`:window.t(act),icon:RT_ACTIVITY_PRESETS[act]||'⭐'});
   });
   customActivities.forEach(a=>blocks.push({id:genId(),time:shiftTime(sessionEnd||sessionTime,120),name:a.name.trim(),icon:'⭐'}));
   (window._rtPendingExtra||[]).forEach(extra=>blocks.push({id:genId(),time:extra.time,name:extra.name,icon:extra.icon}));
   window._rtPendingExtra=[];
-  blocks.push({id:genId(),time:sleep,name:'Dormir',icon:'🌙'});
+  blocks.push({id:genId(),time:sleep,name:window.t('Dormir'),icon:'🌙'});
 
   blocks.sort((a,b)=>a.time.localeCompare(b.time));
   routineBlocks=blocks;
@@ -13066,7 +13069,39 @@ async function sbFetchAllUser(table,order){
     out.push(...(data||[]));
     if(!data||data.length<1000)break;
   }
+  if(table==='trades'||table==='journals')fixLegacyLangRows(out,table);
   return out;
+}
+/* ── Valores guardados en inglés por error (hasta el 22-nov-2026) ──
+   Con la interfaz en inglés, varios formularios guardaban el texto VISIBLE del
+   chip/opción ('Calm', 'Partly', 'Positive', 'Rest day', 'Gold / Metals'…) en
+   vez del valor en español. Ya no pasa (srcText / value de <option>), pero las
+   filas antiguas se normalizan al cargarlas para que métricas, análisis y la
+   edición las reconozcan. El mapa se construye con el propio diccionario. */
+let _legacyLangMap=null;
+function legacyLangMap(){
+  if(_legacyLangMap)return _legacyLangMap;
+  const m={};const clean=x=>String(x||'').replace(/[^\w\sáéíóúñÁÉÍÓÚÑ%.,+\/]/g,'').trim();
+  try{Object.keys(I18N_EN).forEach(es=>{const en=clean(I18N_EN[es]),e2=clean(es);if(en&&e2&&en!==e2&&!m[en])m[en]=e2;});}catch(_){}
+  Object.assign(m,{'Calm':'Tranquilo','Euphoric':'Eufórico','Impatient':'Impaciente','Frustrated':'Frustrado','Afraid':'Con miedo','Scared':'Con miedo','Yes 100%':'Sí, al 100%','Yes, 100%':'Sí, al 100%','Partly':'Parcialmente','Positive':'Positivo','Negative':'Negativo','Other':'Otra'});
+  return _legacyLangMap=m;
+}
+function fixLegacyLangValue(v){if(typeof v!=='string'||!v)return v;const m=legacyLangMap();return m[v]||v;}
+function fixLegacyLangRows(rows,table){
+  try{(rows||[]).forEach(r=>{
+    if(table==='trades'){
+      if(r.followed_plan)r.followed_plan=fixLegacyLangValue(r.followed_plan);
+      if(Array.isArray(r.emotions))r.emotions=r.emotions.map(fixLegacyLangValue);
+    }else if(table==='journals'){
+      if(r.mood)r.mood=fixLegacyLangValue(r.mood);
+      if(r.reason)r.reason=fixLegacyLangValue(r.reason);
+    }
+  });}catch(_){}
+  return rows;
+}
+function fixLegacyLangPlan(d){
+  try{if(d&&typeof d==='object')['markets','timeframes','strategies','emotionsControl','routineBefore','routineAfter'].forEach(k=>{if(Array.isArray(d[k]))d[k]=d[k].map(fixLegacyLangValue);});}catch(_){}
+  return d;
 }
 async function paEnsureGlobal(){
   if(_glTrades===null){try{_glTrades=await sbFetchAllUser('trades','date');}catch(e){console.error('global fetch',e);_glTrades=[];}}
@@ -14066,6 +14101,7 @@ async function loadPlan(){
   if(!currentUser)return;
   const{data}=await sb.from('plans').select('*').eq('user_id',currentUser.id).order('updated_at',{ascending:false}).limit(1).maybeSingle();
   currentPlan=data||null;
+  if(currentPlan&&currentPlan.data)fixLegacyLangPlan(currentPlan.data);
   renderPlanView();
   renderPlanToday();renderOnboard();
 }
@@ -14136,12 +14172,12 @@ function loadPlanIntoForm(plan){
 function setChipsSelected(groupId,values){
   const g=document.getElementById(groupId);if(!g)return;
   g.querySelectorAll('.chip').forEach(c=>{
-    c.className='chip'+(values.includes(c.textContent.trim())?' sel-emotion':'');
+    c.className='chip'+(values.includes(srcText(c).trim())?' sel-emotion':'');
   });
 }
 function getSelectedChips(groupId){
   const g=document.getElementById(groupId);if(!g)return[];
-  return Array.from(g.querySelectorAll('.chip.sel-emotion')).map(c=>c.textContent.trim());
+  return Array.from(g.querySelectorAll('.chip.sel-emotion')).map(c=>srcText(c).trim());
 }
 
 function collectPlanData(){
@@ -14426,6 +14462,29 @@ document.addEventListener('visibilitychange',()=>{
    Los datos que escribe el trader NUNCA se traducen. */
 
 var I18N_EN = {
+  /* 22-nov-2026: revisión de idioma */
+  'Si has comenzado a operar con una nueva cuenta, selecciona una cuenta activa o crea una nueva.':'If you have started trading with a new account, select an active account or create a new one.',
+  '¿Qué estrategia usaste?':'Which strategy did you use?',
+  'Así podrás comparar en Métricas qué estrategia te funciona mejor.':'That way you can compare in Metrics which strategy works best for you.',
+  'Trades de la semana':'Trades of the week',
+  'GC (Oro)':'GC (Gold)',
+  'MGC (Micro Oro)':'MGC (Micro Gold)',
+  'SI (Plata)':'SI (Silver)',
+  'CL (Petróleo)':'CL (Crude oil)',
+  'MCL (Micro Petróleo)':'MCL (Micro crude oil)',
+  'NG (Gas natural)':'NG (Natural gas)',
+  '6B (Libra)':'6B (British pound)',
+  '6J (Yen)':'6J (Japanese yen)',
+  'Forex y CFD':'Forex & CFDs',
+  'Futuros · divisas':'Futures · currencies',
+  'Futuros · materias primas':'Futures · commodities',
+  'Futuros · índices':'Futures · indices',
+  'Basado en {0} operaciones con duración registrada':'Based on {0} trades with a logged duration',
+  'Basado en {0} operación con duración registrada':'Based on {0} trade with a logged duration',
+  '{0} de {1}':'{0} out of {1}',
+  'Vista del dashboard de TradeDay: capital, win rate, disciplina, curva de capital, límites del plan y últimas operaciones':'TradeDay dashboard view: capital, win rate, discipline, equity curve, plan limits and latest trades',
+  'Backtesting de TradeDay: el gráfico avanza vela a vela y una operación en largo llega a su take profit':'TradeDay backtesting: the chart moves candle by candle and a long trade reaches its take profit',
+  'Bienvenido de vuelta,':'Welcome back,',
   'Traders registrados':'Registered traders',
   'Operaciones analizadas':'Trades analysed',
   'Buenos días, trader':'Good morning, trader',
@@ -15943,18 +16002,81 @@ function _i18nWalk(root){
   return out;
 }
 
-var _I18N_ATTRS = ['placeholder','title','aria-label','alt'];
+var _I18N_ATTRS = ['placeholder','title','aria-label','alt','label'];
 
 /* Traduce (o restaura) un subárbol concreto. `root` puede ser cualquier
    elemento; se usa tanto en la carga inicial como en cada re-render. */
+/* ── Búsqueda tolerante (22-nov-2026) ──
+   Antes solo se traducía si el texto coincidía EXACTAMENTE con una clave, así
+   que cualquier texto con un número, un nombre o un emoji pegado se quedaba en
+   español. Orden de intentos:
+     1) clave exacta (espacios normalizados)
+     2) números → {0},{1}… (clave con huecos, p. ej. 'Basado en {0} operaciones')
+     3) patrones I18N_EN_RX (nombres u otros datos variables)
+     4) emoji / símbolos al principio o al final ('💰 Cuenta propia')
+     5) partes separadas por ' · ' ('Cuenta propia · 10.000$') */
+var I18N_EN_RX = [
+  /* precios con coma decimal: 6,99€/mes → €6.99/mo · 9,99€ → €9.99 */
+  [/^(\d+),(\d{2})\s?€\s?\/\s?mes$/, '€$1.$2/mo'],
+  [/^(\d+),(\d{2})\s?€\s?\/\s?año$/, '€$1.$2/yr'],
+  [/^(\d+)\s?€\s?\/\s?año$/, '€$1/yr'],
+  [/^(\d+),(\d{2})\s?€$/, '€$1.$2'],
+  [/^(\d+)\s?€$/, '€$1'],
+];
+var _I18N_NUM = /[+\-−]?\d[\d.,]*/g;
+function _i18nLookup(key, depth){
+  if(!key) return null;
+  if(I18N_EN[key]) return I18N_EN[key];
+  var k0 = String(key).trim(); if(I18N_EN[k0]) return I18N_EN[k0];
+  var k = k0.replace(/\s+/g,' ');
+  if(!k) return null;
+  var tr = I18N_EN[k];
+  if(tr) return tr;
+  var nums = [];
+  var nk = k.replace(_I18N_NUM, function(m){ nums.push(m); return '{'+(nums.length-1)+'}'; });
+  if(nums.length && I18N_EN[nk]) return I18N_EN[nk].replace(/\{(\d+)\}/g, function(_,i){ return nums[+i]!==undefined ? nums[+i] : ''; });
+  for(var i=0;i<I18N_EN_RX.length;i++){
+    var p = I18N_EN_RX[i];
+    if(p[0].test(k)) return k.replace(p[0], typeof p[1]==='function' ? function(){ return p[1].apply(null, arguments); } : p[1]);
+  }
+  if((depth||0) > 1) return null;
+  var m = k.match(/^([^A-Za-zÁÉÍÓÚÑáéíóúñ¿¡]+)?(.*?)([^A-Za-zÁÉÍÓÚÑáéíóúñ?!.)]+)?$/);
+  if(m && (m[1] || m[3]) && m[2] && m[2].length >= 3){
+    var core = _i18nLookup(m[2], (depth||0)+1);
+    if(core) return (m[1]||'') + core + (m[3]||'');
+  }
+  if(k.indexOf(' · ') > 0){
+    var parts = k.split(' · '), hit = false;
+    var outP = parts.map(function(s){ var x = _i18nLookup(s, (depth||0)+1); if(x){ hit = true; return x; } return s; });
+    if(hit) return outP.join(' · ');
+  }
+  return null;
+}
+/* Texto ORIGINAL (español) de un elemento aunque la interfaz esté en inglés.
+   Usar SIEMPRE que se lea texto del DOM para guardarlo o compararlo con datos
+   (chips de emociones, «¿Seguiste el plan?», estado de ánimo, actividades…). */
+function srcText(el){
+  if(!el) return '';
+  var out = '';
+  var it = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  var n;
+  while((n = it.nextNode())) out += (_i18nOrig.has(n) ? _i18nOrig.get(n) : n.nodeValue);
+  return out;
+}
+
 function _i18nApplyTo(root, toEN){
   if(!root || root.nodeType !== 1) return;
   _i18nWalk(root).forEach(function(node){
     if(!_i18nOrig.has(node)) _i18nOrig.set(node, node.nodeValue);
     var orig = _i18nOrig.get(node);
     var key = orig.trim();
+    /* <option> sin value: su valor ES el texto. Si lo traducimos, el formulario
+       guardaría el texto en inglés (pasó con «¿Por qué no operaste?»). Fijamos
+       el value con el texto original antes de tocar nada. */
+    var par = node.parentElement;
+    if(par && par.tagName === 'OPTION' && !par.hasAttribute('value')) par.setAttribute('value', key);
     if(!toEN){ node.nodeValue = orig; return; }
-    var tr = I18N_EN[key];
+    var tr = _i18nLookup(key);
     if(tr) node.nodeValue = orig.replace(key, tr);
   });
   _I18N_ATTRS.forEach(function(attr){
@@ -15965,7 +16087,8 @@ function _i18nApplyTo(root, toEN){
       var store = 'i18n' + attr.replace('-','');
       if(el.dataset[store] === undefined) el.dataset[store] = el.getAttribute(attr);
       var orig = el.dataset[store];
-      el.setAttribute(attr, (toEN && I18N_EN[orig]) ? I18N_EN[orig] : orig);
+      var trA = toEN ? _i18nLookup(orig) : null;
+      el.setAttribute(attr, trA || orig);
     });
   });
 }
@@ -16030,7 +16153,16 @@ function applyLang(){
 
 /* Traducción para textos generados desde JavaScript.
    Uso: t('Guardar')  ->  'Save' en inglés, 'Guardar' en español. */
-function t(es){ return (lang==='en' && I18N_EN[es]) ? I18N_EN[es] : es; }
+function t(es){ if(lang!=='en') return es; return _i18nLookup(es) || es; }
+
+/* Diálogos nativos (confirm/alert): no pasan por el DOM, se traducen aquí. */
+(function(){
+  try{
+    var _c = window.confirm, _a = window.alert;
+    window.confirm = function(m){ return _c.call(window, t(m)); };
+    window.alert = function(m){ return _a.call(window, t(m)); };
+  }catch(e){}
+})();
 
 /* Locale para fechas, números y moneda. */
 function getLocale(){ return lang==='en' ? 'en-GB' : 'es-ES'; }
@@ -16055,6 +16187,9 @@ function setLang(next){
       gotoView(currentView);
     }
   }catch(e){}
+  /* Textos que no se repintan con la vista (saludo, barra lateral de cuentas) */
+  try{ if(typeof renderWelcome==='function') renderWelcome(); }catch(e){}
+  try{ var _app=document.getElementById('screen-app'); if(_app && _app.classList.contains('active') && typeof renderAll==='function' && typeof currentUser!=='undefined' && currentUser) renderAll(); }catch(e){}
   applyLang();
 }
 
