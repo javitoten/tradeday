@@ -795,6 +795,7 @@
     let targets = [];         // zonas de acción calculadas en el último dibujo
     let version = 0, lastSig = '', W = 0, H = 0;
     const pv = {};            // vista previa mientras se arrastra SL/TP de una posición u orden
+    let quick = null, quickNever = false; // orden a mercado pendiente de confirmar en el gráfico (22-nov-2026)
     let uid = 0; const nid = p => p + Date.now().toString(36) + (++uid);
 
     /* ── Conversión tiempo/precio ⇄ píxeles ── */
@@ -950,9 +951,9 @@
       const dist = Math.abs(b.entry - b.sl), units = mode === 'pos' ? b.units : (b.riskAmt && dist > 0 ? b.riskAmt / (dist * usd(b.sl)) : 0), sz = fmtUnits(units);
       if (yt != null) tag(yt, LCOL.tp, 'TP  ' + money(Math.abs(b.tp - b.entry) * units), sz);
       tag(ys, LCOL.sl, 'SL  ' + money((isLong ? b.sl - b.entry : b.entry - b.sl) * units), sz);
-      const et = mode === 'order' ? (isLong ? 'Buy ' : 'Sell ') + (b.type === 'limit' ? 'limit' : 'stop') : (isLong ? 'Buy  ' : 'Sell  ') + money(c.unrealized(b).pnl);
+      const et = mode === 'quick' ? (isLong ? 'Buy' : 'Sell') + ' · ' + (window.btL || ((a) => a))('a mercado', 'at market') : mode === 'order' ? (isLong ? 'Buy ' : 'Sell ') + (b.type === 'limit' ? 'limit' : 'stop') : (isLong ? 'Buy  ' : 'Sell  ') + money(c.unrealized(b).pnl);
       const r = tag(ye, LCOL.entry, et, sz, true);
-      if (r) xBtns.push({ id: b.id, act: mode === 'order' ? 'cancel' : 'close', x: r.x2, y: ye, title: mode === 'order' ? 'Cancelar la orden' : 'Cerrar a mercado', be: mode === 'pos' && b.sl !== b.entry ? r.x0 : null });
+      if (r && mode !== 'quick') xBtns.push({ id: b.id, act: mode === 'order' ? 'cancel' : 'close', x: r.x2, y: ye, title: mode === 'order' ? 'Cancelar la orden' : 'Cerrar a mercado', be: mode === 'pos' && b.sl !== b.entry ? r.x0 : null });
       const addW = (level, y) => targets.push({ kind: 'level', wide: true, mode, ref: b, level, x1: 0, x2: W, y }); addW('sl', ys); if (yt != null) addW('tp', yt); if (mode === 'order') addW('entry', ye);
     }
     /* ── Caja de posición (borrador, posición abierta u orden pendiente) ── */
@@ -972,6 +973,7 @@
       let sim = null;
       if (mode === 'draft') sim = simulateBox(b);
       else if (mode === 'pos') { const now = lastTs() + tfSec() / 2; sim = { ets: b.entryTs, xts: Math.min(now, b.t2), xp: c.bid(), closed: false }; }
+      else if (mode === 'closed') sim = { ets: b.entryTs, xts: b.exitTs, xp: b.exit, closed: true };
       if (sim) {
         const sx1 = X(sim.ets), sx2 = X(sim.xts), sy = Y(sim.xp);
         if (sx1 != null && sx2 != null && sy != null) {
@@ -1011,7 +1013,9 @@
       if (showTxt) { const t = `Stop: ${num(b.entry - b.sl)} (${pct2(b.entry - b.sl)}) ${ticks(b.entry - b.sl)}${slMoney != null ? ', ' + (window.btL || ((a) => a))('Importe', 'Amount') + ': ' + imp(slMoney) : ''}`; label2([t], cx, isLong ? ys + 15 : ys - 15, slMoney != null && slMoney >= 0 ? GREEN : RED, '#fff'); }
       let mid, midCol;
       const rrTxt = (window.btL || ((a) => a))('ratio riesgo/beneficio', 'risk/reward ratio') + ': ' + (rr != null ? rr.toLocaleString(window.BT_LANG === 'en' ? 'en-GB' : (window.BT_LANG === 'en' ? 'en-GB' : 'es-ES'), { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—');
-      if (mode === 'pos') {
+      if (mode === 'closed') {
+        mid = [`${(window.btL || ((a) => a))('PyG cerrada', 'Closed P&L')}: ${money(+b.pnl || 0)} (${(+b.r || 0) >= 0 ? '+' : '−'}${Math.abs(+b.r || 0).toFixed(2)}R)`, rrTxt]; midCol = (+b.pnl || 0) >= 0 ? GREEN : RED;
+      } else if (mode === 'pos') {
         const u = c.unrealized(b);
         mid = [`${(window.btL || ((a) => a))('PyG abierta', 'Open P&L')}: ${money(u.pnl)} (${u.r >= 0 ? '+' : '−'}${Math.abs(u.r).toFixed(2)}R), Cantidad: ${fmtUnits(b.units)}`.replace('Cantidad', (window.btL || ((a) => a))('Cantidad', 'Qty')), rrTxt]; midCol = u.pnl >= 0 ? GREEN : RED;
       } else if (sim && risk) {
@@ -1035,6 +1039,11 @@
       if (sel || hov) {
         // 4 puntos como TradingView: TP, SL, entrada (mueve la caja) y ancho (derecha de la entrada)
         bhandle(xa, ye); bhandle(xb, ye); bhandle(xa, ys); if (yt != null) bhandle(xa, yt);
+      }
+      if (mode === 'closed') { // caja de una operación ya cerrada: solo se ve (con ✕ para quitarla del gráfico)
+        if (hov && c.onHideClosedBox) xBtns.push({ id: b.id, act: 'hidebox', x: xb - 8, y: Math.min(ye, ys, yt != null ? yt : ye) - 12, title: (window.btL || ((a) => a))('Quitar esta caja del gráfico', 'Remove this box from the chart') });
+        targets.push({ kind: 'select', mode, ref: b, x1: xa, x2: xb, y1: Math.min(ys, yt != null ? yt : ye), y2: Math.max(ys, yt != null ? yt : ye) });
+        return { xa, xb, ye, ytop: Math.min(ye, ys, yt != null ? yt : ye), ybot: Math.max(ye, ys, yt != null ? yt : ye) };
       }
       const bh = (role, x, y) => targets.push({ kind: 'bh', role, mode, ref: b, x, y });
       bh('entry', xa, ye); bh('width', xb, ye); bh('sl', xa, ys); if (yt != null) bh('tp', xa, yt);
@@ -1311,6 +1320,22 @@
         const pb = Object.assign({}, p, (p.box ? { t1: p.box.t1, t2: p.box.t2 } : { t1: p.entryTs - 60, t2: Math.max(lt + ext, p.entryTs + ext) }), v.sl != null ? { sl: v.sl } : {}, v.tp != null ? { tp: v.tp } : {});
         drawLevels(pb, 'pos'); const rr = drawBox(pb, 'pos');
       });
+      // operaciones cerradas que se abrieron con la caja: la caja se queda en el gráfico (22-nov-2026)
+      (c.closedBoxes ? c.closedBoxes() : []).forEach(t => drawBox(Object.assign({}, t, { t1: t.box.t1, t2: Math.max(t.box.t2, t.exitTs || t.box.t2), sl: t.initialSl != null ? t.initialSl : t.sl }), 'closed'));
+      // orden a mercado pendiente de confirmar: línea de entrada + SL y TP que se arrastran, y «Confirmar»
+      if (quick) {
+        quick.entry = c.quickEntry ? c.quickEntry(quick.side) : quick.entry; quick.riskAmt = c.riskAmt();
+        drawLevels(quick, 'quick');
+        const ye = Y(quick.entry);
+        if (ye != null) {
+          const isB = quick.side === 'buy', rr = quick.tp != null && quick.sl !== quick.entry ? Math.abs(quick.tp - quick.entry) / Math.abs(quick.entry - quick.sl) : null;
+          const ax = Math.max(4, Math.min(W - 330, W / 2 - 160)), ay = Math.max(4, Math.min(H - 70, ye + 16));
+          html += `<div class="ov-bar ov-quick" style="left:${ax}px;top:${ay}px;flex-wrap:wrap;max-width:320px">
+            <button class="ov-go ${isB ? 'long' : 'short'}" data-act="qok">${isB ? (window.btL || ((a) => a))('Confirmar compra', 'Confirm buy') : (window.btL || ((a) => a))('Confirmar venta', 'Confirm sell')}${rr != null ? ' · R:R ' + rr.toFixed(2) : ''}</button>
+            <button class="ov-x" data-act="qx" title="${(window.btL || ((a) => a))('Cancelar', 'Cancel')}">✕</button>
+            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#9BA3AF;width:100%;margin-top:4px;cursor:pointer"><input type="checkbox" data-qnever ${quickNever ? 'checked' : ''}>${(window.btL || ((a) => a))('No volver a pedir confirmación', "Don't ask for confirmation again")}</label></div>`;
+        }
+      }
       // borradores + barra de acciones HTML
       drafts.forEach(d => {
         d.side = d.type === 'long' ? 'buy' : 'sell';
@@ -1329,10 +1354,15 @@
     }
 
     actions.addEventListener('mousedown', e => e.stopPropagation(), true);
+    actions.addEventListener('change', e => { if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-qnever')) quickNever = e.target.checked; });
     actions.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
+      if (b.classList.contains('ov-lx') && b.dataset.act === 'hidebox') { c.onHideClosedBox && c.onHideClosedBox(b.dataset.id); version++; return; }
       if (b.classList.contains('ov-lx')) { if (b.dataset.act === 'cancel') c.onCancelOrder && c.onCancelOrder(b.dataset.id); else c.onClosePosition && c.onClosePosition(b.dataset.id); version++; return; }
       if (b.dataset.act === 'be') { c.onBreakeven && c.onBreakeven(b.dataset.id); version++; return; }
+      if (b.dataset.act === 'hidebox') { c.onHideClosedBox && c.onHideClosedBox(b.dataset.id); version++; return; }
+      if (b.dataset.act === 'qok') { if (quick && c.onQuickConfirm && c.onQuickConfirm(Object.assign({}, quick), quickNever) !== false) quick = null; version++; return; }
+      if (b.dataset.act === 'qx') { quick = null; version++; return; }
       if (b.dataset.act === 'close') { c.onClosePosition && c.onClosePosition(b.dataset.id); version++; return; }
       if (b.dataset.act === 'cancel') { c.onCancelOrder && c.onCancelOrder(b.dataset.id); version++; return; }
       const d = drafts.find(x => x.id === b.dataset.id); if (!d) return;
@@ -1751,6 +1781,10 @@
         if (drag.mode === 'pos' || drag.mode === 'order') {
           const key = drag.level === 'entry' ? 'price' : drag.level;
           drag.pending = Object.assign(drag.pending || {}, { [key]: price }); pv[r.id] = drag.pending;
+        } else if (drag.mode === 'quick') {
+          const e0 = r.entry, isB = r.side === 'buy';
+          if (drag.level === 'sl') r.sl = isB ? Math.min(price, e0 - c.sym().pip) : Math.max(price, e0 + c.sym().pip);
+          if (drag.level === 'tp') r.tp = isB ? Math.max(price, e0 + c.sym().pip) : Math.min(price, e0 - c.sym().pip);
         } else r[drag.level] = price;
       }
       else if (drag.kind === 'bh' && (drag.role === 'width' || drag.role === 'entry')) {
@@ -1794,7 +1828,7 @@
       if (d.kind === 'bh' && d.real && !d.pending) { if (c.onBoxChange) c.onBoxChange(d.real); version++; return; }
       if (d.mode === 'pos' && d.pending) { delete pv[d.ref.id]; c.onModifyPosition(d.ref.id, d.pending); }
       else if (d.mode === 'order' && d.pending) { delete pv[d.ref.id]; c.onModifyOrder(d.ref.id, d.pending); }
-      else if (d.mode === 'draft') { /* nada que guardar */ }
+      else if (d.mode === 'draft' || d.mode === 'quick' || d.mode === 'closed') { /* nada que guardar */ }
       else { if (d.ref && drawings.includes(d.ref) && (d.kind === 'point' || d.kind === 'trend' || d.kind === 'rect' || d.kind === 'shape')) anchorDrawing(d.ref); changed(); }
       version++;
     });
@@ -1808,6 +1842,8 @@
       setTool, get tool() { return tool; },
       invalidate() { version++; },
       retime,
+      setQuick(q) { quick = q ? Object.assign({ id: 'quick' }, q) : null; version++; },
+      get quick() { return quick; },
       removeDraft(id) { drafts = drafts.filter(x => x.id !== id); if (selected && selected.id === id) selected = null; version++; },
       deleteSelected() {
         if (!selected) return false;
@@ -1862,6 +1898,10 @@
  * btI18nInstall(win) instala la capa en una ventana (el LAB y el iframe de Métricas). */
 (function () {
   var BT_EN = {
+"Operar": "Trading",
+"Órdenes a mercado": "Market orders",
+"Colocar SL y TP en el gráfico y confirmar antes de comprar/vender a mercado": "Place SL and TP on the chart and confirm before buying/selling at market",
+"Confirmación desactivada. Puedes volver a activarla en Configuración → Operar": "Confirmation turned off. You can turn it back on in Settings → Trading",
 "El backtesting se disfruta en el ordenador": "Backtesting is best enjoyed on a computer",
 "Volver al diario": "Back to journal",
 "Sugerencias": "Suggestions",
@@ -4704,7 +4744,7 @@ const CFG_KEY = 'td_bt_lab_chartcfg';
 const CFG_DEF = { type: 'candles', up: '#26A69A', down: '#EF5350', wickUp: '#26A69A', wickDown: '#EF5350', border: false, borderUp: '#26A69A', borderDown: '#EF5350', lineColor: '#60A5FA',
   bg: '#030303', gridColor: '#ffffff0b', vgrid: true, hgrid: true, crosshair: 'normal', textColor: '#9BA3AF', fontSize: '12', watermark: false, scaleMode: '0', lastLine: true, rightOffset: '12',
   bodyOn: true, wickOn: true, prevClose: false, precision: 'def', bgType: 'solid', bg2: '#0B0D12', vgridColor: '#FFFFFF0B', hgridColor: '#FFFFFF0B', crossColor: '#9598A1', crossStyle: 'dashed',
-  scaleLine: '#FFFFFF14', marginTop: '10', marginBottom: '8', lastLabel: true, stTitle: true, stOHLC: true, stChange: true, stInd: true };
+  scaleLine: '#FFFFFF14', marginTop: '10', marginBottom: '8', lastLabel: true, stTitle: true, stOHLC: true, stChange: true, stInd: true, quickConfirm: true };
 let CFG = Object.assign({}, CFG_DEF, (() => { try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch (_) { return {}; } })());
 { // colores antiguos por defecto guardados → pasan a los nuevos (los personalizados se respetan)
   const OLD = { up: '#22C55E', down: '#EF4444', wickUp: '#22C55E', wickDown: '#EF4444', borderUp: '#22C55E', borderDown: '#EF4444', bg: '#0A0B0E', gridColor: '#ffffff08' };
@@ -4849,6 +4889,10 @@ const CFG_SECS = [
     { k: 'marginTop', label: 'Parte superior', num: '%', min: 0, max: 40 },
     { k: 'marginBottom', label: 'Parte inferior', num: '%', min: 0, max: 40 },
     { k: 'rightOffset', label: 'Derecha', num: 'barras', min: 0, max: 200 },
+  ] },
+  { id: 'trading', t: 'Operar', i: 'ti-arrows-exchange', rows: [
+    { h: 'Órdenes a mercado' },
+    { k: 'quickConfirm', check: 'Colocar SL y TP en el gráfico y confirmar antes de comprar/vender a mercado' },
   ] },
 ];
 const CFGUI = { sec: 'symbol', snap: null };
@@ -5182,6 +5226,17 @@ function buildChart() {
     onToolChange: () => buildTools(),
     onHistory: e => histPush(e),
     toast: m => toast(m), bg: () => CFG.bg,
+    // 22-nov-2026: las cajas de operaciones cerradas se quedan en el gráfico (se pueden quitar con la ×)
+    closedBoxes: () => S.account ? S.account.closed.filter(t => t.box && !(S.hiddenMarks || []).includes('bx|' + t.id)) : [],
+    onHideClosedBox: id => { S.hiddenMarks = [...new Set([...(S.hiddenMarks || []), 'bx|' + id])]; sessionSaveSoon(); buildTools(); ov.invalidate(); },
+    // compra/venta a mercado con SL/TP colocados en el gráfico + Confirmar
+    quickEntry: side => S.replay ? (side === 'buy' ? S.replay.ask() : S.replay.bid()) : null,
+    onQuickConfirm: (q, never) => {
+      if (never) { CFG.quickConfirm = false; saveCfg(); toast('Confirmación desactivada. Puedes volver a activarla en Configuración → Operar'); }
+      const r = S.replay; if (!r) return false;
+      const now = r.now(); // con caja: al cerrarse la operación sigue en el gráfico
+      return submitOrder({ side: q.side, type: 'market', entry: q.side === 'buy' ? r.ask() : r.bid(), sl: BT.round(q.sl, sym().digits + 1), tp: q.tp != null ? BT.round(q.tp, sym().digits + 1) : null, riskPct: parseFloat($('risk').value), box: { t1: now - 60, t2: now + S.tf * 60 * 28 } });
+    },
   });
   applyLock(); applyCfg(false); initOrderModal(); initJr(); chInitModal(); initGoto(); if (!NEWS.init) { NEWS.init = true; initNews(); } if (!REW.init) { REW.init = true; initRewind(); } initSec(); applyCursorStyle(); initVCross();
   new ResizeObserver(placeScaleBox).observe($('chart'));
@@ -7178,7 +7233,21 @@ function bindUI() {
   // Barra rápida: comparte riesgo/SL/TP con el ticket del panel derecho
   const syncQ = (from, to) => { $(to).value = $(from).value; updateTicket(); ov && ov.invalidate(); };
   [['qRisk', 'risk'], ['qSl', 'slPips'], ['qTp', 'tpPips']].forEach(([q, m]) => { $(q).addEventListener('input', () => syncQ(q, m)); $(m).addEventListener('input', () => { $(q).value = $(m).value; }); });
-  const quick = side => { S.side = side; const prev = S.otype; S.otype = 'market'; placeFromTicket(); S.otype = prev; updateTicket(); };
+  const quickDirect = side => { S.side = side; const prev = S.otype; S.otype = 'market'; placeFromTicket(); S.otype = prev; updateTicket(); };
+  const quick = side => {
+    if (CFG.quickConfirm === false) return quickDirect(side);
+    const r = S.replay, s = sym(); if (!r || !S.account) return;
+    if (S.challenge && S.challenge.st && (S.challenge.st.status === 'failed' || S.challenge.st.status === 'phase')) return quickDirect(side); // muestra el aviso del reto
+    stop();
+    const dir = side === 'buy' ? 1 : -1, e = side === 'buy' ? r.ask() : r.bid(), dg = s.digits + 1;
+    const slP = parseFloat($('slPips').value), tpP = parseFloat($('tpPips').value);
+    let dist;
+    if (slP > 0) dist = slP * s.pip;
+    else { const b = r.bars.slice(-14); dist = b.length ? 1.5 * b.reduce((a, x) => a + (x.high - x.low), 0) / b.length : s.pip * 20; }
+    dist = Math.max(dist, s.pip * 5);
+    const tdist = tpP > 0 ? tpP * s.pip : dist * 2;
+    ov.setQuick({ side, sl: BT.round(e - dir * dist, dg), tp: BT.round(e + dir * tdist, dg) });
+  };
   $('qBuy').onclick = () => quick('buy'); $('qSell').onclick = () => quick('sell');
   $('indBtn').onclick = e => { e.stopPropagation(); buildIndMenu(); $('indDD').classList.toggle('open'); $('tfDD').classList.remove('open'); };
   $('indMenu').addEventListener('click', e => {
@@ -7248,6 +7317,7 @@ function bindUI() {
       const k = e.shiftKey ? 10 : 1; e.preventDefault();
       ov.nudgeSelected(e.code === 'ArrowLeft' ? -k : e.code === 'ArrowRight' ? k : 0, e.code === 'ArrowUp' ? k : e.code === 'ArrowDown' ? -k : 0); return;
     }
+    if (ov.quick && (e.key === 'Enter' || e.key === 'Escape')) { e.preventDefault(); if (e.key === 'Enter') { const b = document.querySelector('.ov-quick [data-act=qok]'); if (b) b.click(); } else ov.setQuick(null); return; }
     if (e.code === 'Space') { e.preventDefault(); S.playing ? stop() : play(); }
     if (e.code === 'ArrowRight') { e.preventDefault(); stop(); advance(); }
     if (e.key === 'Escape') { ov.closeUi && ov.closeUi(); omClose(); closeFlyout(); if ($('mCfg').classList.contains('show')) closeCfg(false); ov.cancel(); $('tfDD').classList.remove('open'); $('indDD').classList.remove('open'); }
