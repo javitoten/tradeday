@@ -1021,7 +1021,8 @@
         const units = risk && b.entry !== b.sl ? risk / Math.abs(b.entry - b.sl) / usdK(b.sl) : 0;
         mid = [`${mode === 'order' ? (b.type === 'limit' ? (window.btL || ((a) => a))('Límite ', 'Limit ') : 'Stop ') : ''}${isLong ? (window.btL || ((a) => a))('Largo', 'Long') : (window.btL || ((a) => a))('Corto', 'Short')} ${fmtPx(b.entry)}, ${(window.btL || ((a) => a))('Cantidad', 'Qty')}: ${fmtUnits(units)}`, rrTxt]; midCol = '#1E2028';
       }
-      if (hov && !dragThis) {
+      // Mientras arrastras el TP o el SL de la caja, el centro (PyG, cantidad y ratio riesgo/beneficio) se ve al momento (22-nov-2026)
+      if ((hov && !dragThis) || (dragThis && (drag.kind === 'bh' || drag.kind === 'level'))) {
         // Se coloca en la zona con más sitio (beneficio o pérdida), siempre a 10 px como mínimo de la línea de entrada
         const lh = mid.length * 17 + 9, gap = 10, up = Math.min(ye, yt != null ? yt : ye), dn = Math.max(ye, yt != null ? yt : ye);
         const tpSpace = yt != null ? Math.abs(yt - ye) : 0, slSpace = Math.abs(ys - ye);
