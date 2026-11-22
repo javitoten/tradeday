@@ -5081,16 +5081,16 @@ async function signupEmail(){
   if(pass.length<8){showAuthError('signup-error','La contraseña debe tener al menos 8 caracteres.');return;}
   if(!/[a-z]/.test(pass)||!/[A-Z]/.test(pass)||!/[0-9]/.test(pass)){showAuthError('signup-error','La contraseña debe incluir mayúsculas, minúsculas y números.');return;}
   const captchaToken=await getCaptchaToken(hcapSignupId);
-  const{data,error}=await sb.auth.signUp({email,password:pass,options:{captchaToken,data:{acq:(window.tdGetAcq&&window.tdGetAcq())||null}}});
+  const{data,error}=await sb.auth.signUp({email,password:pass,options:{captchaToken,data:{acq:(window.tdGetAcq&&window.tdGetAcq())||null,lang}}});
   resetCaptcha(hcapSignupId);
   if(error){showAuthError('signup-error',friendlyAuthError(error));return;}
   if(data.user){
-    await sb.from('profiles').upsert({id:data.user.id,username});
+    await sb.from('profiles').upsert({id:data.user.id,username,lang});
     // Email de bienvenida (fire-and-forget, no bloquea el registro si falla)
     fetch(SUPABASE_URL+'/functions/v1/send-welcome-email',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_ANON,'apikey':SUPABASE_ANON},
-      body:JSON.stringify({record:{id:data.user.id,username}})
+      body:JSON.stringify({record:{id:data.user.id,username,lang}})
     }).catch(()=>{});
   }
   // Si Supabase requiere confirmación de email, no habrá sesión todavía:
@@ -5262,6 +5262,8 @@ const ACCOUNT_TYPES=[
   {key:'custom',icon:'📁',title:'Otra',sub:'Personalizada'},
 ];
 function accountTypeInfo(type){return ACCOUNT_TYPES.find(t=>t.key===type)||ACCOUNT_TYPES[0];}
+/* Idioma del usuario en su perfil (22-nov-2026): lo usan los emails automáticos para escribir en su idioma. */
+function saveProfileLang(){try{if(!currentUser||!userProfile||userProfile.lang===lang)return;userProfile.lang=lang;sb.from('profiles').update({lang}).eq('id',currentUser.id).then(()=>{},()=>{});}catch(_){}}
 function accountTypeLabel(type){return window.t(accountTypeInfo(type).title);}
 /* Saludo del dashboard: el texto va en español (lo traduce la capa de idioma) y el
    nombre del usuario va aparte con data-no-i18n. Se repinta también al cambiar de idioma. */
@@ -6121,7 +6123,10 @@ async function loadProfile(){
   if(!currentUser)return;
   const{data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
   if(data){userProfile=data;}
-  else{await sb.from('profiles').insert({id:currentUser.id,username:'Trader'});}
+  else{await sb.from('profiles').insert({id:currentUser.id,username:'Trader',lang});userProfile.lang=lang;}
+  /* Idioma: si este navegador nunca eligió idioma y el perfil sí tiene uno, se usa el del perfil; si no, se guarda el actual */
+  let _lsLang=null;try{_lsLang=localStorage.getItem('td_lang');}catch(_){}
+  if(userProfile.lang&&!_lsLang&&userProfile.lang!==lang&&typeof setLang==='function'){try{setLang(userProfile.lang);}catch(_){}}else saveProfileLang();
   const sb_name=document.getElementById('sb-name');if(sb_name)sb_name.textContent=userProfile.username||'Trader';
   const sb_av=document.getElementById('sb-avatar');if(sb_av)sb_av.textContent=(userProfile.username||'T')[0].toUpperCase();
   renderWelcome();
@@ -16187,6 +16192,7 @@ function setLang(next){
       gotoView(currentView);
     }
   }catch(e){}
+  try{ if(typeof saveProfileLang==='function') saveProfileLang(); }catch(e){}
   /* Textos que no se repintan con la vista (saludo, barra lateral de cuentas) */
   try{ if(typeof renderWelcome==='function') renderWelcome(); }catch(e){}
   try{ var _app=document.getElementById('screen-app'); if(_app && _app.classList.contains('active') && typeof renderAll==='function' && typeof currentUser!=='undefined' && currentUser) renderAll(); }catch(e){}
